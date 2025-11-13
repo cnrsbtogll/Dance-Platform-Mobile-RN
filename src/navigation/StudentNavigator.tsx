@@ -12,6 +12,7 @@ import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { PaymentScreen } from '../screens/student/PaymentScreen';
+import { NotificationScreen } from '../screens/shared/NotificationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -193,6 +194,19 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="Payment"
         component={PaymentScreen}
+        options={{ 
+          headerShown: true,
+          headerBackTitle: '',
+          headerTintColor: colors.student.text.primaryLight,
+          headerStyle: {
+            backgroundColor: colors.student.background.light,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="Notification"
+        component={NotificationScreen}
         options={{ 
           headerShown: true,
           headerBackTitle: '',

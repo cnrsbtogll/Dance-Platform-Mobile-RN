@@ -21,23 +21,6 @@ export const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: spacing.md }}
-          onPress={() => {}}
-        >
-          <MaterialIcons
-            name="settings"
-            size={24}
-            color={colors.student.text.primaryLight}
-          />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-
   const handleLogout = () => {
     logout();
     // Navigate to login screen if needed
@@ -203,12 +186,16 @@ export const ProfileScreen: React.FC = () => {
           onPress={() => {
             console.log('Button pressed - switching to instructor mode');
             // Navigate to Instructor mode using CommonActions
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Instructor' }],
-              })
-            );
+            // Get root navigator to navigate between Student and Instructor
+            const rootNavigation = navigation.getParent()?.getParent();
+            if (rootNavigation) {
+              rootNavigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Instructor' }],
+                })
+              );
+            }
           }}
         >
           <Text style={styles.switchModeButtonText}>Eğitmen Moduna Geç</Text>

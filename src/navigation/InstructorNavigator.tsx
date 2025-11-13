@@ -13,6 +13,8 @@ import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
+import { NotificationScreen } from '../screens/shared/NotificationScreen';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -65,18 +67,6 @@ const MainTabs: React.FC = () => {
                 EĞİTMEN
               </Text>
             </View>
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
-              onPress={() => {}}
-            >
-              <MaterialIcons
-                name="notifications"
-                size={28}
-                color={colors.instructor.text.lightPrimary}
-              />
-            </TouchableOpacity>
           ),
           headerStyle: {
             backgroundColor: colors.instructor.background.light,
@@ -231,6 +221,19 @@ export const InstructorNavigator: React.FC = () => {
           presentation: 'card',
         }}
       /> */}
+      <Stack.Screen
+        name="Notification"
+        component={NotificationScreen}
+        options={{ 
+          headerShown: true,
+          headerBackTitle: '',
+          headerTintColor: colors.instructor.text.lightPrimary,
+          headerStyle: {
+            backgroundColor: colors.instructor.background.light,
+          },
+          presentation: 'card',
+        }}
+      />
     </Stack.Navigator>
   );
 };

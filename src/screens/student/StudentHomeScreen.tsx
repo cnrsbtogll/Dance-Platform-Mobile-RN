@@ -6,6 +6,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useNotificationStore } from '../../store/useNotificationStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
@@ -15,6 +16,7 @@ export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
+  const { unreadCount, loadNotifications } = useNotificationStore();
   const filteredLessons = lessons.filter(lesson => {
     if (selectedCategory && lesson.category !== selectedCategory) return false;
     if (searchQuery) {
@@ -27,6 +29,12 @@ export const StudentHomeScreen: React.FC = () => {
   });
 
   const categories = ['Hepsi', 'Salsa', 'Bachata', 'Tango', 'Kizomba'];
+
+  useEffect(() => {
+    if (user) {
+      loadNotifications(user.id);
+    }
+  }, [user, loadNotifications]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -44,18 +52,29 @@ export const StudentHomeScreen: React.FC = () => {
       headerRight: () => (
         <TouchableOpacity
           style={styles.notificationButton}
-          onPress={() => {}}
+          onPress={() => {
+            (navigation as any).getParent()?.navigate('Notification');
+          }}
         >
-          <MaterialIcons
-            name="notifications"
-            size={24}
-            color={colors.student.text.primaryLight}
-          />
+          <View style={{ position: 'relative' }}>
+            <MaterialIcons
+              name="notifications"
+              size={24}
+              color={colors.student.text.primaryLight}
+            />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       ),
       headerTitle: '',
     });
-  }, [navigation, user]);
+  }, [navigation, user, unreadCount]);
 
   return (
     <View style={styles.container}>
@@ -198,6 +217,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#e53e3e',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: colors.student.background.light,
+  },
+  notificationBadgeText: {
+    fontSize: 10,
+    fontWeight: typography.fontWeight.bold,
+    color: '#ffffff',
   },
   searchContainer: {
     flexDirection: 'row',

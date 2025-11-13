@@ -1,9 +1,10 @@
-import { User, Lesson, Review, Booking, Message } from '../types';
+import { User, Lesson, Review, Booking, Message, Notification } from '../types';
 import usersData from '../data/users.json';
 import lessonsData from '../data/lessons.json';
 import reviewsData from '../data/reviews.json';
 import bookingsData from '../data/bookings.json';
 import messagesData from '../data/messages.json';
+import notificationsData from '../data/notifications.json';
 
 // Type assertions
 const users = usersData as User[];
@@ -11,6 +12,7 @@ const lessons = lessonsData as Lesson[];
 const reviews = reviewsData as Review[];
 const bookings = bookingsData as Booking[];
 const messages = messagesData as Message[];
+const notifications = notificationsData as Notification[];
 
 export class MockDataService {
   // Users
@@ -119,6 +121,34 @@ export class MockDataService {
     return messages.filter(
       message => message.receiverId === userId && !message.isRead
     );
+  }
+
+  // Notifications
+  static getNotifications(userId: string): Notification[] {
+    return notifications
+      .filter(notification => notification.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  static getUnreadNotificationCount(userId: string): number {
+    return notifications.filter(
+      notification => notification.userId === userId && !notification.isRead
+    ).length;
+  }
+
+  static markNotificationAsRead(notificationId: string): void {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+      notification.isRead = true;
+    }
+  }
+
+  static markAllNotificationsAsRead(userId: string): void {
+    notifications
+      .filter(notification => notification.userId === userId && !notification.isRead)
+      .forEach(notification => {
+        notification.isRead = true;
+      });
   }
 
   // Helper methods

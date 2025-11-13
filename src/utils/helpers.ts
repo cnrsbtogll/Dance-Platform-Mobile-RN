@@ -101,3 +101,32 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
+export const getDayName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+  return days[date.getDay()];
+};
+
+export const formatNotificationTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  } else if (diffDays === 1) {
+    return 'Dün';
+  } else if (diffDays < 7) {
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    return days[date.getDay()];
+  } else {
+    return date.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+    });
+  }
+};
+

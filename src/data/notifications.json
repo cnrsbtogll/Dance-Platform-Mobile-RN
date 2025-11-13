@@ -1,0 +1,109 @@
+[
+  {
+    "id": "notif1",
+    "userId": "user1",
+    "title": "Rezervasyon Onaylandı",
+    "message": "Salsa Başlangıç Seviyesi dersiniz için rezervasyonunuz onaylandı. 15 Kasım 2024, 19:00",
+    "type": "booking_confirmed",
+    "isRead": false,
+    "createdAt": "2025-11-13T10:00:00Z",
+    "lessonId": "lesson1",
+    "bookingId": "booking1"
+  },
+  {
+    "id": "notif2",
+    "userId": "user1",
+    "title": "Yeni Mesaj",
+    "message": "Ayla Yılmaz size bir mesaj gönderdi",
+    "type": "new_message",
+    "isRead": false,
+    "createdAt": "2025-11-13T09:30:00Z",
+    "lessonId": "lesson1"
+  },
+  {
+    "id": "notif3",
+    "userId": "user1",
+    "title": "Ödeme Alındı",
+    "message": "Salsa Başlangıç Seviyesi dersi için ödemeniz alındı. 150₺",
+    "type": "payment_received",
+    "isRead": true,
+    "createdAt": "2025-11-12T14:20:00Z",
+    "lessonId": "lesson1",
+    "bookingId": "booking1"
+  },
+  {
+    "id": "notif4",
+    "userId": "user1",
+    "title": "Ders Hatırlatıcı",
+    "message": "Yarın saat 19:00'da Salsa Başlangıç Seviyesi dersiniz var",
+    "type": "lesson_reminder",
+    "isRead": false,
+    "createdAt": "2025-11-12T18:00:00Z",
+    "lessonId": "lesson1",
+    "bookingId": "booking1"
+  },
+  {
+    "id": "notif5",
+    "userId": "instructor1",
+    "title": "Yeni Rezervasyon",
+    "message": "Ahmet Yılmaz Salsa Başlangıç Seviyesi dersinize rezervasyon yaptı",
+    "type": "new_booking",
+    "isRead": false,
+    "createdAt": "2025-11-13T11:00:00Z",
+    "lessonId": "lesson1",
+    "bookingId": "booking1"
+  },
+  {
+    "id": "notif6",
+    "userId": "instructor1",
+    "title": "Yeni Yorum",
+    "message": "Ahmet Yılmaz dersinize 5 yıldız verdi ve yorum yazdı",
+    "type": "new_review",
+    "isRead": false,
+    "createdAt": "2025-11-12T16:45:00Z",
+    "lessonId": "lesson1"
+  },
+  {
+    "id": "notif7",
+    "userId": "instructor1",
+    "title": "Ödeme Alındı",
+    "message": "Salsa Başlangıç Seviyesi dersi için 150₺ ödeme alındı",
+    "type": "payment_received",
+    "isRead": true,
+    "createdAt": "2025-11-12T14:20:00Z",
+    "lessonId": "lesson1",
+    "bookingId": "booking1"
+  },
+  {
+    "id": "notif8",
+    "userId": "instructor1",
+    "title": "Yeni Mesaj",
+    "message": "Ahmet Yılmaz size bir mesaj gönderdi",
+    "type": "new_message",
+    "isRead": true,
+    "createdAt": "2025-11-11T10:15:00Z",
+    "lessonId": "lesson1"
+  },
+  {
+    "id": "notif9",
+    "userId": "user1",
+    "title": "Ders Güncellendi",
+    "message": "Salsa Başlangıç Seviyesi dersinin tarihi güncellendi",
+    "type": "lesson_updated",
+    "isRead": true,
+    "createdAt": "2025-11-10T08:30:00Z",
+    "lessonId": "lesson1"
+  },
+  {
+    "id": "notif10",
+    "userId": "instructor1",
+    "title": "Rezervasyon İptal Edildi",
+    "message": "Mehmet Demir dersinizden rezervasyonunu iptal etti",
+    "type": "booking_cancelled",
+    "isRead": true,
+    "createdAt": "2025-11-09T15:20:00Z",
+    "lessonId": "lesson2",
+    "bookingId": "booking2"
+  }
+]
+

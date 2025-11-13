@@ -5,6 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useNotificationStore } from '../../store/useNotificationStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
@@ -14,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
+  const { unreadCount, loadNotifications } = useNotificationStore();
   const insets = useSafeAreaInsets();
   
   // Get instructor's lessons
@@ -85,6 +87,57 @@ export const InstructorHomeScreen: React.FC = () => {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadNotifications(user.id);
+    }
+  }, [user, loadNotifications]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
+          onPress={() => {
+            (navigation as any).getParent()?.navigate('Notification');
+          }}
+        >
+          <View style={{ position: 'relative' }}>
+            <MaterialIcons
+              name="notifications"
+              size={28}
+              color={colors.instructor.text.lightPrimary}
+            />
+            {unreadCount > 0 && (
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                right: -4,
+                minWidth: 18,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: '#e53e3e',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 4,
+                borderWidth: 2,
+                borderColor: colors.instructor.background.light,
+              }}>
+                <Text style={{
+                  fontSize: 10,
+                  fontWeight: typography.fontWeight.bold,
+                  color: '#ffffff',
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, unreadCount]);
 
   return (
     <View style={styles.container}>

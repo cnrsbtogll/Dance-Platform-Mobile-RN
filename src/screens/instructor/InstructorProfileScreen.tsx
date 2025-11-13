@@ -217,12 +217,16 @@ export const InstructorProfileScreen: React.FC = () => {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => {
             // Navigate to Student mode using CommonActions
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Student' }],
-              })
-            );
+            // Get root navigator to navigate between Student and Instructor
+            const rootNavigation = navigation.getParent()?.getParent();
+            if (rootNavigation) {
+              rootNavigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Student' }],
+                })
+              );
+            }
           }}
         >
           <Text style={styles.switchModeButtonText}>Öğrenci Moduna Geç</Text>
