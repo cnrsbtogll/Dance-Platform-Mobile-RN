@@ -120,7 +120,8 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
+      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
+      {/* <Tab.Screen
         name="Messages"
         component={InstructorChatScreen}
         options={{
@@ -139,7 +140,7 @@ const MainTabs: React.FC = () => {
             <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="Profile"
         component={InstructorProfileScreen}
@@ -216,14 +217,15 @@ export const InstructorNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
+      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
+      {/* <Stack.Screen
         name="ChatDetail"
         component={ChatDetailScreen}
         options={{ 
           headerShown: false,
           presentation: 'card',
         }}
-      />
+      /> */}
     </Stack.Navigator>
   );
 };

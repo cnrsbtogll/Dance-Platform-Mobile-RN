@@ -95,7 +95,8 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
+      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
+      {/* <Tab.Screen
         name="Chat"
         component={ChatScreen}
         options={{
@@ -114,7 +115,7 @@ const MainTabs: React.FC = () => {
             <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -175,7 +176,8 @@ export const StudentNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
+      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
+      {/* <Stack.Screen
         name="ChatDetail"
         component={ChatDetailScreen}
         options={{ 
@@ -187,7 +189,7 @@ export const StudentNavigator: React.FC = () => {
           },
           presentation: 'card',
         }}
-      />
+      /> */}
       <Stack.Screen
         name="Payment"
         component={PaymentScreen}
