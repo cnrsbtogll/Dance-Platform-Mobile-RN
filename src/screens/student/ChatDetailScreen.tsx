@@ -58,6 +58,7 @@ export const ChatDetailScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerBackTitle: '',
+      headerTintColor: colors.student.text.primaryLight,
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <Image

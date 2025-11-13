@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +16,7 @@ export const LessonDetailScreen: React.FC = () => {
   const params = route.params as { lessonId?: string; bookingId?: string } | undefined;
   const lessonId = params?.lessonId;
   const bookingId = params?.bookingId;
+  const insets = useSafeAreaInsets();
   
   const { toggleFavorite, favoriteLessons } = useLessonStore();
   const { createBooking } = useBookingStore();
@@ -46,17 +47,12 @@ export const LessonDetailScreen: React.FC = () => {
       return;
     }
     
-    // Create new booking - for now just set registered state
-    // In real app, this would navigate to payment screen
-    setIsRegistered(true);
-    
-    // Optionally create booking
-    // const newBooking = createBooking(
-    //   lesson.id,
-    //   new Date().toISOString().split('T')[0],
-    //   '18:00',
-    //   lesson.price
-    // );
+    // Navigate to payment screen
+    (navigation as any).navigate('Payment', {
+      lessonId: lesson.id,
+      date: new Date().toISOString().split('T')[0], // Default to today, in real app get from date picker
+      time: '18:00', // Default time, in real app get from time picker
+    });
   };
 
   return (
@@ -161,12 +157,13 @@ export const LessonDetailScreen: React.FC = () => {
           </View>
 
           {/* Bottom spacing for fixed bar */}
-          <View style={{ height: 100 }} />
+          <View style={{ height: 80 + insets.bottom }} />
         </View>
       </ScrollView>
 
       {/* Fixed Bottom Bar */}
-      <View style={styles.bottomBar}>
+      <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
+        <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Ücret</Text>
           <Text style={styles.priceValue}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
@@ -187,7 +184,8 @@ export const LessonDetailScreen: React.FC = () => {
             </Text>
           </LinearGradient>
         </TouchableOpacity>
-      </View>
+        </View>
+      </SafeAreaView>
     </SafeAreaView>
   );
 };
@@ -331,19 +329,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  bottomBar: {
+  bottomBarContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: colors.student.background.light,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.md,
-    backgroundColor: colors.student.background.light + 'F5',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    backdropFilter: 'blur(10px)',
   },
   priceContainer: {
     flexDirection: 'column',

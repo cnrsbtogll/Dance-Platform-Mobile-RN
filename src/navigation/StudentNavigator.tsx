@@ -11,6 +11,7 @@ import { ChatScreen } from '../screens/student/ChatScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
+import { PaymentScreen } from '../screens/student/PaymentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -49,6 +50,7 @@ const MainTabs: React.FC = () => {
           headerStyle: {
             backgroundColor: colors.student.background.light,
           },
+          headerTintColor: colors.student.text.primaryLight,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
@@ -73,6 +75,7 @@ const MainTabs: React.FC = () => {
           headerStyle: {
             backgroundColor: colors.student.background.light,
           },
+          headerTintColor: colors.student.text.primaryLight,
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
@@ -122,6 +125,7 @@ const MainTabs: React.FC = () => {
           headerStyle: {
             backgroundColor: colors.student.background.light,
           },
+          headerTintColor: colors.student.text.primaryLight,
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
@@ -152,7 +156,12 @@ const MainTabs: React.FC = () => {
 // Root Stack Navigator (includes detail screens)
 export const StudentNavigator: React.FC = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        headerTintColor: colors.student.text.primaryLight,
+      }}
+    >
       <Stack.Screen 
         name="MainTabs" 
         component={MainTabs}
@@ -172,6 +181,20 @@ export const StudentNavigator: React.FC = () => {
         options={{ 
           headerShown: true,
           headerBackTitle: '',
+          headerTintColor: colors.student.text.primaryLight,
+          headerStyle: {
+            backgroundColor: colors.student.background.light,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="Payment"
+        component={PaymentScreen}
+        options={{ 
+          headerShown: true,
+          headerBackTitle: '',
+          headerTintColor: colors.student.text.primaryLight,
           headerStyle: {
             backgroundColor: colors.student.background.light,
           },
