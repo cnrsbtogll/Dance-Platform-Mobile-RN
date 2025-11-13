@@ -1,39 +1,66 @@
 [
   {
     "id": "message1",
+    "senderId": "instructor1",
+    "receiverId": "user1",
+    "lessonId": "lesson1",
+    "message": "Merhaba, yarınki ders için...",
+    "isRead": false,
+    "createdAt": "2025-11-13T10:45:00Z"
+  },
+  {
+    "id": "message2",
+    "senderId": "instructor2",
+    "receiverId": "user1",
+    "lessonId": "lesson2",
+    "message": "Harika, o zaman görüşmek üzere!",
+    "isRead": true,
+    "createdAt": "2025-11-12T14:30:00Z"
+  },
+  {
+    "id": "message3",
+    "senderId": "user1",
+    "receiverId": "instructor3",
+    "lessonId": "lesson3",
+    "message": "Elbette, ders programını gönderiyorum.",
+    "isRead": true,
+    "createdAt": "2025-11-11T14:32:00Z"
+  },
+  {
+    "id": "message4",
     "senderId": "user1",
     "receiverId": "instructor1",
     "lessonId": "lesson1",
     "message": "Merhaba, ders hakkında birkaç sorum var.",
     "isRead": true,
-    "createdAt": "2024-01-25T09:00:00Z"
+    "createdAt": "2025-11-10T09:00:00Z"
   },
   {
-    "id": "message2",
+    "id": "message5",
     "senderId": "instructor1",
     "receiverId": "user1",
     "lessonId": "lesson1",
     "message": "Tabii, nasıl yardımcı olabilirim?",
     "isRead": true,
-    "createdAt": "2024-01-25T09:15:00Z"
+    "createdAt": "2025-11-10T09:15:00Z"
   },
   {
-    "id": "message3",
+    "id": "message6",
     "senderId": "user1",
     "receiverId": "instructor1",
     "lessonId": "lesson1",
     "message": "Ders için özel bir ekipman gerekiyor mu?",
     "isRead": true,
-    "createdAt": "2024-01-25T09:20:00Z"
+    "createdAt": "2025-11-10T09:20:00Z"
   },
   {
-    "id": "message4",
+    "id": "message7",
     "senderId": "instructor1",
     "receiverId": "user1",
     "lessonId": "lesson1",
     "message": "Hayır, sadece rahat kıyafetler yeterli. Ders sırasında her şeyi sağlıyoruz.",
-    "isRead": false,
-    "createdAt": "2024-01-25T09:25:00Z"
+    "isRead": true,
+    "createdAt": "2025-11-10T09:25:00Z"
   }
 ]
 

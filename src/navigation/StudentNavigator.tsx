@@ -1,7 +1,8 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Text, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, typography } from '../utils/theme';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
@@ -15,6 +16,8 @@ const Stack = createStackNavigator();
 
 // Main Tabs Navigator
 const MainTabs: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tab.Navigator
       screenOptions={{
@@ -25,9 +28,14 @@ const MainTabs: React.FC = () => {
           backgroundColor: colors.student.background.light,
           borderTopWidth: 1,
           borderTopColor: 'rgba(0, 0, 0, 0.1)',
-          paddingBottom: 4,
-          paddingTop: 4,
-          height: 64,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 8,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
       }}
     >
@@ -85,16 +93,7 @@ const MainTabs: React.FC = () => {
         component={ChatScreen}
         options={{
           title: 'Sohbet',
-          headerShown: true,
-          headerTitle: 'Sohbet',
-          headerStyle: {
-            backgroundColor: colors.student.background.light,
-          },
-          headerTitleStyle: {
-            fontSize: typography.fontSize.lg,
-            fontWeight: typography.fontWeight.bold,
-            color: colors.student.text.primaryLight,
-          },
+          headerShown: false, // Custom header kullanıyoruz
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
