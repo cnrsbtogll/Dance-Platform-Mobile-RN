@@ -49,13 +49,15 @@ export const StudentHomeScreen: React.FC = () => {
 
         {/* Search Bar & Filter */}
         <View style={styles.searchContainer}>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Dans veya eğitmen ara..."
-          />
+          <View style={styles.searchBarWrapper}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Dans veya eğitmen ara..."
+            />
+          </View>
           <TouchableOpacity style={styles.filterButton}>
-            <Text style={styles.filterIcon}>⚙️</Text>
+            <MaterialIcons name="tune" size={24} color="#ffffff" />
           </TouchableOpacity>
         </View>
 
@@ -200,6 +202,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
+  searchBarWrapper: {
+    flex: 1,
+  },
   filterButton: {
     width: 48,
     height: 48,
@@ -207,10 +212,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.student.primary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  filterIcon: {
-    fontSize: 24,
-    color: '#ffffff',
   },
   chipsContainer: {
     paddingVertical: spacing.sm,
