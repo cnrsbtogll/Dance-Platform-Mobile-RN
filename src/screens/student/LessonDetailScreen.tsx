@@ -9,17 +9,20 @@ import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getDurationText } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const params = route.params as { lessonId?: string; bookingId?: string } | undefined;
+  const params = route.params as { lessonId?: string; bookingId?: string; isInstructor?: boolean } | undefined;
   const lessonId = params?.lessonId;
   const bookingId = params?.bookingId;
+  const isInstructor = params?.isInstructor || false;
   const insets = useSafeAreaInsets();
   
   const { toggleFavorite, favoriteLessons } = useLessonStore();
   const { createBooking } = useBookingStore();
+  const { user } = useAuthStore();
   
   const lesson = MockDataService.getLessonById(lessonId || '');
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
@@ -27,6 +30,7 @@ export const LessonDetailScreen: React.FC = () => {
   
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
   const [isRegistered, setIsRegistered] = useState(false);
+  const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
 
   if (!lesson) {
     return (
@@ -53,6 +57,12 @@ export const LessonDetailScreen: React.FC = () => {
       date: new Date().toISOString().split('T')[0], // Default to today, in real app get from date picker
       time: '18:00', // Default time, in real app get from time picker
     });
+  };
+
+  const handleEdit = () => {
+    // Navigate to edit lesson screen (to be implemented)
+    // (navigation as any).navigate('EditLesson', { lessonId: lesson.id });
+    console.log('Edit lesson:', lesson.id);
   };
 
   return (
@@ -162,30 +172,51 @@ export const LessonDetailScreen: React.FC = () => {
       </ScrollView>
 
       {/* Fixed Bottom Bar */}
-      <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
-        <View style={styles.bottomBar}>
-        <View style={styles.priceContainer}>
-          <Text style={styles.priceLabel}>Ücret</Text>
-          <Text style={styles.priceValue}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={handleRegister}
-          disabled={isRegistered || !!booking}
-        >
-          <LinearGradient
-            colors={['#4A90E2', '#5BA3F5']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.registerButtonGradient}
+      {isOwnLesson ? (
+        <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
+          <View style={styles.bottomBar}>
+            <TouchableOpacity
+              style={[styles.registerButton, { marginLeft: 0, flex: 1 }]}
+              onPress={handleEdit}
+            >
+              <LinearGradient
+                colors={[colors.instructor.secondary, colors.instructor.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.registerButtonGradient}
+              >
+                <MaterialIcons name="edit" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
+                <Text style={styles.registerButtonText}>Dersi Düzenle</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      ) : (
+        <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
+          <View style={styles.bottomBar}>
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceLabel}>Ücret</Text>
+            <Text style={styles.priceValue}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={handleRegister}
+            disabled={isRegistered || !!booking}
           >
-            <Text style={styles.registerButtonText}>
-              {booking || isRegistered ? 'Kayıtlı' : 'Derse Kaydol'}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+            <LinearGradient
+              colors={['#4A90E2', '#5BA3F5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.registerButtonGradient}
+            >
+              <Text style={styles.registerButtonText}>
+                {booking || isRegistered ? 'Kayıtlı' : 'Derse Kaydol'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      )}
     </SafeAreaView>
   );
 };
@@ -231,7 +262,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
   },
   headerRight: {
     flexDirection: 'row',
@@ -368,6 +398,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
   },
   registerButtonText: {
     fontSize: typography.fontSize.lg,

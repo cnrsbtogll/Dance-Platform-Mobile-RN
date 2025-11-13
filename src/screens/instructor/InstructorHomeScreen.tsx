@@ -90,7 +90,7 @@ export const InstructorHomeScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Earnings Card */}
-        <View style={styles.section}>
+        <View style={[styles.section, styles.earningsSection]}>
           <View style={styles.earningsCard}>
             <View style={styles.earningsContent}>
               <View style={styles.earningsHeader}>
@@ -197,7 +197,10 @@ export const InstructorHomeScreen: React.FC = () => {
                     key={lesson.id}
                     style={styles.activeLessonCard}
                     onPress={() => {
-                      // Navigate to lesson detail
+                      (navigation as any).navigate('LessonDetail', { 
+                        lessonId: lesson.id,
+                        isInstructor: true 
+                      });
                     }}
                   >
                     {lesson.imageUrl && (
@@ -262,6 +265,9 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
+  },
+  earningsSection: {
+    marginTop: spacing.md,
   },
   headerButton: {
     width: 48,

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
+import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -171,6 +172,14 @@ export const InstructorNavigator: React.FC = () => {
         name="MainTabs" 
         component={MainTabs}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LessonDetail"
+        component={LessonDetailScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'card',
+        }}
       />
     </Stack.Navigator>
   );
