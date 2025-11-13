@@ -12,8 +12,8 @@
   },
   {
     "id": "instructor1",
-    "name": "Ayşe Yılmaz",
-    "email": "ayse@example.com",
+    "name": "Ayla Yılmaz",
+    "email": "ayla@example.com",
     "role": "instructor",
     "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr",
     "bio": "Profesyonel dans eğitmeni, 10 yıllık deneyim",
@@ -23,8 +23,8 @@
   },
   {
     "id": "instructor2",
-    "name": "Can Vural",
-    "email": "can@example.com",
+    "name": "Berk Sancak",
+    "email": "berk@example.com",
     "role": "instructor",
     "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuDrK6s9NaTyFHSKbR1zxuzYarzb0trW_ghQ8ZEn3wypuiJp6-SQvw7SuuvE3BCgsuZZS3B9wDOgk6B-EGaRofd1aC4yJdDqryIwmdbJhOkiKXiCgG7WGO2EBOJZw3tGVKo0ZXcAwCOuLEALPoOk15D_F9WGgINGzMFyC4jVXrdzvWk5l8_0rrKGZISOWleltB6E27Ra6DW1kWrKJsUBMDxa2GUKYmH3eY6FKnxr4Afo5ar8SW9LBf4ZKeflOCdzvuJrJ2xTXQDYOhrM",
     "bio": "Bachata uzmanı eğitmen",
@@ -34,7 +34,7 @@
   },
   {
     "id": "instructor3",
-    "name": "Elif Sönmez",
+    "name": "Elif Kaya",
     "email": "elif@example.com",
     "role": "instructor",
     "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuBC3nmzujhmO9XJXjveJcNSN2L5yTo4VIxlMY6WSlkiOgTUFhdpuQQi3Y1wOTJreXOjUY0RK8sK6z6hKf_P7r1j-ZifOtQ9RRci0GDT1q6EQdsBISoRjw9qn1xmKPUdqYxBrxs8aCYgjI3f5GWI9wwp41aNd9EasyZgonVCxnsUuXBqMkUgtbPMLPi4uTMFWAN1bqQ1ayCZcFlq79IuanpaGaKDYT0xquC_13QcmCLsd43naJXdXqQXMmBpkCL0u3vrEU47eEvB2NcM",

@@ -24,7 +24,14 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   
   getUserBookings: () => {
     const user = useAuthStore.getState().user;
-    if (!user) return [];
+    // If no user, default to user1 (student) for development
+    if (!user) {
+      const defaultUser = MockDataService.getUserById('user1');
+      if (defaultUser) {
+        return MockDataService.getBookingsByStudent('user1');
+      }
+      return [];
+    }
     return user.role === 'student'
       ? MockDataService.getBookingsByStudent(user.id)
       : MockDataService.getBookingsByInstructor(user.id);

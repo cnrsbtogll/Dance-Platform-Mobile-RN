@@ -73,6 +73,51 @@
     "favoriteCount": 8,
     "isActive": true,
     "createdAt": "2024-01-22T14:00:00Z"
+  },
+  {
+    "id": "lesson6",
+    "title": "Modern Dans Başlangıç",
+    "description": "Modern dansın temel teknikleri ve hareketleri.",
+    "category": "Modern",
+    "instructorId": "instructor1",
+    "price": 240,
+    "duration": 60,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuCgTmZbmoEphxMf0JNkTKEBncLLltfGS7BGfp8LG3B5bdR4wlvAJtoCe5dsUnIURI2Dr5PruB6brXR1j8XFbXzYVWWtlrgpcAbfifF2NCXtz3IWiLayviWZ7Bk9x-zsI94zM5E5Az3LEXsDohw_XMHBtzSBilbZSXROcMQnYGa6ZW6etjvWBMHCECXeN566y6SmD65vsDJBI95KtE0CtQBqLaPYSTtX_2lvcRqD34M9OGF34VWp1wyEW5B7rBiA6oBa26ojL9sTl0zN",
+    "rating": 4.6,
+    "reviewCount": 22,
+    "favoriteCount": 14,
+    "isActive": true,
+    "createdAt": "2024-10-15T10:00:00Z"
+  },
+  {
+    "id": "lesson7",
+    "title": "Arjantin Tango Atölyesi",
+    "description": "Arjantin tango dansının inceliklerini öğrenin.",
+    "category": "Tango",
+    "instructorId": "instructor2",
+    "price": 290,
+    "duration": 90,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBBX9DiROq9N1QS5nCWOBfVSt9JUKJDlBdgu9wKR8zyUM9zNoFzmrTXUmy8dyKHcuKzrJ8fGG0LnbesYB-YHkWyU6evvIFfUIlSzX9JntSwoibT022-tVnA3PTzgvFASSt6ho8y31xE_6WvB_p4ONar7xuduNmeHNmWsor6OsAguv8qXn2KyUvrH-gxr4MEnT_aUUgK0rK-6AU-WVU95M525dtRKzomoieg8bLqTQ9T-m8wkm7oKBhn8zm27ADjErqUw3fZu7a_nM5E",
+    "rating": 4.8,
+    "reviewCount": 35,
+    "favoriteCount": 20,
+    "isActive": true,
+    "createdAt": "2024-10-18T11:00:00Z"
+  },
+  {
+    "id": "lesson8",
+    "title": "Salsa Rueda Dersi",
+    "description": "Salsa rueda grup dansı öğrenin.",
+    "category": "Salsa",
+    "instructorId": "instructor3",
+    "price": 260,
+    "duration": 60,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAJhqQ4KzAehAqHju2rv6ai3E7BsTG9CW2xfnywNDMv0H4Ift9weFwl6gJAvHBNPOV41fY4poJRV942DXPLEp7Acz6mcY1MrG_tJZ_gtamBizh9HFYRhAlGaqlCM-t-ySHZ3C3NkL37c-zomlTr--Twa8Ruf0365qgPfgnUiO6XWPRZJy6LC-Thm1JcFOAgMgwBwMnc0lQdweaiFq3ifcTsnodiGnl5lUV3CcGKyY0ofaQ4nWQ7O0px-S3pvsr-K9Jaqq2QaK1EcUVJ",
+    "rating": 4.7,
+    "reviewCount": 28,
+    "favoriteCount": 16,
+    "isActive": true,
+    "createdAt": "2024-10-20T09:00:00Z"
   }
 ]
 

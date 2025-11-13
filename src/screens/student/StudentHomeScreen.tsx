@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
@@ -12,6 +13,7 @@ import { SearchBar } from '../../components/common/SearchBar';
 import { BottomTab } from '../../components/common/BottomTab';
 
 export const StudentHomeScreen: React.FC = () => {
+  const navigation = useNavigation();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
   const filteredLessons = lessons.filter(lesson => {
     if (selectedCategory && lesson.category !== selectedCategory) return false;
@@ -145,7 +147,9 @@ export const StudentHomeScreen: React.FC = () => {
             { 
               label: 'Derslerim', 
               icon: <MaterialIcons name="school" size={24} />, 
-              onPress: () => {} 
+              onPress: () => {
+                navigation.navigate('MyLessons' as never);
+              } 
             },
             { 
               label: 'Sohbet', 
