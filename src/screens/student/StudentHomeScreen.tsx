@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { useLessonStore } from '../../store/useLessonStore';
 import { MockDataService } from '../../services/mockDataService';
@@ -33,11 +35,11 @@ export const StudentHomeScreen: React.FC = () => {
             source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuArpIJAKnMfWnO8J2g3xJZUDwv5NZZmqYBdzgLkL0gDYWa8jKfBMgJS_o6tiwX0DPBv32ie4eHsASq5lEM6ovZP8KTnE8jWLe0yPcRa9enxSJ95JT2ytDgZ7emaBv5tyuVYngMoabwB6Egx8SoLhZLGQAwbzLS-W5YSJVjnzMjPYBBNgdvxNIExEsm_onrj9_0K4jdpHYyV71cBuUquOzI5pY9e5Wafqv6V8-yLGh-r3azGvQ8lJeEvuAzTh9BEGjW7mcO1Q5FL4kUa' }}
             style={styles.avatar}
           />
+          <Text style={styles.headerTitle}>Merhaba, Ahmet</Text>
         </View>
-        <Text style={styles.headerTitle}>Merhaba, Ahmet</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.notificationButton}>
-            <Text style={styles.iconText}>🔔</Text>
+            <MaterialIcons name="notifications" size={24} color={colors.student.text.primaryLight} />
           </TouchableOpacity>
         </View>
       </View>
@@ -102,7 +104,11 @@ export const StudentHomeScreen: React.FC = () => {
                     style={styles.favoriteButton}
                     onPress={() => toggleFavorite(lesson.id)}
                   >
-                    <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
+                    <MaterialIcons 
+                      name={isFavorite ? "favorite" : "favorite-border"} 
+                      size={24} 
+                      color="#ffffff" 
+                    />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.lessonContent}>
@@ -110,7 +116,7 @@ export const StudentHomeScreen: React.FC = () => {
                   <Text style={styles.lessonTitle}>{lesson.title}</Text>
                   <View style={styles.lessonFooter}>
                     <View style={styles.ratingContainer}>
-                      <Text style={styles.star}>⭐</Text>
+                      <AntDesign name="star" size={20} color={colors.student.secondary} />
                       <Text style={styles.rating}>
                         {lesson.rating.toFixed(1)} <Text style={styles.reviewCount}>({lesson.reviewCount})</Text>
                       </Text>
@@ -131,10 +137,26 @@ export const StudentHomeScreen: React.FC = () => {
       <View style={styles.bottomTabContainer}>
         <BottomTab
           items={[
-            { label: 'Ana Sayfa', icon: <Text style={styles.tabIcon}>🏠</Text>, onPress: () => {} },
-            { label: 'Derslerim', icon: <Text style={styles.tabIcon}>📚</Text>, onPress: () => {} },
-            { label: 'Sohbet', icon: <Text style={styles.tabIcon}>💬</Text>, onPress: () => {} },
-            { label: 'Profil', icon: <Text style={styles.tabIcon}>👤</Text>, onPress: () => {} },
+            { 
+              label: 'Ana Sayfa', 
+              icon: <MaterialIcons name="home" size={24} />, 
+              onPress: () => {} 
+            },
+            { 
+              label: 'Derslerim', 
+              icon: <MaterialIcons name="school" size={24} />, 
+              onPress: () => {} 
+            },
+            { 
+              label: 'Sohbet', 
+              icon: <MaterialIcons name="chat-bubble-outline" size={24} />, 
+              onPress: () => {} 
+            },
+            { 
+              label: 'Profil', 
+              icon: <MaterialIcons name="person-outline" size={24} />, 
+              onPress: () => {} 
+            },
           ]}
           activeIndex={0}
         />
@@ -161,8 +183,10 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   headerLeft: {
-    width: 48,
-    alignItems: 'flex-start',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   avatar: {
     width: 40,
@@ -170,11 +194,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerTitle: {
-    flex: 1,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     color: colors.student.text.primaryLight,
-    textAlign: 'center',
     letterSpacing: -0.15,
   },
   headerRight: {
@@ -188,17 +210,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconText: {
-    fontSize: 24,
-  },
   bottomTabContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-  },
-  tabIcon: {
-    fontSize: 24,
   },
   searchContainer: {
     flexDirection: 'row',

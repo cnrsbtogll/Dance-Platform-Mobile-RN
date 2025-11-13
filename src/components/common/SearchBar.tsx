@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors, borderRadius, spacing, typography } from '../../utils/theme';
 
 interface SearchBarProps {
@@ -20,7 +21,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <View style={styles.container}>
       <View style={[styles.searchContainer, { backgroundColor: theme.card.light }]}>
-        <Text style={{ fontSize: 24, marginRight: 8 }}>🔍</Text>
+        <MaterialIcons name="search" size={24} color={theme.text.secondaryLight} style={{ marginRight: 8 }} />
         <TextInput
           style={[styles.input, { color: theme.text.primaryLight }]}
           placeholder={placeholder}
@@ -34,7 +35,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           style={[styles.filterButton, { backgroundColor: theme.primary }]}
           onPress={onFilterPress}
         >
-          <Text style={{ fontSize: 24, color: '#ffffff' }}>⚙️</Text>
+          <MaterialIcons name="tune" size={24} color="#ffffff" />
         </TouchableOpacity>
       )}
     </View>

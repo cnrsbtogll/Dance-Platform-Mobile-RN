@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../../utils/theme';
 
 interface TabItem {
@@ -22,6 +23,13 @@ export const BottomTab: React.FC<BottomTabProps> = ({ items, activeIndex = 0 }) 
       <View style={styles.container}>
         {items.map((item, index) => {
           const isActive = index === activeIndex;
+          const iconColor = isActive ? theme.primary : theme.text.secondaryLight;
+          
+          // Clone icon with dynamic color if it's a MaterialIcons component
+          const iconWithColor = item.icon && React.isValidElement(item.icon) && item.icon.type === MaterialIcons
+            ? React.cloneElement(item.icon as React.ReactElement<any>, { color: iconColor })
+            : item.icon;
+          
           return (
             <TouchableOpacity
               key={index}
@@ -29,9 +37,9 @@ export const BottomTab: React.FC<BottomTabProps> = ({ items, activeIndex = 0 }) 
               onPress={item.onPress}
               activeOpacity={0.7}
             >
-              {item.icon && (
+              {iconWithColor && (
                 <View style={styles.iconContainer}>
-                  {item.icon}
+                  {iconWithColor}
                 </View>
               )}
               <Text
