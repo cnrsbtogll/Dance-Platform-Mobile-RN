@@ -132,8 +132,12 @@ const MainTabs: React.FC = () => {
               Profil
             </Text>
           ),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons 
+              name={focused ? "person" : "person-outline"} 
+              size={size} 
+              color={color} 
+            />
           ),
         }}
       />
