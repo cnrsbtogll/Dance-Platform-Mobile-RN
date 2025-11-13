@@ -8,6 +8,7 @@ import { colors, typography } from '../utils/theme';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
 import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
 import { ChatScreen } from '../screens/student/ChatScreen';
+import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
@@ -162,6 +163,18 @@ export const StudentNavigator: React.FC = () => {
         component={LessonDetailScreen}
         options={{ 
           headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="ChatDetail"
+        component={ChatDetailScreen}
+        options={{ 
+          headerShown: true,
+          headerBackTitle: '',
+          headerStyle: {
+            backgroundColor: colors.student.background.light,
+          },
           presentation: 'card',
         }}
       />

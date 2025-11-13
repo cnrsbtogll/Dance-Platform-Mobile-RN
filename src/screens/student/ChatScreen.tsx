@@ -133,8 +133,10 @@ export const ChatScreen: React.FC = () => {
                 style={styles.conversationItem}
                 activeOpacity={0.7}
                 onPress={() => {
-                  // Navigate to chat detail
-                  // navigation.navigate('ChatDetail', { conversationId: conversation.id });
+                  (navigation as any).getParent()?.navigate('ChatDetail', {
+                    conversationId: conversation.id,
+                    userId: conversation.userId,
+                  });
                 }}
               >
                 <View style={styles.conversationContent}>
