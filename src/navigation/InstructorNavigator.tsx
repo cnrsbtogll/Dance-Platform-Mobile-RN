@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
+import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
 const Tab = createBottomTabNavigator();
@@ -134,9 +135,20 @@ const MainTabs: React.FC = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={InstructorHomeScreen}
+        component={InstructorProfileScreen}
         options={{
           title: 'Profil',
+          headerShown: true,
+          headerTitle: 'Profil',
+          headerStyle: {
+            backgroundColor: colors.instructor.background.light,
+          },
+          headerTitleStyle: {
+            fontSize: typography.fontSize.lg,
+            fontWeight: typography.fontWeight.bold,
+            color: colors.instructor.text.lightPrimary,
+          },
+          headerTintColor: colors.instructor.text.lightPrimary,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
