@@ -62,6 +62,23 @@ export const InstructorLessonsScreen: React.FC = () => {
         color: colors.instructor.text.lightPrimary,
       },
       headerTintColor: colors.instructor.text.lightPrimary,
+      headerLeft: () => (
+        <View style={{
+          backgroundColor: colors.instructor.secondary,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 4,
+          borderRadius: borderRadius.full,
+          marginLeft: spacing.sm,
+        }}>
+          <Text style={{
+            fontSize: typography.fontSize.xs,
+            fontWeight: typography.fontWeight.bold,
+            color: '#ffffff',
+          }}>
+            EĞİTMEN
+          </Text>
+        </View>
+      ),
       headerRight: () => (
         <TouchableOpacity
           style={{ marginRight: spacing.md }}

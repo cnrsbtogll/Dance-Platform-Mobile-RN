@@ -1,10 +1,10 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, typography, spacing } from '../utils/theme';
+import { colors, typography, spacing, borderRadius } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
@@ -48,18 +48,23 @@ const MainTabs: React.FC = () => {
         options={{
           title: 'Ana Sayfa',
           headerShown: true,
-          headerTitle: 'Ana Sayfa (Eğitmen Modu)',
+          headerTitle: 'Ana Sayfa',
           headerLeft: () => (
-            <TouchableOpacity
-              style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginLeft: spacing.sm }}
-              onPress={() => {}}
-            >
-              <MaterialIcons
-                name="menu"
-                size={28}
-                color={colors.instructor.text.lightPrimary}
-              />
-            </TouchableOpacity>
+            <View style={{
+              backgroundColor: colors.instructor.secondary,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: 4,
+              borderRadius: borderRadius.full,
+              marginLeft: spacing.sm,
+            }}>
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: typography.fontWeight.bold,
+                color: '#ffffff',
+              }}>
+                EĞİTMEN
+              </Text>
+            </View>
           ),
           headerRight: () => (
             <TouchableOpacity

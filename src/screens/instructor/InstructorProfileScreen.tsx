@@ -23,17 +23,22 @@ export const InstructorProfileScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: spacing.md }}
-          onPress={() => {}}
-        >
-          <MaterialIcons
-            name="settings"
-            size={24}
-            color={colors.instructor.text.lightPrimary}
-          />
-        </TouchableOpacity>
+      headerLeft: () => (
+        <View style={{
+          backgroundColor: colors.instructor.secondary,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 4,
+          borderRadius: borderRadius.full,
+          marginLeft: spacing.sm,
+        }}>
+          <Text style={{
+            fontSize: typography.fontSize.xs,
+            fontWeight: typography.fontWeight.bold,
+            color: '#ffffff',
+          }}>
+            EĞİTMEN
+          </Text>
+        </View>
       ),
     });
   }, [navigation]);
