@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ödeme Ekranı</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#2E8B57", // Teal
+              "secondary": "#F08080", // Soft Coral
+              "background-light": "#F8F9FA",
+              "background-dark": "#101922",
+              "text-primary-light": "#343A40",
+              "text-primary-dark": "#F8F9FA",
+              "text-secondary-light": "#617589",
+              "text-secondary-dark": "#98A2B3",
+              "border-light": "#E5E7EB",
+              "border-dark": "#374151"
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.5rem",
+              "lg": "0.75rem",
+              "xl": "1rem",
+              "full": "9999px"
+            },
+            boxShadow: {
+              'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden antialiased">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex items-center bg-background-light dark:bg-background-dark/80 backdrop-blur-sm p-4 pb-3 justify-between border-b border-border-light dark:border-border-dark">
+<button aria-label="Geri" class="text-text-primary-light dark:text-text-primary-dark flex size-10 shrink-0 items-center justify-center rounded-full">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Ödeme Ekranı</h1>
+<div class="size-10 shrink-0"></div> <!-- Spacer to center the title -->
+</header>
+<main class="flex-1 px-4 pt-4 pb-28">
+<!-- Lesson Summary Card -->
+<section class="mb-6">
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark/50 p-4 rounded-xl shadow-soft border border-border-light dark:border-border-dark">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 shrink-0" data-alt="Elif Kaya'nın profil fotoğrafı" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAMmVKUm2nUD-oPvGFO7577Zm1kZWoifZ5Vpr0eWufUwY7FDGd5F5g57vqdmoLOMBkUyl7p51BMuJLg0kteo5wDOkPyVYzz9VLnZEBem_GHdKg9wCkd3HBpWTzpB-x3oaeAeSHtv_Blwt6CgHMsA24OxOfGJweh58IcWo7a16k4MbsFc9f6-fuUV5Bg9nIu3aeygq7nEMLY8mHfswMCCe3FN0EXdJ3Mk2Ws_XPO7mEBkgRNDyLA9o3rNO7Z2ZTWnFxX2NjOmHJQkJgN");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-medium leading-normal line-clamp-1">Salsa Başlangıç Seviyesi</p>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal line-clamp-2">Öğretmen: Elif Kaya | 15 Ekim, 18:00</p>
+</div>
+</div>
+</section>
+<!-- Payment Details Section -->
+<section class="mb-6">
+<h2 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Ödeme Detayları</h2>
+<div class="p-4 bg-white dark:bg-background-dark/50 rounded-xl shadow-soft border border-border-light dark:border-border-dark">
+<div class="flex justify-between gap-x-6 py-2 border-b border-border-light dark:border-border-dark">
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal">Ders Ücreti</p>
+<p class="text-text-primary-light dark:text-text-primary-dark text-sm font-medium leading-normal text-right">250,00 TL</p>
+</div>
+<div class="flex justify-between gap-x-6 pt-3">
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-base font-medium leading-normal">Toplam Tutar</p>
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-bold leading-normal text-right">250,00 TL</p>
+</div>
+</div>
+</section>
+<!-- Payment Method Section -->
+<section class="mb-6">
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark/50 px-4 min-h-14 justify-between rounded-xl shadow-soft border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-4 py-2">
+<div class="bg-center bg-no-repeat aspect-[3/2] bg-contain h-6" data-alt="Mastercard logosu" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnjFYuvgDcY1xT8PpIKkUTmR7488wpF7XFTYXvSwJbpNQOaMEHwb4FVfzL4YrAygAAf8TTooNpNW39clj2Ai_O5FXW2AsvivmnDOakU884cnHZFP4qOOn_fOoSKfGLW6-azsbu9lZ8G6Z2qm5BjYUJiovKcqcZt3eI5bHEDvcHQKxJiahHzTMfIDVO7pwAu6dZ2i4cW1-39AUzfeuayoKOgTyYBch8hq94-pZn1CjJTN_TynPnEbzyMCeUE3IwMPJo3e-vcW82oJ8x");'></div>
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-normal leading-normal flex-1 truncate">Mastercard **** 1234</p>
+</div>
+<button class="text-primary dark:text-primary text-base font-medium leading-normal py-2">Değiştir</button>
+</div>
+</section>
+<!-- Credit Card Input Form -->
+<section class="space-y-4">
+<div class="relative">
+<label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1" for="cardholder-name">Kart Sahibinin Adı Soyadı</label>
+<input class="block w-full rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-background-dark/50 py-3 px-4 text-text-primary-light dark:text-text-primary-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark focus:border-primary focus:ring-primary shadow-sm" id="cardholder-name" name="cardholder-name" placeholder="Ad Soyad" type="text"/>
+</div>
+<div class="relative">
+<label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1" for="card-number">Kart Numarası</label>
+<input class="block w-full rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-background-dark/50 py-3 px-4 text-text-primary-light dark:text-text-primary-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark focus:border-primary focus:ring-primary shadow-sm" id="card-number" name="card-number" placeholder="0000 0000 0000 0000" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1" for="expiration-date">Son K. Tarihi</label>
+<input class="block w-full rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-background-dark/50 py-3 px-4 text-text-primary-light dark:text-text-primary-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark focus:border-primary focus:ring-primary shadow-sm" id="expiration-date" name="expiration-date" placeholder="AA/YY" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mb-1" for="cvv">CVV</label>
+<input class="block w-full rounded-lg border-border-light dark:border-border-dark bg-white dark:bg-background-dark/50 py-3 px-4 text-text-primary-light dark:text-text-primary-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark focus:border-primary focus:ring-primary shadow-sm" id="cvv" name="cvv" placeholder="123" type="text"/>
+</div>
+</div>
+</section>
+<!-- Save Card Toggle -->
+<div class="flex items-center gap-3 my-6">
+<input checked="" class="h-5 w-5 rounded-md border-border-light dark:border-border-dark text-primary focus:ring-primary bg-background-light dark:bg-background-dark/50" id="save-card" type="checkbox"/>
+<label class="text-sm text-text-primary-light dark:text-text-primary-dark" for="save-card">Kartımı sonraki ödemeler için kaydet</label>
+</div>
+</main>
+<!-- Bottom CTA Bar -->
+<footer class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-light dark:from-background-dark to-transparent">
+<div class="flex items-center justify-center gap-2 text-xs text-text-secondary-light dark:text-text-secondary-dark mb-3">
+<span class="material-symbols-outlined text-base">lock</span>
+<p>Ödemeniz güvenli bir şekilde işlenmektedir</p>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light dark:focus:ring-offset-background-dark transition-all duration-200">
+                250,00 TL Öde
+            </button>
+</footer>
+</div>
+</body></html>

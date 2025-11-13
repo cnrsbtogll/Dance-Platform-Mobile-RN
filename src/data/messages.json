@@ -1,0 +1,39 @@
+[
+  {
+    "id": "message1",
+    "senderId": "user1",
+    "receiverId": "instructor1",
+    "lessonId": "lesson1",
+    "message": "Merhaba, ders hakkında birkaç sorum var.",
+    "isRead": true,
+    "createdAt": "2024-01-25T09:00:00Z"
+  },
+  {
+    "id": "message2",
+    "senderId": "instructor1",
+    "receiverId": "user1",
+    "lessonId": "lesson1",
+    "message": "Tabii, nasıl yardımcı olabilirim?",
+    "isRead": true,
+    "createdAt": "2024-01-25T09:15:00Z"
+  },
+  {
+    "id": "message3",
+    "senderId": "user1",
+    "receiverId": "instructor1",
+    "lessonId": "lesson1",
+    "message": "Ders için özel bir ekipman gerekiyor mu?",
+    "isRead": true,
+    "createdAt": "2024-01-25T09:20:00Z"
+  },
+  {
+    "id": "message4",
+    "senderId": "instructor1",
+    "receiverId": "user1",
+    "lessonId": "lesson1",
+    "message": "Hayır, sadece rahat kıyafetler yeterli. Ders sırasında her şeyi sağlıyoruz.",
+    "isRead": false,
+    "createdAt": "2024-01-25T09:25:00Z"
+  }
+]
+

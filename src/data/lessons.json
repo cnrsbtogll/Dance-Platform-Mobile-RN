@@ -1,0 +1,78 @@
+[
+  {
+    "id": "lesson1",
+    "title": "Profesyonel Salsa Dersleri",
+    "description": "Başlangıç seviyesinden ileri seviyeye kadar salsa dansı öğrenin. Temel adımlar, dönüşler ve partner çalışması.",
+    "category": "Salsa",
+    "instructorId": "instructor1",
+    "price": 250,
+    "duration": 60,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr",
+    "rating": 4.8,
+    "reviewCount": 32,
+    "favoriteCount": 15,
+    "isActive": true,
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "lesson2",
+    "title": "Başlangıç Seviyesi Bachata",
+    "description": "Bachata dansının temellerini öğrenin. Yumuşak ve romantik hareketlerle başlayın.",
+    "category": "Bachata",
+    "instructorId": "instructor2",
+    "price": 220,
+    "duration": 60,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuDrK6s9NaTyFHSKbR1zxuzYarzb0trW_ghQ8ZEn3wypuiJp6-SQvw7SuuvE3BCgsuZZS3B9wDOgk6B-EGaRofd1aC4yJdDqryIwmdbJhOkiKXiCgG7WGO2EBOJZw3tGVKo0ZXcAwCOuLEALPoOk15D_F9WGgINGzMFyC4jVXrdzvWk5l8_0rrKGZISOWleltB6E27Ra6DW1kWrKJsUBMDxa2GUKYmH3eY6FKnxr4Afo5ar8SW9LBf4ZKeflOCdzvuJrJ2xTXQDYOhrM",
+    "rating": 4.9,
+    "reviewCount": 51,
+    "favoriteCount": 28,
+    "isActive": true,
+    "createdAt": "2024-01-12T09:00:00Z"
+  },
+  {
+    "id": "lesson3",
+    "title": "Kizomba Atölyesi",
+    "description": "Kizomba dansının inceliklerini keşfedin. Yakın dans ve ritim çalışması.",
+    "category": "Kizomba",
+    "instructorId": "instructor3",
+    "price": 280,
+    "duration": 90,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBC3nmzujhmO9XJXjveJcNSN2L5yTo4VIxlMY6WSlkiOgTUFhdpuQQi3Y1wOTJreXOjUY0RK8sK6z6hKf_P7r1j-ZifOtQ9RRci0GDT1q6EQdsBISoRjw9qn1xmKPUdqYxBrxs8aCYgjI3f5GWI9wwp41aNd9EasyZgonVCxnsUuXBqMkUgtbPMLPi4uTMFWAN1bqQ1ayCZcFlq79IuanpaGaKDYT0xquC_13QcmCLsd43naJXdXqQXMmBpkCL0u3vrEU47eEvB2NcM",
+    "rating": 4.7,
+    "reviewCount": 18,
+    "favoriteCount": 12,
+    "isActive": true,
+    "createdAt": "2024-01-18T11:00:00Z"
+  },
+  {
+    "id": "lesson4",
+    "title": "İleri Seviye Salsa",
+    "description": "Karmaşık dönüşler, kombinasyonlar ve performans teknikleri.",
+    "category": "Salsa",
+    "instructorId": "instructor1",
+    "price": 300,
+    "duration": 90,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr",
+    "rating": 4.6,
+    "reviewCount": 24,
+    "favoriteCount": 18,
+    "isActive": true,
+    "createdAt": "2024-01-20T10:00:00Z"
+  },
+  {
+    "id": "lesson5",
+    "title": "Tango Temelleri",
+    "description": "Tango dansının temel adımları ve duruş teknikleri.",
+    "category": "Tango",
+    "instructorId": "instructor3",
+    "price": 270,
+    "duration": 60,
+    "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuCY1YRDTBqG0J6H_95zmqGpNadfETh0Po1YLyXvaZ8ibYlFzLEQjLEZLIpJeUehGCE_UYa3206xbGPGyofUdgq0FDziwQkB_JK0rbK6rEoxJzVNUI7oUefEavM09Syeik6AVhq3TapcGAK5EI2rZJpWcMxOZBvzVfmGnlq8ZxF-WtyoVAFt4JAMy4EpixWWpG392juXIBT5EOSGJMRgh1-THn_J3649cLQ86u9hw5_Ai4afhc4uy3CyzTySvStE6m1vxIcjn-ZtqtR3",
+    "rating": 4.5,
+    "reviewCount": 15,
+    "favoriteCount": 8,
+    "isActive": true,
+    "createdAt": "2024-01-22T14:00:00Z"
+  }
+]
+

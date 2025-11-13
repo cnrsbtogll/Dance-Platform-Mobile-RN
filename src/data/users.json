@@ -1,0 +1,58 @@
+[
+  {
+    "id": "user1",
+    "name": "Ahmet Yılmaz",
+    "email": "ahmet@example.com",
+    "role": "student",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuArpIJAKnMfWnO8J2g3xJZUDwv5NZZmqYBdzgLkL0gDYWa8jKfBMgJS_o6tiwX0DPBv32ie4eHsASq5lEM6ovZP8KTnE8jWLe0yPcRa9enxSJ95JT2ytDgZ7emaBv5tyuVYngMoabwB6Egx8SoLhZLGQAwbzLS-W5YSJVjnzMjPYBBNgdvxNIExEsm_onrj9_0K4jdpHYyV71cBuUquOzI5pY9e5Wafqv6V8-yLGh-r3azGvQ8lJeEvuAzTh9BEGjW7mcO1Q5FL4kUa",
+    "bio": "Dans tutkunu öğrenci",
+    "rating": 0,
+    "totalLessons": 0,
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "instructor1",
+    "name": "Ayşe Yılmaz",
+    "email": "ayse@example.com",
+    "role": "instructor",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr",
+    "bio": "Profesyonel dans eğitmeni, 10 yıllık deneyim",
+    "rating": 4.8,
+    "totalLessons": 32,
+    "createdAt": "2024-01-10T08:00:00Z"
+  },
+  {
+    "id": "instructor2",
+    "name": "Can Vural",
+    "email": "can@example.com",
+    "role": "instructor",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuDrK6s9NaTyFHSKbR1zxuzYarzb0trW_ghQ8ZEn3wypuiJp6-SQvw7SuuvE3BCgsuZZS3B9wDOgk6B-EGaRofd1aC4yJdDqryIwmdbJhOkiKXiCgG7WGO2EBOJZw3tGVKo0ZXcAwCOuLEALPoOk15D_F9WGgINGzMFyC4jVXrdzvWk5l8_0rrKGZISOWleltB6E27Ra6DW1kWrKJsUBMDxa2GUKYmH3eY6FKnxr4Afo5ar8SW9LBf4ZKeflOCdzvuJrJ2xTXQDYOhrM",
+    "bio": "Bachata uzmanı eğitmen",
+    "rating": 4.9,
+    "totalLessons": 51,
+    "createdAt": "2024-01-08T09:00:00Z"
+  },
+  {
+    "id": "instructor3",
+    "name": "Elif Sönmez",
+    "email": "elif@example.com",
+    "role": "instructor",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuBC3nmzujhmO9XJXjveJcNSN2L5yTo4VIxlMY6WSlkiOgTUFhdpuQQi3Y1wOTJreXOjUY0RK8sK6z6hKf_P7r1j-ZifOtQ9RRci0GDT1q6EQdsBISoRjw9qn1xmKPUdqYxBrxs8aCYgjI3f5GWI9wwp41aNd9EasyZgonVCxnsUuXBqMkUgtbPMLPi4uTMFWAN1bqQ1ayCZcFlq79IuanpaGaKDYT0xquC_13QcmCLsd43naJXdXqQXMmBpkCL0u3vrEU47eEvB2NcM",
+    "bio": "Kizomba ve Tango eğitmeni",
+    "rating": 4.7,
+    "totalLessons": 18,
+    "createdAt": "2024-01-12T11:00:00Z"
+  },
+  {
+    "id": "student2",
+    "name": "Mehmet Demir",
+    "email": "mehmet@example.com",
+    "role": "student",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuBkU2rFZjX7PZJATa4coHm9_lFLDyUo-6oSiTpbq2aBZc7XcgYfAATsAf0WnoOxaEHpasHsUItGLmRVW97fmn7hhE5C8k11e896IS4fjW0yxJ8MdQQQC1FM445cQeKaiooExB4dP7HRr4eKgRNWXvBKPM3Cg0hCejy3AfrArlXrNO5Ucped9Iz0FmtYW_U6P1wIMAtzlRP2hV28TKhXJgQ4aOUAcBBllX4D51eQ7yuwavRpcEgvseO_c8-V55u6yokMleFV-VNhAjFG",
+    "bio": "Yeni başlayan dans öğrencisi",
+    "rating": 0,
+    "totalLessons": 2,
+    "createdAt": "2024-01-20T14:00:00Z"
+  }
+]
+

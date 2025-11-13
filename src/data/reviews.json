@@ -1,0 +1,35 @@
+[
+  {
+    "id": "review1",
+    "lessonId": "lesson1",
+    "studentId": "user1",
+    "rating": 5,
+    "comment": "Harika bir ders! Ayşe hoca çok profesyonel ve sabırlı. Kesinlikle tavsiye ederim.",
+    "createdAt": "2024-01-20T15:00:00Z"
+  },
+  {
+    "id": "review2",
+    "lessonId": "lesson1",
+    "studentId": "student2",
+    "rating": 4,
+    "comment": "Güzel bir deneyimdi. Biraz daha pratik yapmak isterdim ama genel olarak memnun kaldım.",
+    "createdAt": "2024-01-21T10:00:00Z"
+  },
+  {
+    "id": "review3",
+    "lessonId": "lesson2",
+    "studentId": "user1",
+    "rating": 5,
+    "comment": "Can hoca bachata'yı çok güzel anlatıyor. Dersler çok eğlenceli geçiyor.",
+    "createdAt": "2024-01-18T16:00:00Z"
+  },
+  {
+    "id": "review4",
+    "lessonId": "lesson3",
+    "studentId": "student2",
+    "rating": 4,
+    "comment": "Kizomba öğrenmek istiyordum ve Elif hoca çok yardımcı oldu. Teşekkürler!",
+    "createdAt": "2024-01-19T12:00:00Z"
+  }
+]
+

@@ -1,7 +1,7 @@
 {
   "name": "dance-platform-mobile-rn",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,14 +9,26 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~54.0.23",
-    "expo-status-bar": "~3.0.8",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "@react-native-community/datetimepicker": "^8.0.1",
+    "@react-navigation/bottom-tabs": "^7.8.4",
+    "@react-navigation/native": "^7.1.19",
+    "@react-navigation/stack": "^7.6.3",
+    "expo": "~51.0.0",
+    "expo-image-picker": "~15.1.0",
+    "expo-linear-gradient": "~13.0.2",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "3.31.1",
+    "react-native-vector-icons": "^10.3.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
-    "typescript": "~5.9.2"
+    "@babel/core": "^7.24.0",
+    "@types/react": "~18.2.79",
+    "typescript": "~5.3.3"
   },
   "private": true
 }

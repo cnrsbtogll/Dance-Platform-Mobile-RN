@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ders Detay Sayfası</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4A90E2",
+            "accent": "#F5A623",
+            "background-light": "#F8F9FA",
+            "background-dark": "#101922",
+            "text-light-primary": "#333333",
+            "text-light-secondary": "#888888",
+            "text-dark-primary": "#E0E0E0",
+            "text-dark-secondary": "#A0A0A0",
+            "card-light": "#FFFFFF",
+            "card-dark": "#1A242E"
+          },
+          fontFamily: {
+            "display": ["Lexend", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "0.75rem",
+            "xl": "1rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+    .gradient-overlay::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0) 50%);
+    }
+  </style>
+<style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light-primary dark:text-dark-primary">
+<div class="relative mx-auto flex h-auto min-h-screen w-full max-w-md flex-col group/design-root overflow-x-hidden pb-24">
+<div class="relative h-72">
+<div class="absolute inset-0 bg-center bg-cover gradient-overlay" data-alt="A photo of a couple dancing modern dance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCgTmZbmoEphxMf0JNkTKEBncLLltfGS7BGfp8LG3B5bdR4wlvAJtoCe5dsUnIURI2Dr5PruB6brXR1j8XFbXzYVWWtlrgpcAbfifF2NCXtz3IWiLayviWZ7Bk9x-zsI94zM5E5Az3LEXsDohw_XMHBtzSBilbZSXROcMQnYGa6ZW6etjvWBMHCECXeN566y6SmD65vsDJBI95KtE0CtQBqLaPYSTtX_2lvcRqD34M9OGF34VWp1wyEW5B7rBiA6oBa26ojL9sTl0zN");'></div>
+<header class="absolute top-0 z-10 flex w-full items-center p-4">
+<a class="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm" href="#">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</a>
+<div class="flex-1"></div>
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm">
+<span class="material-symbols-outlined">favorite_border</span>
+</button>
+<button class="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm">
+<span class="material-symbols-outlined">share</span>
+</button>
+</header>
+<div class="absolute bottom-0 z-10 p-6 text-white">
+<h1 class="text-3xl font-bold leading-tight">Modern Dans Başlangıç</h1>
+<p class="mt-1 text-lg">Eğitmen: Ayla Yılmaz</p>
+</div>
+</div>
+<main class="flex-grow">
+<div class="p-6">
+<div class="grid grid-cols-3 gap-4 text-center">
+<div class="rounded-xl bg-card-light dark:bg-card-dark p-3 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">calendar_today</span>
+<p class="mt-1 text-sm font-medium text-text-light-primary dark:text-dark-primary">Tarih</p>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary">25 Ekim</p>
+</div>
+<div class="rounded-xl bg-card-light dark:bg-card-dark p-3 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">schedule</span>
+<p class="mt-1 text-sm font-medium text-text-light-primary dark:text-dark-primary">Saat</p>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary">18:30</p>
+</div>
+<div class="rounded-xl bg-card-light dark:bg-card-dark p-3 shadow-sm">
+<span class="material-symbols-outlined text-primary text-2xl">hourglass_empty</span>
+<p class="mt-1 text-sm font-medium text-text-light-primary dark:text-dark-primary">Süre</p>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary">90 dk</p>
+</div>
+</div>
+<div class="mt-8">
+<h2 class="text-xl font-bold">Ders Açıklaması</h2>
+<p class="mt-2 text-text-light-secondary dark:text-text-dark-secondary leading-relaxed">
+            Bu başlangıç seviyesi modern dans dersinde, temel hareketleri, vücut farkındalığını ve ifade biçimlerini öğreneceksiniz. Dersimiz, dansa yeni başlayanlar için özel olarak tasarlanmıştır ve herhangi bir ön deneyim gerektirmez. Rahat kıyafetler ve su şişesi getirmeniz yeterlidir.
+          </p>
+</div>
+<div class="mt-8">
+<h2 class="text-xl font-bold">Konum</h2>
+<div class="mt-3 flex items-start gap-3">
+<span class="material-symbols-outlined mt-1 text-primary">location_on</span>
+<div>
+<p class="font-medium text-text-light-primary dark:text-dark-primary">Dans Stüdyosu A</p>
+<p class="text-sm text-text-light-secondary dark:text-text-dark-secondary">Merkez Mah. Sanat Sk. No:12, Beşiktaş/İstanbul</p>
+</div>
+</div>
+<div class="mt-3 h-40 overflow-hidden rounded-xl">
+<img alt="Harita üzerinde konum" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdlKSrjSVNaws68X6Mj1wmNS4eTBkffsjaEQpAM66SAJwU6d2aTkwdmJ_FiNH__z1BzgxangkJH8tCrYxzMyiIpeDzj4_8EfiBVAl61zDO3oboPKjMgMkcdTFDkngMdK7BuzchBo1SJaQMGWjwGMBjjRRgBLw6tpwcU7C6q1Wj_WSViCjrsDaZRPShHonoPLVDni-BJVBvYq73a7jwf96AX8j6d19tjIPV5sj4r_-X39wu2ta5fpdF4TnwxYKJ6siZVRfUWyPV1uyb"/>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 z-20 mx-auto max-w-md border-t border-gray-200/80 bg-background-light/95 dark:border-white/10 dark:bg-background-dark/95 p-4 backdrop-blur-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-sm text-text-light-secondary dark:text-text-dark-secondary">Ücret</span>
+<span class="text-2xl font-bold text-primary">₺250</span>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] grow cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-gradient-to-r from-primary to-blue-400 text-white text-lg font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/40 ml-4">
+<span class="truncate">Derse Kaydol</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

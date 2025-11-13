@@ -1,0 +1,39 @@
+[
+  {
+    "id": "booking1",
+    "lessonId": "lesson1",
+    "studentId": "user1",
+    "instructorId": "instructor1",
+    "date": "2024-02-01",
+    "time": "18:00",
+    "status": "confirmed",
+    "price": 250,
+    "paymentStatus": "paid",
+    "createdAt": "2024-01-25T10:00:00Z"
+  },
+  {
+    "id": "booking2",
+    "lessonId": "lesson2",
+    "studentId": "user1",
+    "instructorId": "instructor2",
+    "date": "2024-02-05",
+    "time": "19:30",
+    "status": "pending",
+    "price": 220,
+    "paymentStatus": "pending",
+    "createdAt": "2024-01-26T14:00:00Z"
+  },
+  {
+    "id": "booking3",
+    "lessonId": "lesson3",
+    "studentId": "student2",
+    "instructorId": "instructor3",
+    "date": "2024-02-03",
+    "time": "20:00",
+    "status": "confirmed",
+    "price": 280,
+    "paymentStatus": "paid",
+    "createdAt": "2024-01-27T09:00:00Z"
+  }
+]
+
