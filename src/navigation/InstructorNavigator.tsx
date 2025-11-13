@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
+import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
 const Tab = createBottomTabNavigator();
@@ -188,6 +189,14 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="LessonDetail"
         component={LessonDetailScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="CreateLesson"
+        component={CreateLessonScreen}
         options={{ 
           headerShown: false,
           presentation: 'card',

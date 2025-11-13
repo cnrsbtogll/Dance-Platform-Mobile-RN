@@ -236,7 +236,7 @@ export const InstructorHomeScreen: React.FC = () => {
       <TouchableOpacity
         style={styles.fab}
         onPress={() => {
-          // Navigate to create lesson
+          (navigation as any).navigate('CreateLesson');
         }}
         activeOpacity={0.8}
       >
