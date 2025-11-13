@@ -10,7 +10,6 @@ import { MockDataService } from '../../services/mockDataService';
 import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { SearchBar } from '../../components/common/SearchBar';
-import { BottomTab } from '../../components/common/BottomTab';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -29,9 +28,9 @@ export const StudentHomeScreen: React.FC = () => {
   const categories = ['Hepsi', 'Salsa', 'Bachata', 'Tango', 'Kizomba'];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* Top App Bar - Fixed */}
-      <View style={[styles.header, { backgroundColor: colors.student.background.light + 'CC' }]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Custom Header */}
+      <View style={[styles.header, { backgroundColor: colors.student.background.light }]}>
         <View style={styles.headerLeft}>
           <Image
             source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuArpIJAKnMfWnO8J2g3xJZUDwv5NZZmqYBdzgLkL0gDYWa8jKfBMgJS_o6tiwX0DPBv32ie4eHsASq5lEM6ovZP8KTnE8jWLe0yPcRa9enxSJ95JT2ytDgZ7emaBv5tyuVYngMoabwB6Egx8SoLhZLGQAwbzLS-W5YSJVjnzMjPYBBNgdvxNIExEsm_onrj9_0K4jdpHYyV71cBuUquOzI5pY9e5Wafqv6V8-yLGh-r3azGvQ8lJeEvuAzTh9BEGjW7mcO1Q5FL4kUa' }}
@@ -97,9 +96,10 @@ export const StudentHomeScreen: React.FC = () => {
                 key={lesson.id}
                 activeOpacity={0.7}
                 onPress={() => {
-                  navigation.navigate('LessonDetail' as never, {
+                  // Navigate to LessonDetail in the parent Stack Navigator
+                  (navigation as any).getParent()?.navigate('LessonDetail', {
                     lessonId: lesson.id,
-                  } as never);
+                  });
                 }}
               >
               <Card style={styles.lessonCard}>
@@ -144,37 +144,6 @@ export const StudentHomeScreen: React.FC = () => {
           })}
         </View>
       </ScrollView>
-
-      {/* Bottom Tab Navigator - Fixed */}
-      <View style={styles.bottomTabContainer}>
-        <BottomTab
-          items={[
-            { 
-              label: 'Ana Sayfa', 
-              icon: <MaterialIcons name="home" size={24} />, 
-              onPress: () => {} 
-            },
-            { 
-              label: 'Derslerim', 
-              icon: <MaterialIcons name="school" size={24} />, 
-              onPress: () => {
-                navigation.navigate('MyLessons' as never);
-              } 
-            },
-            { 
-              label: 'Sohbet', 
-              icon: <MaterialIcons name="chat-bubble-outline" size={24} />, 
-              onPress: () => {} 
-            },
-            { 
-              label: 'Profil', 
-              icon: <MaterialIcons name="person-outline" size={24} />, 
-              onPress: () => {} 
-            },
-          ]}
-          activeIndex={0}
-        />
-      </View>
     </SafeAreaView>
   );
 };
@@ -223,12 +192,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  bottomTabContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -279,7 +242,7 @@ const styles = StyleSheet.create({
   lessonsContainer: {
     padding: spacing.md,
     gap: spacing.md,
-    paddingBottom: 100, // Bottom tab için alan
+    paddingBottom: spacing.xl,
   },
   lessonCard: {
     marginBottom: spacing.md,

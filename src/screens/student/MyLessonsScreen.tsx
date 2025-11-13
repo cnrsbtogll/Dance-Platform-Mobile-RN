@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
@@ -9,7 +8,6 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getUpcomingBookings, getPastBookings } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
-import { BottomTab } from '../../components/common/BottomTab';
 
 type TabType = 'active' | 'past';
 
@@ -38,7 +36,7 @@ export const MyLessonsScreen: React.FC = () => {
   };
 
   // Debug: Log bookings to see what's happening
-  React.useEffect(() => {
+  useEffect(() => {
     const user = useAuthStore.getState().user;
     console.log('User:', user);
     console.log('All bookings:', bookings);
@@ -47,14 +45,7 @@ export const MyLessonsScreen: React.FC = () => {
   }, [bookings, upcomingBookings, pastBookings]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* Top App Bar */}
-      <View style={[styles.header, { backgroundColor: colors.student.background.light + 'CC' }]}>
-        <View style={styles.headerLeft} />
-        <Text style={styles.headerTitle}>Derslerim</Text>
-        <View style={styles.headerRight} />
-      </View>
-
+    <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Segmented Buttons */}
         <View style={styles.segmentedContainer}>
@@ -116,10 +107,11 @@ export const MyLessonsScreen: React.FC = () => {
                   key={booking.id}
                   activeOpacity={0.7}
                   onPress={() => {
-                    navigation.navigate('LessonDetail' as never, {
+                    // Navigate to LessonDetail in the parent Stack Navigator
+                    (navigation as any).getParent()?.navigate('LessonDetail', {
                       lessonId: booking.lessonId,
                       bookingId: booking.id,
-                    } as never);
+                    });
                   }}
                 >
                   <Card style={styles.lessonCard}>
@@ -162,38 +154,7 @@ export const MyLessonsScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
-
-      {/* Bottom Tab Navigator */}
-      <View style={styles.bottomTabContainer}>
-        <BottomTab
-          items={[
-            { 
-              label: 'Ana Sayfa', 
-              icon: <MaterialIcons name="home" size={24} />, 
-              onPress: () => {
-                navigation.navigate('Home' as never);
-              } 
-            },
-            { 
-              label: 'Derslerim', 
-              icon: <MaterialIcons name="school" size={24} />, 
-              onPress: () => {} 
-            },
-            { 
-              label: 'Sohbet', 
-              icon: <MaterialIcons name="chat-bubble-outline" size={24} />, 
-              onPress: () => {} 
-            },
-            { 
-              label: 'Profil', 
-              icon: <MaterialIcons name="person-outline" size={24} />, 
-              onPress: () => {} 
-            },
-          ]}
-          activeIndex={1}
-        />
-      </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -204,29 +165,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xs,
-    paddingTop: spacing.md,
-    zIndex: 20,
-  },
-  headerLeft: {
-    width: 48,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
-    textAlign: 'center',
-    letterSpacing: -0.15,
-  },
-  headerRight: {
-    width: 48,
   },
   segmentedContainer: {
     paddingHorizontal: spacing.md,
@@ -262,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
-    paddingBottom: 100, // Bottom tab için alan
+    paddingBottom: spacing.xl,
   },
   lessonCard: {
     marginBottom: spacing.sm,
