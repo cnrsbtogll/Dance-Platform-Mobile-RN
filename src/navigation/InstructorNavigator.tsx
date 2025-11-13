@@ -8,9 +8,11 @@ import { colors, typography, spacing } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
+import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
+import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -120,9 +122,10 @@ const MainTabs: React.FC = () => {
       />
       <Tab.Screen
         name="Messages"
-        component={InstructorHomeScreen}
+        component={InstructorChatScreen}
         options={{
           title: 'Mesajlar',
+          headerShown: false,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
@@ -208,6 +211,14 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="EditLesson"
         component={EditLessonScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="ChatDetail"
+        component={ChatDetailScreen}
         options={{ 
           headerShown: false,
           presentation: 'card',
