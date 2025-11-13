@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StudentNavigator } from './StudentNavigator';
@@ -10,6 +10,7 @@ const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
+  const navigationRef = useRef<any>(null);
 
   useEffect(() => {
     // Mock: Auto-login as student (user1) for development
@@ -23,8 +24,11 @@ export const RootNavigator: React.FC = () => {
 
   // Direkt öğrenci ana sayfasına yönlendir (login gerekmez)
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer ref={navigationRef}>
+      <Stack.Navigator 
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Student"
+      >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />
       </Stack.Navigator>

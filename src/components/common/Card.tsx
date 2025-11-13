@@ -13,7 +13,7 @@ export const Card: React.FC<CardProps> = ({ children, style, variant = 'light' }
   const cardStyle = variant === 'dark' ? theme.card.dark : theme.card.light;
   
   return (
-    <View style={[styles.card, { backgroundColor: cardStyle }, shadows.md, style]}>
+    <View style={[styles.card, { backgroundColor: cardStyle }, shadows.md, { elevation: 4 }, style]}>
       {children}
     </View>
   );

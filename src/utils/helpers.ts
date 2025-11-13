@@ -6,10 +6,25 @@ export const formatPrice = (price: number): string => {
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('tr-TR', {
-    day: 'numeric',
-    month: 'long',
-  });
+  const now = new Date();
+  const diffTime = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return 'Bugün';
+  } else if (diffDays === 1) {
+    return 'Yarın';
+  } else if (diffDays === -1) {
+    return 'Dün';
+  } else if (diffDays > 1 && diffDays < 7) {
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    return days[date.getDay()];
+  } else {
+    return date.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+    });
+  }
 };
 
 export const formatTime = (timeString: string): string => {

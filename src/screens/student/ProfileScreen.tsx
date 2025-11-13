@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -196,7 +196,21 @@ export const ProfileScreen: React.FC = () => {
         </View>
 
         {/* Switch to Instructor Mode Button */}
-        <TouchableOpacity style={styles.switchModeButton} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={styles.switchModeButton} 
+          activeOpacity={0.8}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          onPress={() => {
+            console.log('Button pressed - switching to instructor mode');
+            // Navigate to Instructor mode using CommonActions
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'Instructor' }],
+              })
+            );
+          }}
+        >
           <Text style={styles.switchModeButtonText}>Eğitmen Moduna Geç</Text>
         </TouchableOpacity>
 
@@ -259,6 +273,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.lg,
     ...shadows.sm,
+    zIndex: 10,
   },
   switchModeButtonText: {
     fontSize: typography.fontSize.base,
