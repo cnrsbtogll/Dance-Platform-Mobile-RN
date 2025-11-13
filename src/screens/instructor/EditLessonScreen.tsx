@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
+import { MockDataService } from '../../services/mockDataService';
 
 // Predefined lesson images for each dance type
 const LESSON_IMAGES: { [key: string]: string[] } = {
@@ -43,13 +44,18 @@ const DURATION_OPTIONS = [
     { label: '90 dakika', value: 90 },
 ];
 
-export const CreateLessonScreen: React.FC = () => {
+export const EditLessonScreen: React.FC = () => {
     const navigation = useNavigation();
+    const route = useRoute();
+    const params = route.params as { lessonId?: string } | undefined;
+    const lessonId = params?.lessonId;
+
+    const lesson = lessonId ? MockDataService.getLessonById(lessonId) : null;
 
     useEffect(() => {
         navigation.setOptions({
             headerShown: true,
-            headerTitle: 'Ders Oluştur',
+            headerTitle: 'Ders Düzenle',
             headerBackTitle: '',
             headerStyle: {
                 backgroundColor: colors.instructor.background.light,
@@ -63,15 +69,16 @@ export const CreateLessonScreen: React.FC = () => {
         });
     }, [navigation]);
 
-    const [title, setTitle] = useState('');
-    const [danceType, setDanceType] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('150');
-    const [duration, setDuration] = useState(60);
+    // Initialize state with lesson data
+    const [title, setTitle] = useState(lesson?.title || '');
+    const [danceType, setDanceType] = useState(lesson?.category || '');
+    const [description, setDescription] = useState(lesson?.description || '');
+    const [price, setPrice] = useState(lesson?.price?.toString() || '150');
+    const [duration, setDuration] = useState(lesson?.duration || 60);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<Date | null>(null);
     const [recurring, setRecurring] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(lesson?.imageUrl || null);
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -95,13 +102,14 @@ export const CreateLessonScreen: React.FC = () => {
         return `${hours}:${minutes}`;
     };
 
-    const handleCreate = () => {
-        if (!title || !danceType || !description || !price || !selectedImage) {
-            // Show error message
+    const handleSave = () => {
+        if (!title || !danceType || !description || !price) {
+            Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
             return;
         }
-        // Create lesson logic here
-        console.log('Creating lesson:', {
+        // Update lesson logic here
+        console.log('Updating lesson:', {
+            lessonId,
             title,
             danceType,
             description,
@@ -109,13 +117,56 @@ export const CreateLessonScreen: React.FC = () => {
             duration,
             date: selectedDate,
             time: selectedTime,
-            recurring,
             selectedImage
         });
-        navigation.goBack();
+        Alert.alert('Başarılı', 'Ders başarıyla güncellendi', [
+            { text: 'Tamam', onPress: () => navigation.goBack() }
+        ]);
+    };
+
+    const handleDelete = () => {
+        Alert.alert(
+            'Dersi Sil',
+            'Bu dersi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+            [
+                { text: 'İptal', style: 'cancel' },
+                {
+                    text: 'Sil',
+                    style: 'destructive',
+                    onPress: () => {
+                        // Delete lesson logic here
+                        console.log('Deleting lesson:', lessonId);
+                        Alert.alert('Başarılı', 'Ders başarıyla silindi', [
+                            { text: 'Tamam', onPress: () => navigation.goBack() }
+                        ]);
+                    }
+                }
+            ]
+        );
     };
 
     const renderImagePicker = () => {
+        if (selectedImage) {
+            return (
+                <View style={styles.imageUploadContainer}>
+                    <Image source={{ uri: selectedImage }} style={styles.currentImage} resizeMode="cover" />
+                    <View style={styles.imageInfoContainer}>
+                        <View style={styles.imageInfo}>
+                            <Text style={styles.imageInfoTitle}>Mevcut Kapak Görseli</Text>
+                            <Text style={styles.imageInfoSubtitle}>Görseli değiştirmek için dokunun</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.changeImageButton}
+                            onPress={() => setShowImagePicker(true)}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.changeImageButtonText}>Değiştir</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
+        }
+
         if (!danceType) {
             return (
                 <View style={styles.imageUploadContainer}>
@@ -129,30 +180,17 @@ export const CreateLessonScreen: React.FC = () => {
 
         return (
             <View style={styles.imageUploadContainer}>
-                {selectedImage ? (
-                    <TouchableOpacity
-                        style={styles.selectedImageContainer}
-                        onPress={() => setShowImagePicker(true)}
-                    >
-                        <Image source={{ uri: selectedImage }} style={styles.selectedImage} resizeMode="cover" />
-                        <View style={styles.imageOverlay}>
-                            <MaterialIcons name="edit" size={24} color="#ffffff" />
-                            <Text style={styles.imageOverlayText}>Değiştir</Text>
-                        </View>
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity
-                        style={styles.imageUploadPlaceholder}
-                        onPress={() => setShowImagePicker(true)}
-                        activeOpacity={0.7}
-                    >
-                        <MaterialIcons name="cloud-upload" size={48} color={colors.instructor.text.lightSecondary} />
-                        <Text style={styles.imageUploadText}>
-                            <Text style={styles.imageUploadTextBold}>Yüklemek için tıkla</Text> veya sürükle
-                        </Text>
-                        <Text style={styles.imageUploadSubtext}>SVG, PNG, JPG (MAX. 800x400px)</Text>
-                    </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                    style={styles.imageUploadPlaceholder}
+                    onPress={() => setShowImagePicker(true)}
+                    activeOpacity={0.7}
+                >
+                    <MaterialIcons name="cloud-upload" size={48} color={colors.instructor.text.lightSecondary} />
+                    <Text style={styles.imageUploadText}>
+                        <Text style={styles.imageUploadTextBold}>Yüklemek için tıkla</Text> veya sürükle
+                    </Text>
+                    <Text style={styles.imageUploadSubtext}>SVG, PNG, JPG (MAX. 800x400px)</Text>
+                </TouchableOpacity>
             </View>
         );
     };
@@ -188,6 +226,7 @@ export const CreateLessonScreen: React.FC = () => {
                         </View>
                     </Card>
                 </View>
+
                 {/* Image Section */}
                 <View style={styles.section}>
                     <Card style={styles.imageCard}>
@@ -205,18 +244,18 @@ export const CreateLessonScreen: React.FC = () => {
                                 <Text style={styles.inputLabel}>Ders Başlığı</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Örn: Başlangıç Seviyesi Salsa"
+                                    placeholder="Ders başlığı girin"
                                     placeholderTextColor={colors.instructor.text.lightSecondary}
                                     value={title}
                                     onChangeText={setTitle}
                                 />
                             </View>
-
+                            
                             <View style={styles.inputGroup}>
                                 <Text style={styles.inputLabel}>Açıklama</Text>
                                 <TextInput
                                     style={[styles.input, styles.textArea]}
-                                    placeholder="Dersin içeriği, seviyesi ve hedefleri hakkında bilgi verin..."
+                                    placeholder="Ders açıklaması girin"
                                     placeholderTextColor={colors.instructor.text.lightSecondary}
                                     value={description}
                                     onChangeText={setDescription}
@@ -235,12 +274,12 @@ export const CreateLessonScreen: React.FC = () => {
                         <Text style={styles.sectionTitle}>Fiyatlandırma & Süre</Text>
                         <View style={styles.gridRow}>
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={styles.inputLabel}>Saatlik Ücret</Text>
+                                <Text style={styles.inputLabel}>Fiyat</Text>
                                 <View style={styles.priceInputContainer}>
                                     <Text style={styles.currencySymbol}>₺</Text>
                                     <TextInput
                                         style={[styles.input, styles.priceInput]}
-                                        placeholder="150"
+                                        placeholder="0.00"
                                         placeholderTextColor={colors.instructor.text.lightSecondary}
                                         value={price}
                                         onChangeText={setPrice}
@@ -280,6 +319,7 @@ export const CreateLessonScreen: React.FC = () => {
                                 <TouchableOpacity
                                     style={styles.dateTimeInput}
                                     onPress={() => setShowDatePicker(true)}
+                                    activeOpacity={0.7}
                                 >
                                     <MaterialIcons name="calendar-month" size={20} color={colors.instructor.text.lightSecondary} />
                                     <Text style={[styles.dateTimeText, !selectedDate && styles.placeholderText]}>
@@ -293,6 +333,7 @@ export const CreateLessonScreen: React.FC = () => {
                                 <TouchableOpacity
                                     style={styles.dateTimeInput}
                                     onPress={() => setShowTimePicker(true)}
+                                    activeOpacity={0.7}
                                 >
                                     <MaterialIcons name="schedule" size={20} color={colors.instructor.text.lightSecondary} />
                                     <Text style={[styles.dateTimeText, !selectedTime && styles.placeholderText]}>
@@ -315,20 +356,27 @@ export const CreateLessonScreen: React.FC = () => {
                     </Card>
                 </View>
 
-                {/* Bottom spacing for button */}
+                {/* Action Buttons */}
+                <View style={styles.section}>
+                    <TouchableOpacity
+                        style={styles.saveButton}
+                        onPress={handleSave}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.saveButtonText}>Değişiklikleri Kaydet</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={handleDelete}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.deleteButtonText}>Dersi Sil</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Bottom spacing */}
                 <View style={{ height: 100 }} />
             </ScrollView>
-
-            {/* Fixed Bottom Button */}
-            <SafeAreaView edges={['bottom']} style={styles.bottomButtonContainer}>
-                <TouchableOpacity
-                    style={styles.createButton}
-                    onPress={handleCreate}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.createButtonText}>Oluştur</Text>
-                </TouchableOpacity>
-            </SafeAreaView>
 
             {/* Image Picker Modal */}
             <Modal
@@ -419,59 +467,6 @@ export const CreateLessonScreen: React.FC = () => {
                 />
             )}
 
-            {/* Dance Type Picker Modal */}
-            <Modal
-                visible={showDanceTypePicker}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setShowDanceTypePicker(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Dans Türü Seç</Text>
-                            <TouchableOpacity onPress={() => setShowDanceTypePicker(false)}>
-                                <MaterialIcons name="close" size={24} color={colors.instructor.text.lightPrimary} />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={DANCE_TYPES}
-                            keyExtractor={(item) => item}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.pickerOption,
-                                        danceType === item && styles.pickerOptionSelected,
-                                    ]}
-                                    onPress={() => {
-                                        setDanceType(item);
-                                        setSelectedImage(null); // Reset image when dance type changes
-                                        setShowDanceTypePicker(false);
-                                    }}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.pickerOptionText,
-                                            danceType === item && styles.pickerOptionTextSelected,
-                                        ]}
-                                    >
-                                        {item}
-                                    </Text>
-                                    {danceType === item && (
-                                        <MaterialIcons
-                                            name="check"
-                                            size={24}
-                                            color={colors.instructor.secondary}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                            )}
-                            contentContainerStyle={styles.pickerListContent}
-                        />
-                    </View>
-                </View>
-            </Modal>
-
             {/* Duration Picker Modal */}
             <Modal
                 visible={showDurationPicker}
@@ -510,6 +505,62 @@ export const CreateLessonScreen: React.FC = () => {
                                         {item.label}
                                     </Text>
                                     {duration === item.value && (
+                                        <MaterialIcons
+                                            name="check"
+                                            size={24}
+                                            color={colors.instructor.secondary}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={styles.pickerListContent}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Dance Type Picker Modal */}
+            <Modal
+                visible={showDanceTypePicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowDanceTypePicker(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Dans Türü Seç</Text>
+                            <TouchableOpacity onPress={() => setShowDanceTypePicker(false)}>
+                                <MaterialIcons name="close" size={24} color={colors.instructor.text.lightPrimary} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={DANCE_TYPES}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.pickerOption,
+                                        danceType === item && styles.pickerOptionSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setDanceType(item);
+                                        // Reset image if dance type changes
+                                        if (selectedImage && !LESSON_IMAGES[item]?.includes(selectedImage)) {
+                                            setSelectedImage(null);
+                                        }
+                                        setShowDanceTypePicker(false);
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.pickerOptionText,
+                                            danceType === item && styles.pickerOptionTextSelected,
+                                        ]}
+                                    >
+                                        {item}
+                                    </Text>
+                                    {danceType === item && (
                                         <MaterialIcons
                                             name="check"
                                             size={24}
@@ -567,6 +618,43 @@ const styles = StyleSheet.create({
     imageUploadContainer: {
         width: '100%',
     },
+    currentImage: {
+        width: '100%',
+        aspectRatio: 16 / 9,
+        borderRadius: borderRadius.lg,
+        marginBottom: spacing.md,
+    },
+    imageInfoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: spacing.md,
+    },
+    imageInfo: {
+        flex: 1,
+    },
+    imageInfoTitle: {
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.bold,
+        color: colors.instructor.text.lightPrimary,
+        marginBottom: spacing.xs,
+    },
+    imageInfoSubtitle: {
+        fontSize: typography.fontSize.sm,
+        color: colors.instructor.text.lightSecondary,
+    },
+    changeImageButton: {
+        backgroundColor: colors.instructor.secondary,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.lg,
+        minWidth: 84,
+    },
+    changeImageButtonText: {
+        fontSize: typography.fontSize.sm,
+        fontWeight: typography.fontWeight.medium,
+        color: '#ffffff',
+    },
     imageUploadPlaceholder: {
         width: '100%',
         height: 128,
@@ -590,33 +678,6 @@ const styles = StyleSheet.create({
     imageUploadSubtext: {
         fontSize: typography.fontSize.xs,
         color: colors.instructor.text.lightSecondary,
-    },
-    selectedImageContainer: {
-        width: '100%',
-        height: 128,
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-        position: 'relative',
-    },
-    selectedImage: {
-        width: '100%',
-        height: '100%',
-    },
-    imageOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: spacing.xs,
-    },
-    imageOverlayText: {
-        color: '#ffffff',
-        fontSize: typography.fontSize.sm,
-        fontWeight: typography.fontWeight.medium,
     },
     formFields: {
         padding: spacing.md,
@@ -731,27 +792,33 @@ const styles = StyleSheet.create({
         fontSize: typography.fontSize.base,
         color: colors.instructor.text.lightPrimary,
     },
-    bottomButtonContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: colors.instructor.card.light,
-        borderTopWidth: 1,
-        borderTopColor: colors.instructor.border.light,
-        padding: spacing.md,
-    },
-    createButton: {
-        backgroundColor: '#137fec',
-        height: 48,
+    saveButton: {
+        backgroundColor: colors.instructor.primary,
+        height: 56,
         borderRadius: borderRadius.xl,
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: spacing.md,
+        ...shadows.md,
     },
-    createButtonText: {
-        fontSize: typography.fontSize.lg,
+    saveButtonText: {
+        fontSize: typography.fontSize.base,
         fontWeight: typography.fontWeight.bold,
         color: '#ffffff',
+    },
+    deleteButton: {
+        backgroundColor: 'transparent',
+        height: 56,
+        borderRadius: borderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#e53e3e',
+    },
+    deleteButtonText: {
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.medium,
+        color: '#e53e3e',
     },
     modalOverlay: {
         flex: 1,

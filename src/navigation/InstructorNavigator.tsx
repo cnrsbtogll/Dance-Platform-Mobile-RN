@@ -7,7 +7,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../utils/theme';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
+import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
+import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
 const Tab = createBottomTabNavigator();
@@ -98,16 +100,17 @@ const MainTabs: React.FC = () => {
       />
       <Tab.Screen
         name="Lessons"
-        component={InstructorHomeScreen}
+        component={InstructorLessonsScreen}
         options={{
-          title: 'Dersler',
+          title: 'Derslerim',
+          headerShown: false,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Dersler
+              Derslerim
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
@@ -197,6 +200,14 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="CreateLesson"
         component={CreateLessonScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="EditLesson"
+        component={EditLessonScreen}
         options={{ 
           headerShown: false,
           presentation: 'card',

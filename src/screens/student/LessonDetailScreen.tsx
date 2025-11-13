@@ -60,9 +60,7 @@ export const LessonDetailScreen: React.FC = () => {
   };
 
   const handleEdit = () => {
-    // Navigate to edit lesson screen (to be implemented)
-    // (navigation as any).navigate('EditLesson', { lessonId: lesson.id });
-    console.log('Edit lesson:', lesson.id);
+    (navigation as any).navigate('EditLesson', { lessonId: lesson?.id });
   };
 
   return (

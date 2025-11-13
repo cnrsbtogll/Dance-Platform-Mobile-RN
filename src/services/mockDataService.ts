@@ -86,6 +86,10 @@ export class MockDataService {
     return bookings.filter(booking => booking.instructorId === instructorId);
   }
 
+  static getBookingsByLesson(lessonId: string): Booking[] {
+    return bookings.filter(booking => booking.lessonId === lessonId);
+  }
+
   static getBookingsByStatus(status: string): Booking[] {
     return bookings.filter(booking => booking.status === status);
   }
