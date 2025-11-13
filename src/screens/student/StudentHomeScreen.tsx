@@ -93,7 +93,16 @@ export const StudentHomeScreen: React.FC = () => {
             const isFavorite = favoriteLessons.includes(lesson.id);
             
             return (
-              <Card key={lesson.id} style={styles.lessonCard}>
+              <TouchableOpacity
+                key={lesson.id}
+                activeOpacity={0.7}
+                onPress={() => {
+                  navigation.navigate('LessonDetail' as never, {
+                    lessonId: lesson.id,
+                  } as never);
+                }}
+              >
+              <Card style={styles.lessonCard}>
                 <View style={styles.lessonImageContainer}>
                   {lesson.imageUrl && (
                     <Image
@@ -130,6 +139,7 @@ export const StudentHomeScreen: React.FC = () => {
                   </View>
                 </View>
               </Card>
+              </TouchableOpacity>
             );
           })}
         </View>

@@ -2,6 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
 import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
+import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -15,6 +16,10 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="MyLessons"
         component={MyLessonsScreen}
+      />
+      <Stack.Screen
+        name="LessonDetail"
+        component={LessonDetailScreen}
       />
     </Stack.Navigator>
   );

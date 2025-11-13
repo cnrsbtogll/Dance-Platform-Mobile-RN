@@ -112,7 +112,16 @@ export const MyLessonsScreen: React.FC = () => {
               if (!lesson) return null;
 
               return (
-                <TouchableOpacity key={booking.id} activeOpacity={0.7}>
+                <TouchableOpacity
+                  key={booking.id}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    navigation.navigate('LessonDetail' as never, {
+                      lessonId: booking.lessonId,
+                      bookingId: booking.id,
+                    } as never);
+                  }}
+                >
                   <Card style={styles.lessonCard}>
                     <View style={styles.lessonCardContent}>
                       <View style={styles.lessonCardLeft}>
