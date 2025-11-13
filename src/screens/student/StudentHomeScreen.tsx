@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
 import { useLessonStore } from '../../store/useLessonStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
@@ -13,6 +13,7 @@ import { SearchBar } from '../../components/common/SearchBar';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { user } = useAuthStore();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
   const filteredLessons = lessons.filter(lesson => {
     if (selectedCategory && lesson.category !== selectedCategory) return false;
@@ -27,24 +28,37 @@ export const StudentHomeScreen: React.FC = () => {
 
   const categories = ['Hepsi', 'Salsa', 'Bachata', 'Tango', 'Kizomba'];
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Custom Header */}
-      <View style={[styles.header, { backgroundColor: colors.student.background.light }]}>
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
         <View style={styles.headerLeft}>
           <Image
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuArpIJAKnMfWnO8J2g3xJZUDwv5NZZmqYBdzgLkL0gDYWa8jKfBMgJS_o6tiwX0DPBv32ie4eHsASq5lEM6ovZP8KTnE8jWLe0yPcRa9enxSJ95JT2ytDgZ7emaBv5tyuVYngMoabwB6Egx8SoLhZLGQAwbzLS-W5YSJVjnzMjPYBBNgdvxNIExEsm_onrj9_0K4jdpHYyV71cBuUquOzI5pY9e5Wafqv6V8-yLGh-r3azGvQ8lJeEvuAzTh9BEGjW7mcO1Q5FL4kUa' }}
+            source={{ uri: user?.avatar || '' }}
             style={styles.avatar}
           />
-          <Text style={styles.headerTitle}>Merhaba, Ahmet</Text>
+          <Text style={styles.headerTitle}>
+            Merhaba, {user?.name?.split(' ')[0] || 'Ahmet'}
+          </Text>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.notificationButton}>
-            <MaterialIcons name="notifications" size={24} color={colors.student.text.primaryLight} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      ),
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => {}}
+        >
+          <MaterialIcons
+            name="notifications"
+            size={24}
+            color={colors.student.text.primaryLight}
+          />
+        </TouchableOpacity>
+      ),
+      headerTitle: '',
+    });
+  }, [navigation, user]);
 
+  return (
+    <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Search Bar & Filter */}
@@ -146,7 +160,7 @@ export const StudentHomeScreen: React.FC = () => {
           })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -158,20 +172,13 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xs,
-    paddingTop: spacing.md,
-    zIndex: 20,
-  },
   headerLeft: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    paddingLeft: spacing.md,
+    marginBottom: spacing.sm,
+    justifyContent: 'center',
   },
   avatar: {
     width: 40,
@@ -184,16 +191,13 @@ const styles = StyleSheet.create({
     color: colors.student.text.primaryLight,
     letterSpacing: -0.15,
   },
-  headerRight: {
-    width: 48,
-    alignItems: 'flex-end',
-  },
   notificationButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: spacing.md,
   },
   searchContainer: {
     flexDirection: 'row',

@@ -44,7 +44,10 @@ const MainTabs: React.FC = () => {
         component={StudentHomeScreen}
         options={{
           title: 'Ana Sayfa',
-          headerShown: false, // Custom header kullanıyoruz
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: colors.student.background.light,
+          },
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
