@@ -12,15 +12,16 @@ export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const navigationRef = useRef<any>(null);
 
-  useEffect(() => {
-    // Mock: Auto-login as student (user1) for development
-    if (!user) {
-      const defaultUser = MockDataService.getUserById('user1');
-      if (defaultUser) {
-        setUser(defaultUser);
-      }
-    }
-  }, [user, setUser]);
+  // Commented out for testing login flow
+  // useEffect(() => {
+  //   // Mock: Auto-login as student (user1) for development
+  //   if (!user) {
+  //     const defaultUser = MockDataService.getUserById('user1');
+  //     if (defaultUser) {
+  //       setUser(defaultUser);
+  //     }
+  //   }
+  // }, [user, setUser]);
 
   // Direkt öğrenci ana sayfasına yönlendir (login gerekmez)
   return (

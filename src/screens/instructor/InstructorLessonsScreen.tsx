@@ -157,20 +157,20 @@ export const InstructorLessonsScreen: React.FC = () => {
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'active' && styles.tabActive]}
+          style={[styles.tab, { backgroundColor: palette.card }, activeTab === 'active' && { backgroundColor: palette.secondary }]}
           onPress={() => setActiveTab('active')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'active' && styles.tabTextActive]}>
             Aktif Dersler
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'past' && styles.tabActive]}
+          style={[styles.tab, { backgroundColor: palette.card }, activeTab === 'past' && { backgroundColor: palette.secondary }]}
           onPress={() => setActiveTab('past')}
           activeOpacity={0.7}
         >
-          <Text style={[styles.tabText, activeTab === 'past' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'past' && styles.tabTextActive]}>
             Geçmiş Dersler
           </Text>
         </TouchableOpacity>

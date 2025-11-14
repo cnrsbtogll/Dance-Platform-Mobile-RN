@@ -13,6 +13,7 @@ import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { BecomeInstructorScreen } from '../screens/shared/BecomeInstructorScreen';
+import { LoginScreen } from '../screens/shared/LoginScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { PaymentScreen } from '../screens/student/PaymentScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
@@ -254,6 +255,20 @@ export const StudentNavigator: React.FC = () => {
         options={{
           headerShown: true,
           headerTitle: 'Eğitmen Ol',
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+        }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Giriş / Kayıt',
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,
