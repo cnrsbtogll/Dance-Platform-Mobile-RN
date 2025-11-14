@@ -12,8 +12,11 @@ export const LoginScreen: React.FC = () => {
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Update header title when switching between login/signup
   useEffect(() => {
@@ -23,11 +26,22 @@ export const LoginScreen: React.FC = () => {
   }, [isSignUp, navigation]);
 
   const handleCreateAccount = async () => {
+    // Validation
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      // Show error message - in real app use Alert or Toast
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      // Show error message - passwords don't match
+      return;
+    }
+    
     // Mock: Create account and auto-login
     // In real app, this would call Firebase Auth
     const mockUser = {
       id: `user_${Date.now()}`,
-      name: email.split('@')[0],
+      name: `${firstName} ${lastName}`,
       email: email,
       role: 'student' as const,
       avatar: '',
@@ -54,13 +68,6 @@ export const LoginScreen: React.FC = () => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.content}>
-        {/* Icon */}
-        <View style={styles.iconContainer}>
-          <View style={[styles.iconCircle, { borderColor: colors.student.primary }]}>
-            <MaterialIcons name="school" size={32} color={colors.student.primary} />
-          </View>
-        </View>
-
         {/* Illustration */}
         <View style={styles.illustrationContainer}>
           <Image
@@ -82,6 +89,30 @@ export const LoginScreen: React.FC = () => {
 
         {/* Form */}
         <View style={styles.formContainer}>
+          {isSignUp && (
+            <>
+              <View style={styles.inputGroup}>
+                <TextInput
+                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                  placeholder="Ad"
+                  placeholderTextColor={palette.text.secondary}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <TextInput
+                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                  placeholder="Soyad"
+                  placeholderTextColor={palette.text.secondary}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                />
+              </View>
+            </>
+          )}
           <View style={styles.inputGroup}>
             <TextInput
               style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
@@ -103,6 +134,18 @@ export const LoginScreen: React.FC = () => {
               secureTextEntry
             />
           </View>
+          {isSignUp && (
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                placeholder="Şifre Tekrar"
+                placeholderTextColor={palette.text.secondary}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+              />
+            </View>
+          )}
         </View>
 
         {/* Buttons */}
@@ -186,30 +229,18 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
   },
   content: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.md,
     alignItems: 'center',
-  },
-  iconContainer: {
-    marginBottom: spacing.xl,
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
   },
   illustrationContainer: {
     width: '100%',
-    height: 200,
-    marginBottom: spacing.xl,
+    height: 120,
+    marginBottom: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -219,27 +250,27 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     width: '100%',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     alignItems: 'center',
   },
   headline: {
-    fontSize: typography.fontSize['2xl'],
+    fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
-    lineHeight: 32,
+    lineHeight: 28,
   },
   subtitle: {
-    fontSize: typography.fontSize.base,
+    fontSize: typography.fontSize.sm,
     textAlign: 'center',
     paddingHorizontal: spacing.md,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   formContainer: {
     width: '100%',
-    marginBottom: spacing.lg,
-    gap: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   inputGroup: {
     width: '100%',
@@ -249,21 +280,21 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
     ...shadows.sm,
   },
   buttonsContainer: {
     width: '100%',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   primaryButton: {
     width: '100%',
     borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     ...shadows.sm,
   },
   primaryButtonText: {
@@ -275,10 +306,10 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
     backgroundColor: 'transparent',
   },
   secondaryButtonText: {
@@ -288,7 +319,7 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
     width: '100%',
   },
   dividerLine: {
@@ -301,9 +332,9 @@ const styles = StyleSheet.create({
   },
   socialButtons: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     width: '100%',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.sm,
   },
   socialButton: {
     flex: 1,
@@ -312,8 +343,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
   },
   socialIcon: {
     width: 24,
@@ -326,7 +357,7 @@ const styles = StyleSheet.create({
   termsContainer: {
     width: '100%',
     paddingHorizontal: spacing.md,
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
   },
   termsText: {
     fontSize: typography.fontSize.xs,

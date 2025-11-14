@@ -9,8 +9,14 @@ import { MockDataService } from '../services/mockDataService';
 const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const navigationRef = useRef<any>(null);
+
+  // Clear user for testing - login olmamış öğrenci
+  useEffect(() => {
+    // Remove auto-login for testing
+    setUser(null);
+  }, []);
 
   // Determine initial route based on user role
   // If user is instructor, start with Instructor mode
@@ -21,7 +27,7 @@ export const RootNavigator: React.FC = () => {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
-        initialRouteName={initialRouteName}
+        initialRouteName="Student"
       >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />

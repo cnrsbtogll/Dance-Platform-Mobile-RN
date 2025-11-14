@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -25,7 +25,7 @@ export const LessonDetailScreen: React.FC = () => {
   
   const { toggleFavorite, favoriteLessons } = useLessonStore();
   const { createBooking } = useBookingStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   
   const lesson = MockDataService.getLessonById(lessonId || '');
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
@@ -33,7 +33,23 @@ export const LessonDetailScreen: React.FC = () => {
   
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
   const [isRegistered, setIsRegistered] = useState(false);
+  const [pendingRegistration, setPendingRegistration] = useState(false);
   const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
+
+  // Check if user logged in after clicking register button
+  useFocusEffect(
+    React.useCallback(() => {
+      if (pendingRegistration && isAuthenticated && user && lesson) {
+        // User logged in, navigate to payment screen
+        setPendingRegistration(false);
+        (navigation as any).navigate('Payment', {
+          lessonId: lesson.id,
+          date: new Date().toISOString().split('T')[0],
+          time: '18:00',
+        });
+      }
+    }, [isAuthenticated, user, pendingRegistration, lesson, navigation])
+  );
 
   if (!lesson) {
     return (
@@ -51,6 +67,14 @@ export const LessonDetailScreen: React.FC = () => {
   const handleRegister = () => {
     if (booking || isRegistered) {
       // Already registered
+      return;
+    }
+    
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      // Set pending registration flag and navigate to login screen
+      setPendingRegistration(true);
+      (navigation as any).navigate('Login');
       return;
     }
     
