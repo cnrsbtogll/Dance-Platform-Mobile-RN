@@ -204,7 +204,9 @@ export const InstructorProfileScreen: React.FC = () => {
           )}
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{user?.name || 'Eğitmen'}</Text>
-            <TouchableOpacity onPress={() => {}}>
+            <TouchableOpacity onPress={() => {
+              (navigation as any).getParent()?.navigate('EditProfile');
+            }}>
               <Text style={styles.editProfileLink}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>

@@ -14,6 +14,7 @@ import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
+import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { useNotificationStore } from '../store/useNotificationStore';
 
 const Tab = createBottomTabNavigator();
@@ -232,6 +233,17 @@ export const InstructorNavigator: React.FC = () => {
             backgroundColor: colors.instructor.background.light,
           },
           presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Profili Düzenle',
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: colors.instructor.background.light },
+          headerTintColor: colors.instructor.text.lightPrimary,
         }}
       />
     </Stack.Navigator>

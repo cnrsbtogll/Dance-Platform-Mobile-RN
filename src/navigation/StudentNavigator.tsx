@@ -10,6 +10,8 @@ import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
 import { ChatScreen } from '../screens/student/ChatScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
+import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
+import { BecomeInstructorScreen } from '../screens/shared/BecomeInstructorScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { PaymentScreen } from '../screens/student/PaymentScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
@@ -215,6 +217,28 @@ export const StudentNavigator: React.FC = () => {
             backgroundColor: colors.student.background.light,
           },
           presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Profili Düzenle',
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: colors.student.background.light },
+          headerTintColor: colors.student.text.primaryLight,
+        }}
+      />
+      <Stack.Screen
+        name="BecomeInstructor"
+        component={BecomeInstructorScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Eğitmen Ol',
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: colors.student.background.light },
+          headerTintColor: colors.student.text.primaryLight,
         }}
       />
     </Stack.Navigator>

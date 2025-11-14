@@ -48,7 +48,7 @@ export const InstructorChatScreen: React.FC = () => {
           userName: partner.role === 'student' 
             ? `Öğrenci - ${partner.name}`
             : `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || 'Eğitmen'} Eğitmeni`,
-          userAvatar: partner.avatar,
+          userAvatar: partner.avatar || '',
           lastMessage: message.message,
           lastMessageTime: message.createdAt,
           unreadCount: 0,

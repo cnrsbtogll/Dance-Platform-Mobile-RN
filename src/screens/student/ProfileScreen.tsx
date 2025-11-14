@@ -172,34 +172,27 @@ export const ProfileScreen: React.FC = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{user?.name || 'Kullanıcı'}</Text>
-            <TouchableOpacity onPress={() => {}}>
+            <TouchableOpacity onPress={() => {
+              (navigation as any).getParent()?.navigate('EditProfile');
+            }}>
               <Text style={styles.editProfileLink}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Switch to Instructor Mode Button */}
-        <TouchableOpacity 
-          style={styles.switchModeButton} 
-          activeOpacity={0.8}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          onPress={() => {
-            console.log('Button pressed - switching to instructor mode');
-            // Navigate to Instructor mode using CommonActions
-            // Get root navigator to navigate between Student and Instructor
-            const rootNavigation = navigation.getParent()?.getParent();
-            if (rootNavigation) {
-              rootNavigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Instructor' }],
-                })
-              );
-            }
-          }}
-        >
-          <Text style={styles.switchModeButtonText}>Eğitmen Moduna Geç</Text>
-        </TouchableOpacity>
+        {/* Become Instructor Button for students */}
+        {user?.role === 'student' && (
+          <TouchableOpacity 
+            style={styles.switchModeButton} 
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              (navigation as any).getParent()?.navigate('BecomeInstructor');
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Account Settings */}
         {renderSettingsCard('Hesap Ayarları', accountSettings)}
