@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { Card } from '../../components/common/Card';
 import { AVATARS } from '../../utils/avatars';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -11,6 +12,8 @@ export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { tempName, tempAvatar, setTempName, setTempAvatar, loadFromUser, applyChanges } = useProfileStore();
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
 
   useEffect(() => {
     loadFromUser();
@@ -24,7 +27,7 @@ export const EditProfileScreen: React.FC = () => {
   const theme = colors.student;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background.light }]}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}> 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Card style={styles.card}>
           <Text style={styles.sectionTitle}>Profil Bilgileri</Text>
@@ -42,11 +45,11 @@ export const EditProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ad</Text>
+            <Text style={[styles.label, { color: palette.text.secondary }]}>Ad</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
               placeholder="Kullanıcı adı"
-              placeholderTextColor={theme.text.secondaryLight}
+              placeholderTextColor={palette.text.secondary}
               value={tempName}
               onChangeText={setTempName}
               autoCapitalize="words"
@@ -66,7 +69,7 @@ export const EditProfileScreen: React.FC = () => {
 
       <Modal visible={avatarModalVisible} animationType="slide" transparent onRequestClose={() => setAvatarModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: theme.card.light }]}>
+          <View style={[styles.modalContent, { backgroundColor: palette.card }]}> 
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Avatar Seç</Text>
               <TouchableOpacity onPress={() => setAvatarModalVisible(false)}>

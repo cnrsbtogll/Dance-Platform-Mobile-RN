@@ -4,7 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, typography } from '../utils/theme';
+import { colors, typography, getPalette } from '../utils/theme';
+import { useThemeStore } from '../store/useThemeStore';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
 import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
 import { ChatScreen } from '../screens/student/ChatScreen';
@@ -22,15 +23,17 @@ const Stack = createStackNavigator();
 // Main Tabs Navigator
 const MainTabs: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.student.primary,
-        tabBarInactiveTintColor: colors.student.text.secondaryLight,
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.text.secondary,
         tabBarStyle: {
-          backgroundColor: colors.student.background.light,
+          backgroundColor: palette.background,
           borderTopWidth: 1,
           borderTopColor: 'rgba(0, 0, 0, 0.1)',
           height: 60 + insets.bottom,
@@ -51,9 +54,9 @@ const MainTabs: React.FC = () => {
           title: 'Ana Sayfa',
           headerShown: true,
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
           },
-          headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
@@ -76,13 +79,13 @@ const MainTabs: React.FC = () => {
           headerShown: true,
           headerTitle: 'Derslerim',
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
           },
-          headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
-            color: colors.student.text.primaryLight,
+            color: palette.text.primary,
           },
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
@@ -127,13 +130,13 @@ const MainTabs: React.FC = () => {
           headerShown: true,
           headerTitle: 'Profil',
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
           },
-          headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
-            color: colors.student.text.primaryLight,
+            color: palette.text.primary,
           },
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
@@ -212,7 +215,7 @@ export const StudentNavigator: React.FC = () => {
         options={{ 
           headerShown: true,
           headerBackTitle: '',
-          headerTintColor: colors.student.text.primaryLight,
+           headerTintColor: colors.student.text.primaryLight,
           headerStyle: {
             backgroundColor: colors.student.background.light,
           },

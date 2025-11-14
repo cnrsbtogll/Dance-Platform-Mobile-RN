@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
@@ -118,7 +119,9 @@ export const NotificationScreen: React.FC = () => {
     });
   }, [navigation, user, unreadCount, markAllAsRead]);
 
+  const { isDarkMode } = useThemeStore();
   const theme = user?.role === 'instructor' ? colors.instructor : colors.student;
+  const palette = getPalette(user?.role === 'instructor' ? 'instructor' : 'student', isDarkMode);
   const isInstructor = user?.role === 'instructor';
 
   const unreadNotifications = useMemo(() => {
@@ -148,7 +151,7 @@ export const NotificationScreen: React.FC = () => {
 
   if (notifications.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background.light }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}> 
         <View style={styles.emptyState}>
           <MaterialIcons 
             name="notifications-none" 
@@ -167,7 +170,7 @@ export const NotificationScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background.light }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}> 
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
@@ -183,7 +186,7 @@ export const NotificationScreen: React.FC = () => {
               {unreadNotifications.map((notification) => (
                 <TouchableOpacity
                   key={notification.id}
-                  style={[styles.notificationItem, { backgroundColor: theme.card.light }, !notification.isRead && styles.unreadNotification]}
+                  style={[styles.notificationItem, { backgroundColor: palette.card }, !notification.isRead && styles.unreadNotification]}
                   onPress={() => handleNotificationPress(notification)}
                   activeOpacity={0.7}
                 >
@@ -195,13 +198,13 @@ export const NotificationScreen: React.FC = () => {
                     />
                   </View>
                   <View style={styles.notificationContent}>
-                    <Text style={[styles.notificationTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]} numberOfLines={1}>
+                    <Text style={[styles.notificationTitle, { color: palette.text.primary }]} numberOfLines={1}>
                       {notification.title}
                     </Text>
-                    <Text style={[styles.notificationMessage, { color: isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight }]} numberOfLines={2}>
+                    <Text style={[styles.notificationMessage, { color: palette.text.secondary }]} numberOfLines={2}>
                       {notification.message}
                     </Text>
-                    <Text style={[styles.notificationTime, { color: isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight }]}>
+                    <Text style={[styles.notificationTime, { color: palette.text.secondary }]}>
                       {formatNotificationTime(notification.createdAt)}
                     </Text>
                   </View>
@@ -224,7 +227,7 @@ export const NotificationScreen: React.FC = () => {
               {readNotifications.map((notification) => (
                 <TouchableOpacity
                   key={notification.id}
-                  style={[styles.notificationItem, { backgroundColor: theme.card.light }]}
+                  style={[styles.notificationItem, { backgroundColor: palette.card }]}
                   onPress={() => handleNotificationPress(notification)}
                   activeOpacity={0.7}
                 >
@@ -236,13 +239,13 @@ export const NotificationScreen: React.FC = () => {
                     />
                   </View>
                   <View style={styles.notificationContent}>
-                    <Text style={[styles.notificationTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]} numberOfLines={1}>
+                    <Text style={[styles.notificationTitle, { color: palette.text.primary }]} numberOfLines={1}>
                       {notification.title}
                     </Text>
-                    <Text style={[styles.notificationMessage, { color: isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight }]} numberOfLines={2}>
+                    <Text style={[styles.notificationMessage, { color: palette.text.secondary }]} numberOfLines={2}>
                       {notification.message}
                     </Text>
-                    <Text style={[styles.notificationTime, { color: isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight }]}>
+                    <Text style={[styles.notificationTime, { color: palette.text.secondary }]}>
                       {formatNotificationTime(notification.createdAt)}
                     </Text>
                   </View>

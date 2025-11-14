@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 
@@ -20,6 +21,8 @@ export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { isDarkMode, setDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
 
   const handleLogout = () => {
     logout();
@@ -71,7 +74,14 @@ export const ProfileScreen: React.FC = () => {
       id: 'theme',
       icon: 'contrast',
       title: 'Görünüm',
-      onPress: () => {},
+      rightComponent: (
+        <Switch
+          value={isDarkMode}
+          onValueChange={setDarkMode}
+          trackColor={{ false: '#E5E7EB', true: colors.student.primary }}
+          thumbColor="#ffffff"
+        />
+      ),
     },
   ];
 
@@ -162,7 +172,7 @@ export const ProfileScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
@@ -171,7 +181,7 @@ export const ProfileScreen: React.FC = () => {
             style={styles.avatar}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.name || 'Kullanıcı'}</Text>
+            <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || 'Kullanıcı'}</Text>
             <TouchableOpacity onPress={() => {
               (navigation as any).getParent()?.navigate('EditProfile');
             }}>
@@ -190,7 +200,7 @@ export const ProfileScreen: React.FC = () => {
               (navigation as any).getParent()?.navigate('BecomeInstructor');
             }}
           >
-            <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
+          <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
           </TouchableOpacity>
         )}
 
@@ -213,7 +223,6 @@ export const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   scrollView: {
     flex: 1,
@@ -236,7 +245,6 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     letterSpacing: -0.015,
   },
   editProfileLink: {

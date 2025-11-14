@@ -153,3 +153,27 @@ export const getTheme = (role: 'student' | 'instructor' = 'student') => {
   return role === 'student' ? colors.student : colors.instructor;
 };
 
+export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
+  const base = role === 'student' ? colors.student : colors.instructor;
+  const background = dark ? base.background.dark : base.background.light;
+  const card = dark ? base.card.dark : base.card.light;
+  const border = dark ? base.border.dark : base.border.light;
+  const text = role === 'student'
+    ? {
+        primary: dark ? colors.student.text.primaryDark : colors.student.text.primaryLight,
+        secondary: dark ? colors.student.text.secondaryDark : colors.student.text.secondaryLight,
+      }
+    : {
+        primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
+        secondary: colors.instructor.text.lightSecondary,
+      };
+  return {
+    primary: base.primary,
+    secondary: base.secondary,
+    background,
+    card,
+    border,
+    text,
+  };
+};
+

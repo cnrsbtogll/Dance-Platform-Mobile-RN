@@ -4,7 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, typography, spacing, borderRadius } from '../utils/theme';
+import { colors, typography, spacing, borderRadius, getPalette } from '../utils/theme';
+import { useThemeStore } from '../store/useThemeStore';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
@@ -23,17 +24,19 @@ const Stack = createStackNavigator();
 // Main Tabs Navigator
 const MainTabs: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('instructor', isDarkMode);
   
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.instructor.secondary,
-        tabBarInactiveTintColor: colors.instructor.text.lightSecondary,
+        tabBarActiveTintColor: palette.secondary,
+        tabBarInactiveTintColor: palette.text.secondary,
         tabBarStyle: {
-          backgroundColor: colors.instructor.card.light,
+          backgroundColor: palette.card,
           borderTopWidth: 1,
-          borderTopColor: colors.instructor.border.light,
+          borderTopColor: palette.border,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 8,
@@ -54,7 +57,7 @@ const MainTabs: React.FC = () => {
           headerTitle: 'Ana Sayfa',
           headerLeft: () => (
             <View style={{
-              backgroundColor: colors.instructor.secondary,
+              backgroundColor: palette.secondary,
               paddingHorizontal: spacing.sm,
               paddingVertical: 4,
               borderRadius: borderRadius.full,
@@ -70,14 +73,14 @@ const MainTabs: React.FC = () => {
             </View>
           ),
           headerStyle: {
-            backgroundColor: colors.instructor.background.light,
+            backgroundColor: palette.background,
           },
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
-            color: colors.instructor.text.lightPrimary,
+            color: palette.text.primary,
           },
-          headerTintColor: colors.instructor.text.lightPrimary,
+          headerTintColor: palette.text.primary,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,
@@ -145,14 +148,14 @@ const MainTabs: React.FC = () => {
           headerShown: true,
           headerTitle: 'Profil',
           headerStyle: {
-            backgroundColor: colors.instructor.background.light,
+            backgroundColor: palette.background,
           },
           headerTitleStyle: {
             fontSize: typography.fontSize.lg,
             fontWeight: typography.fontWeight.bold,
-            color: colors.instructor.text.lightPrimary,
+            color: palette.text.primary,
           },
-          headerTintColor: colors.instructor.text.lightPrimary,
+          headerTintColor: palette.text.primary,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
               fontSize: typography.fontSize.xs,

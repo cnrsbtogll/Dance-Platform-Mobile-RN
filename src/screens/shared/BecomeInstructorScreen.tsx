@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { Card } from '../../components/common/Card';
 
 export const BecomeInstructorScreen: React.FC = () => {
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   const phone = '+90 555 005 9876';
   const message = 'Merhaba dance platform uygulamanıza eğitmen olarak kayıt yaptırmak istiyorum';
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.student.background.light }] }>
+    <View style={[styles.container, { backgroundColor: palette.background }] }>
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <MaterialIcons name="school" size={24} color={colors.student.primary} />
