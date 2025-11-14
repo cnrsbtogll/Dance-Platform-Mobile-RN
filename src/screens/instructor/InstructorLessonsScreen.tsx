@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -13,6 +14,7 @@ type TabType = 'active' | 'past';
 
 export const InstructorLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const { isDarkMode } = useThemeStore();
@@ -55,7 +57,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: 'Derslerim',
+      headerTitle: t('lessons.myLessons'),
       headerStyle: {
         backgroundColor: palette.background,
       },
@@ -78,7 +80,7 @@ export const InstructorLessonsScreen: React.FC = () => {
             fontWeight: typography.fontWeight.bold,
             color: '#ffffff',
           }}>
-            EĞİTMEN
+            {t('instructor.badge')}
           </Text>
         </View>
       ),
@@ -97,7 +99,7 @@ export const InstructorLessonsScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, isDarkMode]);
+  }, [navigation, isDarkMode, t]);
 
   const handleEdit = (lesson: Lesson) => {
     (navigation as any).navigate('EditLesson', {
@@ -135,18 +137,22 @@ export const InstructorLessonsScreen: React.FC = () => {
       <View style={styles.lessonStatus}>
         <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
         <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
-          {lesson.isActive ? 'Aktif' : 'Pasif'}
+          {lesson.isActive ? t('lessons.active') : t('lessons.inactive')}
         </Text>
       </View>
 
       <View style={styles.lessonStats}>
         <View style={styles.statItem}>
           <MaterialIcons name="people" size={18} color={palette.text.secondary} />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>{lesson.studentCount} Kayıtlı Öğrenci</Text>
+          <Text style={[styles.statText, { color: palette.text.secondary }]}>
+            {lesson.studentCount} {t('lessons.registeredStudent')}
+          </Text>
         </View>
         <View style={styles.statItem}>
           <MaterialIcons name="star" size={18} color="#FFB800" />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>{lesson.averageRating.toFixed(1)} Ortalama Puan</Text>
+          <Text style={[styles.statText, { color: palette.text.secondary }]}>
+            {lesson.averageRating.toFixed(1)} {t('lessons.averageRating')}
+          </Text>
         </View>
       </View>
     </Card>
@@ -162,7 +168,7 @@ export const InstructorLessonsScreen: React.FC = () => {
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'active' && styles.tabTextActive]}>
-            Aktif Dersler
+            {t('lessons.activeLessons')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -171,7 +177,7 @@ export const InstructorLessonsScreen: React.FC = () => {
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'past' && styles.tabTextActive]}>
-            Geçmiş Dersler
+            {t('lessons.pastLessons')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -190,7 +196,7 @@ export const InstructorLessonsScreen: React.FC = () => {
               color={palette.text.secondary}
             />
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {activeTab === 'active' ? 'Aktif ders bulunmuyor' : 'Geçmiş ders bulunmuyor'}
+              {activeTab === 'active' ? t('lessons.noActiveLessons') : t('lessons.noPastLessons')}
             </Text>
           </View>
         )}

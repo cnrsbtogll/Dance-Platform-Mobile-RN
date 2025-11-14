@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
@@ -15,6 +16,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
   const params = route.params as { lessonId?: string; bookingId?: string; isInstructor?: boolean } | undefined;
   const lessonId = params?.lessonId;
   const bookingId = params?.bookingId;
@@ -55,9 +57,9 @@ export const LessonDetailScreen: React.FC = () => {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: palette.text.secondary }]}>Ders bulunamadı</Text>
+          <Text style={[styles.errorText, { color: palette.text.secondary }]}>{t('lessons.notFound')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>Geri Dön</Text>
+            <Text style={styles.backButton}>{t('lessons.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -135,7 +137,9 @@ export const LessonDetailScreen: React.FC = () => {
           {/* Title Overlay */}
           <View style={styles.titleOverlay}>
             <Text style={styles.heroTitle}>{lesson.title}</Text>
-            <Text style={styles.heroInstructor}>Eğitmen: {instructor?.name || 'Bilinmiyor'}</Text>
+            <Text style={styles.heroInstructor}>
+              {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
+            </Text>
           </View>
         </View>
 
@@ -145,34 +149,34 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.infoCards}>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
-              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Tarih</Text>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.date')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? `${formatDate(booking.date)}` : 'Belirtilmemiş'}
+                {booking ? `${formatDate(booking.date)}` : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="schedule" size={32} color={colors.student.primary} />
-              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Saat</Text>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.time')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? formatTime(booking.time) : 'Belirtilmemiş'}
+                {booking ? formatTime(booking.time) : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="hourglass-empty" size={32} color={colors.student.primary} />
-              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Süre</Text>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.duration')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>{getDurationText(lesson.duration)}</Text>
             </View>
           </View>
 
           {/* Description Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Ders Açıklaması</Text>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.lessonDescription')}</Text>
             <Text style={[styles.descriptionText, { color: palette.text.secondary }]}>{lesson.description}</Text>
           </View>
 
           {/* Location Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Konum</Text>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.location')}</Text>
             <View style={styles.locationContainer}>
               <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
               <View style={styles.locationTextContainer}>
@@ -211,7 +215,7 @@ export const LessonDetailScreen: React.FC = () => {
                 style={styles.registerButtonGradient}
               >
                 <MaterialIcons name="edit" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
-                <Text style={styles.registerButtonText}>Dersi Düzenle</Text>
+                <Text style={styles.registerButtonText}>{t('lessons.editLessonButton')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -220,7 +224,7 @@ export const LessonDetailScreen: React.FC = () => {
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
           <View style={styles.priceContainer}>
-            <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>Ücret</Text>
+            <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
             <Text style={[styles.priceValue, { color: colors.student.primary }]}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
           </View>
           <TouchableOpacity
@@ -235,7 +239,7 @@ export const LessonDetailScreen: React.FC = () => {
               style={styles.registerButtonGradient}
             >
               <Text style={styles.registerButtonText}>
-                {booking || isRegistered ? 'Kayıtlı' : 'Derse Kaydol'}
+                {booking || isRegistered ? t('lessons.registered') : t('lessons.register')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

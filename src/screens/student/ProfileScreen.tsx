@@ -49,19 +49,19 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'account',
       icon: 'person',
-      title: 'Hesap Bilgileri',
+      title: t('profile.accountInfo'),
       onPress: () => {},
     },
     {
       id: 'payment',
       icon: 'credit-card',
-      title: 'Ödeme Yöntemleri',
+      title: t('profile.paymentMethods'),
       onPress: () => {},
     },
     {
       id: 'password',
       icon: 'lock',
-      title: 'Şifre Değiştir',
+      title: t('profile.changePassword'),
       onPress: () => {},
     },
   ];
@@ -70,7 +70,7 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'notifications',
       icon: 'notifications',
-      title: 'Bildirimler',
+      title: t('profile.notifications'),
       rightComponent: (
         <Switch
           value={notificationsEnabled}
@@ -88,7 +88,7 @@ export const ProfileScreen: React.FC = () => {
       rightComponent: (
         <View style={styles.languageValueContainer}>
           <Text style={[styles.languageValue, { color: palette.text.secondary }]}>
-            {language === 'tr' ? 'Türkçe' : 'English'}
+            {language === 'tr' ? t('profile.turkish') : t('profile.english')}
           </Text>
           <MaterialIcons
             name="chevron-right"
@@ -101,7 +101,7 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'theme',
       icon: 'contrast',
-      title: 'Karanlık Mod',
+      title: t('profile.darkMode'),
       rightComponent: (
         <Switch
           value={isDarkMode}
@@ -117,25 +117,25 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'help',
       icon: 'help',
-      title: 'Yardım Merkezi',
+      title: t('profile.helpCenter'),
       onPress: () => {},
     },
     {
       id: 'about',
       icon: 'info',
-      title: 'Hakkında',
+      title: t('profile.about'),
       onPress: () => {},
     },
     {
       id: 'privacy',
       icon: 'shield',
-      title: 'Gizlilik Politikası',
+      title: t('profile.privacyPolicy'),
       onPress: () => {},
     },
     {
       id: 'logout',
       icon: 'logout',
-      title: 'Çıkış Yap',
+      title: t('profile.logout'),
       isDanger: true,
       iconColor: '#e53e3e',
       onPress: handleLogout,
@@ -221,13 +221,13 @@ export const ProfileScreen: React.FC = () => {
           )}
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>
-              {user?.name || 'dancer'}
+              {user?.name || t('profile.defaultName')}
             </Text>
             {isAuthenticated && user && (
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>Profili Düzenle</Text>
+                <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -241,7 +241,7 @@ export const ProfileScreen: React.FC = () => {
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleSwitchToInstructorMode}
           >
-            <Text style={styles.switchModeButtonText}>Eğitmen Moduna Geç</Text>
+            <Text style={styles.switchModeButtonText}>{t('profile.switchToInstructorMode')}</Text>
           </TouchableOpacity>
         )}
 
@@ -255,15 +255,15 @@ export const ProfileScreen: React.FC = () => {
               (navigation as any).getParent()?.navigate('BecomeInstructor');
             }}
           >
-            <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
+            <Text style={styles.switchModeButtonText}>{t('profile.becomeInstructor')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Account Settings */}
-        {renderSettingsCard('Hesap Ayarları', accountSettings)}
+        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
-        {renderSettingsCard('Uygulama Ayarları', appSettings)}
+        {renderSettingsCard(t('profile.appSettings'), appSettings)}
 
         {/* Support & Legal */}
         {renderSettingsCard('', supportSettings)}
@@ -308,7 +308,7 @@ export const ProfileScreen: React.FC = () => {
               }}
             >
               <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
-                Türkçe
+                {t('profile.turkish')}
               </Text>
               {language === 'tr' && (
                 <MaterialIcons name="check" size={24} color={colors.student.primary} />
@@ -326,7 +326,7 @@ export const ProfileScreen: React.FC = () => {
               }}
             >
               <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
-                English
+                {t('profile.english')}
               </Text>
               {language === 'en' && (
                 <MaterialIcons name="check" size={24} color={colors.student.primary} />

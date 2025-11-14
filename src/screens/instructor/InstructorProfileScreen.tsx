@@ -49,12 +49,12 @@ export const InstructorProfileScreen: React.FC = () => {
             fontWeight: typography.fontWeight.bold,
             color: '#ffffff',
           }}>
-            EĞİTMEN
+            {t('instructor.badge')}
           </Text>
         </View>
       ),
     });
-  }, [navigation, isDarkMode, palette]);
+  }, [navigation, isDarkMode, palette, t]);
 
   const handleLogout = () => {
     logout();
@@ -65,19 +65,19 @@ export const InstructorProfileScreen: React.FC = () => {
     {
       id: 'account',
       icon: 'person',
-      title: 'Hesap Bilgileri',
+      title: t('profile.accountInfo'),
       onPress: () => {},
     },
     {
       id: 'payment',
       icon: 'credit-card',
-      title: 'Ödeme Yöntemleri',
+      title: t('profile.paymentMethods'),
       onPress: () => {},
     },
     {
       id: 'password',
       icon: 'lock',
-      title: 'Şifre Değiştir',
+      title: t('profile.changePassword'),
       onPress: () => {},
     },
   ];
@@ -86,7 +86,7 @@ export const InstructorProfileScreen: React.FC = () => {
     {
       id: 'notifications',
       icon: 'notifications',
-      title: 'Bildirimler',
+      title: t('profile.notifications'),
       rightComponent: (
         <Switch
           value={notificationsEnabled}
@@ -104,7 +104,7 @@ export const InstructorProfileScreen: React.FC = () => {
       rightComponent: (
         <View style={styles.languageValueContainer}>
           <Text style={[styles.languageValue, { color: palette.text.secondary }]}>
-            {language === 'tr' ? 'Türkçe' : 'English'}
+            {language === 'tr' ? t('profile.turkish') : t('profile.english')}
           </Text>
           <MaterialIcons
             name="chevron-right"
@@ -117,7 +117,7 @@ export const InstructorProfileScreen: React.FC = () => {
     {
       id: 'theme',
       icon: 'contrast',
-      title: 'Karanlık Mod',
+      title: t('profile.darkMode'),
       rightComponent: (
         <Switch
           value={isDarkMode}
@@ -133,25 +133,25 @@ export const InstructorProfileScreen: React.FC = () => {
     {
       id: 'help',
       icon: 'help',
-      title: 'Yardım Merkezi',
+      title: t('profile.helpCenter'),
       onPress: () => {},
     },
     {
       id: 'about',
       icon: 'info',
-      title: 'Hakkında',
+      title: t('profile.about'),
       onPress: () => {},
     },
     {
       id: 'privacy',
       icon: 'shield',
-      title: 'Gizlilik Politikası',
+      title: t('profile.privacyPolicy'),
       onPress: () => {},
     },
     {
       id: 'logout',
       icon: 'logout',
-      title: 'Çıkış Yap',
+      title: t('profile.logout'),
       isDanger: true,
       iconColor: '#e53e3e',
       onPress: handleLogout,
@@ -236,11 +236,11 @@ export const InstructorProfileScreen: React.FC = () => {
             </View>
           )}
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || 'Eğitmen'}</Text>
+            <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || t('profile.instructor')}</Text>
             <TouchableOpacity onPress={() => {
               (navigation as any).getParent()?.navigate('EditProfile');
             }}>
-              <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>Profili Düzenle</Text>
+              <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -264,14 +264,14 @@ export const InstructorProfileScreen: React.FC = () => {
             }
           }}
         >
-          <Text style={styles.switchModeButtonText}>Öğrenci Moduna Geç</Text>
+          <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
         </TouchableOpacity>
 
         {/* Account Settings */}
-        {renderSettingsCard('Hesap Ayarları', accountSettings)}
+        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
-        {renderSettingsCard('Uygulama Ayarları', appSettings)}
+        {renderSettingsCard(t('profile.appSettings'), appSettings)}
 
         {/* Support & Legal */}
         {renderSettingsCard('', supportSettings)}
@@ -316,7 +316,7 @@ export const InstructorProfileScreen: React.FC = () => {
               }}
             >
               <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
-                Türkçe
+                {t('profile.turkish')}
               </Text>
               {language === 'tr' && (
                 <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
@@ -334,7 +334,7 @@ export const InstructorProfileScreen: React.FC = () => {
               }}
             >
               <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
-                English
+                {t('profile.english')}
               </Text>
               {language === 'en' && (
                 <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { Card } from '../../components/common/Card';
@@ -10,6 +11,7 @@ import { useProfileStore } from '../../store/useProfileStore';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { tempName, tempAvatar, setTempName, setTempAvatar, loadFromUser, applyChanges } = useProfileStore();
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const { isDarkMode } = useThemeStore();
@@ -28,7 +30,7 @@ export const EditProfileScreen: React.FC = () => {
     <View style={[styles.container, { backgroundColor: palette.background }]}> 
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         <Card style={styles.card}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Profil Bilgileri</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('profile.profileInfo')}</Text>
           <View style={styles.avatarRow}>
             {tempAvatar ? (
               <Image source={{ uri: tempAvatar }} style={styles.avatar} />
@@ -38,15 +40,15 @@ export const EditProfileScreen: React.FC = () => {
               </View>
             )}
             <TouchableOpacity style={styles.changeAvatarButton} onPress={() => setAvatarModalVisible(true)}>
-              <Text style={styles.changeAvatarButtonText}>Avatar Seç</Text>
+              <Text style={styles.changeAvatarButtonText}>{t('profile.selectAvatar')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: palette.text.secondary }]}>Ad</Text>
+            <Text style={[styles.label, { color: palette.text.secondary }]}>{t('auth.firstName')}</Text>
             <TextInput
               style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-              placeholder="Kullanıcı adı"
+              placeholder={t('profile.usernamePlaceholder')}
               placeholderTextColor={palette.text.secondary}
               value={tempName}
               onChangeText={setTempName}
@@ -57,10 +59,10 @@ export const EditProfileScreen: React.FC = () => {
 
         <View style={styles.actions}>
           <TouchableOpacity style={[styles.actionButton, styles.cancelButton, { backgroundColor: palette.border }]} onPress={() => (navigation as any).goBack()}>
-            <Text style={[styles.cancelText, { color: palette.text.primary }]}>İptal</Text>
+            <Text style={[styles.cancelText, { color: palette.text.primary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionButton, styles.saveButton]} onPress={handleSave}>
-            <Text style={styles.saveText}>Kaydet</Text>
+            <Text style={styles.saveText}>{t('common.save')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -69,7 +71,7 @@ export const EditProfileScreen: React.FC = () => {
         <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)' }]}>
           <View style={[styles.modalContent, { backgroundColor: palette.card }]}> 
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Avatar Seç</Text>
+              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('profile.selectAvatar')}</Text>
               <TouchableOpacity onPress={() => setAvatarModalVisible(false)}>
                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
               </TouchableOpacity>

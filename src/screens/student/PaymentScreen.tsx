@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
@@ -13,6 +14,7 @@ import { Card } from '../../components/common/Card';
 export const PaymentScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
   const params = route.params as { lessonId?: string; date?: string; time?: string } | undefined;
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
@@ -35,7 +37,7 @@ export const PaymentScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      title: 'Ödeme Ekranı',
+      title: t('payment.title'),
       headerTintColor: palette.text.primary,
       headerStyle: {
         backgroundColor: palette.background,
@@ -46,7 +48,7 @@ export const PaymentScreen: React.FC = () => {
         color: palette.text.primary,
       },
     });
-  }, [navigation, isDarkMode, palette]);
+  }, [navigation, isDarkMode, palette, t]);
 
   const formatCardNumber = (text: string): string => {
     const cleaned = text.replace(/\s/g, '');
@@ -102,9 +104,9 @@ export const PaymentScreen: React.FC = () => {
     return (
       <View style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: palette.text.primary }]}>Ders bulunamadı</Text>
+          <Text style={[styles.errorText, { color: palette.text.primary }]}>{t('payment.lessonNotFound')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>Geri Dön</Text>
+            <Text style={styles.backButton}>{t('payment.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -139,7 +141,7 @@ export const PaymentScreen: React.FC = () => {
                   {lesson.title}
                 </Text>
                 <Text style={[styles.lessonDetails, { color: palette.text.secondary }]} numberOfLines={2}>
-                  Öğretmen: {instructor?.name || 'Bilinmiyor'} | {params?.date ? formatDate(params.date) : ''}, {params?.time || ''}
+                  {t('payment.teacher')}: {instructor?.name || t('studentHome.unknown')} | {params?.date ? formatDate(params.date) : ''}, {params?.time || ''}
                 </Text>
               </View>
             </View>
@@ -148,14 +150,14 @@ export const PaymentScreen: React.FC = () => {
 
         {/* Payment Details Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Ödeme Detayları</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('payment.paymentDetails')}</Text>
           <Card style={styles.paymentDetailsCard}>
             <View style={[styles.paymentRow, { borderBottomColor: palette.border }]}>
-              <Text style={[styles.paymentLabel, { color: palette.text.secondary }]}>Ders Ücreti</Text>
+              <Text style={[styles.paymentLabel, { color: palette.text.secondary }]}>{t('payment.lessonFee')}</Text>
               <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price)}</Text>
             </View>
             <View style={[styles.paymentRow, styles.paymentRowTotal]}>
-              <Text style={[styles.paymentLabelTotal, { color: palette.text.primary }]}>Toplam Tutar</Text>
+              <Text style={[styles.paymentLabelTotal, { color: palette.text.primary }]}>{t('payment.totalAmount')}</Text>
               <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount)}</Text>
             </View>
           </Card>
@@ -175,7 +177,7 @@ export const PaymentScreen: React.FC = () => {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => setUseSavedCard(false)}>
-                  <Text style={styles.changeButton}>Değiştir</Text>
+                  <Text style={styles.changeButton}>{t('payment.change')}</Text>
                 </TouchableOpacity>
               </View>
             </Card>
@@ -184,10 +186,10 @@ export const PaymentScreen: React.FC = () => {
               {/* Credit Card Input Form */}
               <View style={styles.formSection}>
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: palette.text.secondary }]}>Kart Sahibinin Adı Soyadı</Text>
+                  <Text style={[styles.label, { color: palette.text.secondary }]}>{t('payment.cardholderName')}</Text>
                   <TextInput
                     style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                    placeholder="Ad Soyad"
+                    placeholder={t('payment.cardholderNamePlaceholder')}
                     placeholderTextColor={palette.text.secondary}
                     value={cardholderName}
                     onChangeText={setCardholderName}
@@ -196,10 +198,10 @@ export const PaymentScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: palette.text.secondary }]}>Kart Numarası</Text>
+                  <Text style={[styles.label, { color: palette.text.secondary }]}>{t('payment.cardNumber')}</Text>
                   <TextInput
                     style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                    placeholder="0000 0000 0000 0000"
+                    placeholder={t('payment.cardNumberPlaceholder')}
                     placeholderTextColor={palette.text.secondary}
                     value={cardNumber}
                     onChangeText={handleCardNumberChange}
@@ -210,10 +212,10 @@ export const PaymentScreen: React.FC = () => {
 
                 <View style={styles.rowInputs}>
                   <View style={[styles.inputGroup, styles.halfWidth]}>
-                    <Text style={[styles.label, { color: palette.text.secondary }]}>Son K. Tarihi</Text>
+                    <Text style={[styles.label, { color: palette.text.secondary }]}>{t('payment.expirationDate')}</Text>
                     <TextInput
                       style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                      placeholder="AA/YY"
+                      placeholder={t('payment.expirationDatePlaceholder')}
                       placeholderTextColor={palette.text.secondary}
                       value={expirationDate}
                       onChangeText={handleExpirationDateChange}
@@ -223,10 +225,10 @@ export const PaymentScreen: React.FC = () => {
                   </View>
 
                   <View style={[styles.inputGroup, styles.halfWidth]}>
-                    <Text style={[styles.label, { color: palette.text.secondary }]}>CVV</Text>
+                    <Text style={[styles.label, { color: palette.text.secondary }]}>{t('payment.cvv')}</Text>
                     <TextInput
                       style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                      placeholder="123"
+                      placeholder={t('payment.cvvPlaceholder')}
                       placeholderTextColor={palette.text.secondary}
                       value={cvv}
                       onChangeText={handleCvvChange}
@@ -247,7 +249,7 @@ export const PaymentScreen: React.FC = () => {
                   thumbColor="#ffffff"
                 />
                 <Text style={[styles.saveCardText, { color: palette.text.primary }]}>
-                  Kartımı sonraki ödemeler için kaydet
+                  {t('payment.saveCard')}
                 </Text>
               </View>
 
@@ -257,7 +259,7 @@ export const PaymentScreen: React.FC = () => {
                 onPress={() => setUseSavedCard(true)}
               >
                 <Text style={styles.useSavedCardText}>
-                  Kayıtlı kartımı kullan
+                  {t('payment.useSavedCard')}
                 </Text>
               </TouchableOpacity>
             </>
@@ -270,7 +272,7 @@ export const PaymentScreen: React.FC = () => {
         <View style={styles.securityMessage}>
           <MaterialIcons name="lock" size={16} color={palette.text.secondary} />
           <Text style={[styles.securityText, { color: palette.text.secondary }]}>
-            Ödemeniz güvenli bir şekilde işlenmektedir
+            {t('payment.securityMessage')}
           </Text>
         </View>
         <TouchableOpacity
@@ -279,7 +281,7 @@ export const PaymentScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={styles.payButtonText}>
-            {formatPrice(totalAmount)} Öde
+            {formatPrice(totalAmount)} {t('payment.pay')}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>

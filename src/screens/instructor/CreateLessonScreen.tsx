@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -38,21 +39,22 @@ const LESSON_IMAGES: { [key: string]: string[] } = {
 };
 
 const DANCE_TYPES = ['Salsa', 'Bachata', 'Kizomba', 'Tango', 'Modern'];
-const DURATION_OPTIONS = [
-    { label: '45 dakika', value: 45 },
-    { label: '60 dakika', value: 60 },
-    { label: '90 dakika', value: 90 },
+const getDurationOptions = (t: any) => [
+    { label: t('lessons.durations.45min'), value: 45 },
+    { label: t('lessons.durations.60min'), value: 60 },
+    { label: t('lessons.durations.90min'), value: 90 },
 ];
 
 export const CreateLessonScreen: React.FC = () => {
     const navigation = useNavigation();
+    const { t } = useTranslation();
     const { isDarkMode } = useThemeStore();
     const palette = getPalette('instructor', isDarkMode);
 
     useEffect(() => {
         navigation.setOptions({
             headerShown: true,
-            headerTitle: 'Ders Oluştur',
+            headerTitle: t('lessons.createLesson'),
             headerBackTitle: '',
             headerStyle: {
                 backgroundColor: palette.background,
@@ -64,7 +66,7 @@ export const CreateLessonScreen: React.FC = () => {
             },
             headerTintColor: palette.text.primary,
         });
-    }, [navigation, isDarkMode, palette]);
+    }, [navigation, isDarkMode, palette, t]);
 
     const [title, setTitle] = useState('');
     const [danceType, setDanceType] = useState('');
@@ -124,7 +126,7 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={styles.imageUploadContainer}>
                     <View style={[styles.imageUploadPlaceholder, { borderColor: palette.border, backgroundColor: palette.card }]}>
                         <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
-                        <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>Önce dans türü seçin</Text>
+                        <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>{t('lessons.selectImageFirst')}</Text>
                     </View>
                 </View>
             );
@@ -140,7 +142,7 @@ export const CreateLessonScreen: React.FC = () => {
                         <Image source={{ uri: selectedImage }} style={styles.selectedImage} resizeMode="cover" />
                         <View style={styles.imageOverlay}>
                             <MaterialIcons name="edit" size={24} color="#ffffff" />
-                            <Text style={styles.imageOverlayText}>Değiştir</Text>
+                            <Text style={styles.imageOverlayText}>{t('lessons.change')}</Text>
                         </View>
                     </TouchableOpacity>
                 ) : (
@@ -151,9 +153,9 @@ export const CreateLessonScreen: React.FC = () => {
                     >
                         <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
                         <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>
-                            <Text style={styles.imageUploadTextBold}>Yüklemek için tıkla</Text> veya sürükle
+                            <Text style={styles.imageUploadTextBold}>{t('lessons.clickToUpload')}</Text> {t('lessons.orDrag')}
                         </Text>
-                        <Text style={[styles.imageUploadSubtext, { color: palette.text.secondary }]}>SVG, PNG, JPG (MAX. 800x400px)</Text>
+                        <Text style={[styles.imageUploadSubtext, { color: palette.text.secondary }]}>{t('lessons.imageFormat')}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -170,7 +172,7 @@ export const CreateLessonScreen: React.FC = () => {
                 {/* Dance Type Selection */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Dans Türü</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.danceType')}</Text>
                         <View style={styles.formFields}>
                             <View style={styles.inputGroup}>
                                 <TouchableOpacity
@@ -179,7 +181,7 @@ export const CreateLessonScreen: React.FC = () => {
                                     activeOpacity={0.7}
                                 >
                                     <Text style={[styles.selectInputText, { color: danceType ? palette.text.primary : palette.text.secondary }]}>
-                                        {danceType || 'Dans türü seçin'}
+                                        {danceType || t('lessons.selectDanceType')}
                                     </Text>
                                     <MaterialIcons
                                         name="keyboard-arrow-down"
@@ -194,7 +196,7 @@ export const CreateLessonScreen: React.FC = () => {
                 {/* Image Section */}
                 <View style={styles.section}>
                     <Card style={styles.imageCard}>
-                        <Text style={[styles.sectionLabel, { color: palette.text.primary }]}>Ders Görseli</Text>
+                        <Text style={[styles.sectionLabel, { color: palette.text.primary }]}>{t('lessons.lessonImage')}</Text>
                         {renderImagePicker()}
                     </Card>
                 </View>
@@ -202,13 +204,13 @@ export const CreateLessonScreen: React.FC = () => {
                 {/* Basic Information */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Temel Bilgiler</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.basicInfo')}</Text>
                         <View style={styles.formFields}>
                             <View style={styles.inputGroup}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Ders Başlığı</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonTitle')}</Text>
                                 <TextInput
                                     style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                    placeholder="Örn: Başlangıç Seviyesi Salsa"
+                                    placeholder={t('lessons.lessonTitlePlaceholder')}
                                     placeholderTextColor={palette.text.secondary}
                                     value={title}
                                     onChangeText={setTitle}
@@ -216,10 +218,10 @@ export const CreateLessonScreen: React.FC = () => {
                             </View>
 
                             <View style={styles.inputGroup}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Açıklama</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
                                 <TextInput
                                     style={[styles.input, styles.textArea, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                    placeholder="Dersin içeriği, seviyesi ve hedefleri hakkında bilgi verin..."
+                                    placeholder={t('lessons.descriptionPlaceholder')}
                                     placeholderTextColor={palette.text.secondary}
                                     value={description}
                                     onChangeText={setDescription}
@@ -235,10 +237,10 @@ export const CreateLessonScreen: React.FC = () => {
                 {/* Pricing & Duration */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Fiyatlandırma & Süre</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.pricing')} & {t('lessons.duration')}</Text>
                         <View style={styles.gridRow}>
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Saatlik Ücret</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.hourlyPrice')}</Text>
                                 <View style={[styles.priceInputContainer, { borderColor: palette.border, backgroundColor: palette.card }]}>
                                     <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>₺</Text>
                                     <TextInput
@@ -253,14 +255,14 @@ export const CreateLessonScreen: React.FC = () => {
                             </View>
 
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Ders Süresi</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonDuration')}</Text>
                                 <TouchableOpacity
                                     style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowDurationPicker(true)}
                                     activeOpacity={0.7}
                                 >
                                     <Text style={[styles.selectInputText, { color: palette.text.primary }]}>
-                                        {DURATION_OPTIONS.find(opt => opt.value === duration)?.label || '60 dakika'}
+                                        {getDurationOptions(t).find(opt => opt.value === duration)?.label || t('lessons.durations.60min')}
                                     </Text>
                                     <MaterialIcons
                                         name="keyboard-arrow-down"
@@ -276,30 +278,30 @@ export const CreateLessonScreen: React.FC = () => {
                 {/* Scheduling */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Zamanlama</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.scheduling')}</Text>
                         <View style={styles.gridRow}>
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Tarih Seç</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDate')}</Text>
                                 <TouchableOpacity
                                     style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowDatePicker(true)}
                                 >
                                     <MaterialIcons name="calendar-month" size={20} color={palette.text.secondary} />
                                     <Text style={[styles.dateTimeText, { color: selectedDate ? palette.text.primary : palette.text.secondary }]}>
-                                        {selectedDate ? formatDate(selectedDate) : 'GG.AA.YYYY'}
+                                        {selectedDate ? formatDate(selectedDate) : t('lessons.datePlaceholder')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Saat Seç</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
                                 <TouchableOpacity
                                     style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowTimePicker(true)}
                                 >
                                     <MaterialIcons name="schedule" size={20} color={palette.text.secondary} />
                                     <Text style={[styles.dateTimeText, { color: selectedTime ? palette.text.primary : palette.text.secondary }]}>
-                                        {selectedTime ? formatTime(selectedTime) : 'SS:DD'}
+                                        {selectedTime ? formatTime(selectedTime) : t('lessons.timePlaceholder')}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -313,7 +315,7 @@ export const CreateLessonScreen: React.FC = () => {
                             >
                                 {recurring && <MaterialIcons name="check" size={20} color={colors.instructor.secondary} />}
                             </TouchableOpacity>
-                            <Text style={[styles.checkboxLabel, { color: palette.text.primary }]}>Her hafta tekrar et</Text>
+                            <Text style={[styles.checkboxLabel, { color: palette.text.primary }]}>{t('lessons.repeatWeekly')}</Text>
                         </View>
                     </Card>
                 </View>
@@ -329,7 +331,7 @@ export const CreateLessonScreen: React.FC = () => {
                     onPress={handleCreate}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.createButtonText}>Oluştur</Text>
+                    <Text style={styles.createButtonText}>{t('lessons.save')}</Text>
                 </TouchableOpacity>
             </SafeAreaView>
 
@@ -343,7 +345,7 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
                     <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
                         <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
-                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Ders Görseli Seç</Text>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectLessonImage')}</Text>
                             <TouchableOpacity onPress={() => setShowImagePicker(false)}>
                                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
@@ -432,7 +434,7 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
                     <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
                         <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
-                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Dans Türü Seç</Text>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectDanceTypeTitle')}</Text>
                             <TouchableOpacity onPress={() => setShowDanceTypePicker(false)}>
                                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
@@ -487,13 +489,13 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
                     <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
                         <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
-                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Ders Süresi Seç</Text>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectDuration')}</Text>
                             <TouchableOpacity onPress={() => setShowDurationPicker(false)}>
                                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
                         <FlatList
-                            data={DURATION_OPTIONS}
+                            data={getDurationOptions(t)}
                             keyExtractor={(item) => item.value.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity

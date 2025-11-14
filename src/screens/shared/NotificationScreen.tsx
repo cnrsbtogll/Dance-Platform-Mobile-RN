@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
@@ -66,8 +67,14 @@ const getNotificationIconColor = (type: NotificationType, isRead: boolean): stri
 
 export const NotificationScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { notifications, unreadCount, loadNotifications, markAsRead, markAllAsRead } = useNotificationStore();
+
+  const { isDarkMode } = useThemeStore();
+  const theme = user?.role === 'instructor' ? colors.instructor : colors.student;
+  const palette = getPalette(user?.role === 'instructor' ? 'instructor' : 'student', isDarkMode);
+  const isInstructor = user?.role === 'instructor';
 
   useEffect(() => {
     if (user) {
@@ -78,22 +85,16 @@ export const NotificationScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: 'Bildirimler',
+      headerTitle: t('notifications.title'),
       headerStyle: {
-        backgroundColor: user?.role === 'instructor' 
-          ? colors.instructor.background.light 
-          : colors.student.background.light,
+        backgroundColor: palette.background,
       },
       headerTitleStyle: {
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
-        color: user?.role === 'instructor' 
-          ? colors.instructor.text.lightPrimary 
-          : colors.student.text.primaryLight,
+        color: palette.text.primary,
       },
-      headerTintColor: user?.role === 'instructor' 
-        ? colors.instructor.text.lightPrimary 
-        : colors.student.text.primaryLight,
+      headerTintColor: palette.text.primary,
       headerRight: () => (
         unreadCount > 0 ? (
           <TouchableOpacity
@@ -107,22 +108,17 @@ export const NotificationScreen: React.FC = () => {
             <Text style={{
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: user?.role === 'instructor' 
+              color: isInstructor 
                 ? colors.instructor.secondary 
                 : colors.student.primary,
             }}>
-              Tümünü Okundu İşaretle
+              {t('notifications.markAllAsRead')}
             </Text>
           </TouchableOpacity>
         ) : null
       ),
     });
-  }, [navigation, user, unreadCount, markAllAsRead]);
-
-  const { isDarkMode } = useThemeStore();
-  const theme = user?.role === 'instructor' ? colors.instructor : colors.student;
-  const palette = getPalette(user?.role === 'instructor' ? 'instructor' : 'student', isDarkMode);
-  const isInstructor = user?.role === 'instructor';
+  }, [navigation, user, unreadCount, markAllAsRead, t, palette, isInstructor]);
 
   const unreadNotifications = useMemo(() => {
     return notifications.filter(n => !n.isRead);
@@ -159,10 +155,10 @@ export const NotificationScreen: React.FC = () => {
             color={(isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight) + '80'} 
           />
           <Text style={[styles.emptyStateTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]}>
-            Bildirim Yok
+            {t('notifications.noNotificationsTitle')}
           </Text>
           <Text style={[styles.emptyStateText, { color: isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight }]}>
-            Henüz bildiriminiz bulunmuyor.
+            {t('notifications.noNotificationsText')}
           </Text>
         </View>
       </SafeAreaView>
@@ -180,7 +176,7 @@ export const NotificationScreen: React.FC = () => {
         {unreadNotifications.length > 0 && (
           <View style={[styles.section, styles.firstSection]}>
             <Text style={[styles.sectionTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]}>
-              Okunmamış ({unreadNotifications.length})
+              {t('notifications.unread')} ({unreadNotifications.length})
             </Text>
             <View style={styles.notificationsList}>
               {unreadNotifications.map((notification) => (
@@ -221,7 +217,7 @@ export const NotificationScreen: React.FC = () => {
         {readNotifications.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]}>
-              Daha Önce
+              {t('notifications.earlier')}
             </Text>
             <View style={styles.notificationsList}>
               {readNotifications.map((notification) => (

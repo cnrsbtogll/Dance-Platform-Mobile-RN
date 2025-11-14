@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -14,6 +15,7 @@ type TabType = 'active' | 'past';
 
 export const MyLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { getUserBookings } = useBookingStore();
   const bookings = getUserBookings();
   const [activeTab, setActiveTab] = useState<TabType>('active');
@@ -27,7 +29,15 @@ export const MyLessonsScreen: React.FC = () => {
 
   const getDayName = (dateString: string): string => {
     const date = new Date(dateString);
-    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    const days = [
+      t('lessons.days.sunday'),
+      t('lessons.days.monday'),
+      t('lessons.days.tuesday'),
+      t('lessons.days.wednesday'),
+      t('lessons.days.thursday'),
+      t('lessons.days.friday'),
+      t('lessons.days.saturday'),
+    ];
     return days[date.getDay()];
   };
 
@@ -65,7 +75,7 @@ export const MyLessonsScreen: React.FC = () => {
                 { color: activeTab === 'active' ? '#ffffff' : palette.text.secondary },
                 activeTab === 'active' && styles.segmentedButtonTextActive
               ]}>
-                Aktif Dersler
+                {t('lessons.activeLessons')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -80,7 +90,7 @@ export const MyLessonsScreen: React.FC = () => {
                 { color: activeTab === 'past' ? '#ffffff' : palette.text.secondary },
                 activeTab === 'past' && styles.segmentedButtonTextActive
               ]}>
-                Geçmiş Dersler
+                {t('lessons.pastLessons')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -90,12 +100,12 @@ export const MyLessonsScreen: React.FC = () => {
         <View style={styles.lessonsList}>
           {displayBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>Henüz bir dersiniz yok</Text>
+              <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('lessons.noLessonsYet')}</Text>
               <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-                Yeni dersler keşfetmeye ve öğrenmeye hemen başlayın.
+                {t('lessons.discoverLessonsText')}
               </Text>
               <TouchableOpacity style={styles.emptyStateButton}>
-                <Text style={styles.emptyStateButtonText}>Dersleri Keşfet</Text>
+                <Text style={styles.emptyStateButtonText}>{t('lessons.discoverLessons')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -132,14 +142,14 @@ export const MyLessonsScreen: React.FC = () => {
                         <View style={styles.lessonInfo}>
                           <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                           <Text style={[styles.lessonInstructor, { color: palette.text.secondary }]}>
-                            Eğitmen: {instructor?.name || 'Bilinmiyor'}
+                            {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
                           </Text>
                           <Text style={[styles.lessonDateTime, { color: palette.text.secondary }]}>
                             {formatDate(booking.date)}, {dayName} - {formatTime(booking.time)}
                           </Text>
                           {isUpcomingSoon && activeTab === 'active' && (
                             <View style={styles.upcomingBadge}>
-                              <Text style={styles.upcomingBadgeText}>Yaklaşıyor</Text>
+                              <Text style={styles.upcomingBadgeText}>{t('lessons.upcoming')}</Text>
                             </View>
                           )}
                         </View>
