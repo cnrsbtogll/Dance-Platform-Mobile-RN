@@ -26,6 +26,13 @@ export const InstructorProfileScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
+      headerStyle: {
+        backgroundColor: palette.background,
+      },
+      headerTintColor: palette.text.primary,
+      headerTitleStyle: {
+        color: palette.text.primary,
+      },
       headerLeft: () => (
         <View style={{
           backgroundColor: colors.instructor.secondary,
@@ -44,7 +51,7 @@ export const InstructorProfileScreen: React.FC = () => {
         </View>
       ),
     });
-  }, [navigation]);
+  }, [navigation, isDarkMode, palette]);
 
   const handleLogout = () => {
     logout();
@@ -81,7 +88,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={notificationsEnabled}
           onValueChange={setNotificationsEnabled}
-          trackColor={{ false: '#E5E7EB', true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -100,7 +107,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={isDarkMode}
           onValueChange={setDarkMode}
-          trackColor={{ false: '#E5E7EB', true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -166,6 +173,7 @@ export const InstructorProfileScreen: React.FC = () => {
           <Text
             style={[
               styles.settingItemText,
+              { color: item.isDanger ? '#e53e3e' : palette.text.primary },
               item.isDanger && styles.settingItemTextDanger,
             ]}
           >
@@ -177,25 +185,25 @@ export const InstructorProfileScreen: React.FC = () => {
             <MaterialIcons
               name="chevron-right"
               size={24}
-              color={colors.instructor.text.lightSecondary}
+              color={palette.text.secondary}
             />
           )}
         </View>
       </TouchableOpacity>
-      {!isLast && <View style={styles.divider} />}
+      {!isLast && <View style={[styles.divider, { backgroundColor: palette.border }]} />}
     </View>
   );
 
   const renderSettingsCard = (title: string, items: SettingItem[]) => (
     <Card style={styles.settingsCard}>
-      {title ? <Text style={styles.settingsCardTitle}>{title}</Text> : null}
+      {title ? <Text style={[styles.settingsCardTitle, { color: palette.text.primary }]}>{title}</Text> : null}
       {items.map((item, index) => renderSettingItem(item, index === items.length - 1))}
     </Card>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           {user?.avatar ? (
@@ -204,11 +212,11 @@ export const InstructorProfileScreen: React.FC = () => {
               style={styles.avatar}
             />
           ) : (
-            <View style={styles.avatarPlaceholder}>
+            <View style={[styles.avatarPlaceholder, { backgroundColor: palette.card }]}>
               <MaterialIcons
                 name="person"
                 size={48}
-                color={colors.instructor.text.lightSecondary}
+                color={palette.text.secondary}
               />
             </View>
           )}
@@ -217,7 +225,7 @@ export const InstructorProfileScreen: React.FC = () => {
             <TouchableOpacity onPress={() => {
               (navigation as any).getParent()?.navigate('EditProfile');
             }}>
-              <Text style={styles.editProfileLink}>Profili Düzenle</Text>
+              <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,7 +290,6 @@ const styles = StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: 56,
-    backgroundColor: colors.instructor.card.light,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.md,
@@ -299,7 +306,6 @@ const styles = StyleSheet.create({
   editProfileLink: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.instructor.secondary,
   },
   switchModeButton: {
     height: 56,
@@ -327,7 +333,6 @@ const styles = StyleSheet.create({
   settingsCardTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.text.lightPrimary,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
@@ -357,7 +362,6 @@ const styles = StyleSheet.create({
   settingItemText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.normal,
-    color: colors.instructor.text.lightPrimary,
     flex: 1,
   },
   settingItemTextDanger: {
@@ -369,7 +373,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
     marginHorizontal: spacing.md,
   },
 });

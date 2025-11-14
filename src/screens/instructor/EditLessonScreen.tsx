@@ -155,8 +155,8 @@ export const EditLessonScreen: React.FC = () => {
                     <Image source={{ uri: selectedImage }} style={styles.currentImage} resizeMode="cover" />
                     <View style={styles.imageInfoContainer}>
                         <View style={styles.imageInfo}>
-                            <Text style={styles.imageInfoTitle}>Mevcut Kapak Görseli</Text>
-                            <Text style={styles.imageInfoSubtitle}>Görseli değiştirmek için dokunun</Text>
+                            <Text style={[styles.imageInfoTitle, { color: palette.text.primary }]}>Mevcut Kapak Görseli</Text>
+                            <Text style={[styles.imageInfoSubtitle, { color: palette.text.secondary }]}>Görseli değiştirmek için dokunun</Text>
                         </View>
                         <TouchableOpacity
                             style={styles.changeImageButton}
@@ -173,9 +173,9 @@ export const EditLessonScreen: React.FC = () => {
         if (!danceType) {
             return (
                 <View style={styles.imageUploadContainer}>
-                    <View style={styles.imageUploadPlaceholder}>
-                        <MaterialIcons name="cloud-upload" size={48} color={colors.instructor.text.lightSecondary} />
-                        <Text style={styles.imageUploadText}>Önce dans türü seçin</Text>
+                    <View style={[styles.imageUploadPlaceholder, { borderColor: palette.border, backgroundColor: palette.card }]}>
+                        <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
+                        <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>Önce dans türü seçin</Text>
                     </View>
                 </View>
             );
@@ -184,45 +184,45 @@ export const EditLessonScreen: React.FC = () => {
         return (
             <View style={styles.imageUploadContainer}>
                 <TouchableOpacity
-                    style={styles.imageUploadPlaceholder}
+                    style={[styles.imageUploadPlaceholder, { borderColor: palette.border, backgroundColor: palette.card }]}
                     onPress={() => setShowImagePicker(true)}
                     activeOpacity={0.7}
                 >
-                    <MaterialIcons name="cloud-upload" size={48} color={colors.instructor.text.lightSecondary} />
-                    <Text style={styles.imageUploadText}>
+                    <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
+                    <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>
                         <Text style={styles.imageUploadTextBold}>Yüklemek için tıkla</Text> veya sürükle
                     </Text>
-                    <Text style={styles.imageUploadSubtext}>SVG, PNG, JPG (MAX. 800x400px)</Text>
+                    <Text style={[styles.imageUploadSubtext, { color: palette.text.secondary }]}>SVG, PNG, JPG (MAX. 800x400px)</Text>
                 </TouchableOpacity>
             </View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={[]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={[]}>
             <ScrollView 
-                style={styles.scrollView} 
+                style={[styles.scrollView, { backgroundColor: palette.background }]} 
                 contentContainerStyle={styles.scrollViewContent}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Dance Type Selection */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={styles.sectionTitle}>Dans Türü</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Dans Türü</Text>
                         <View style={styles.formFields}>
                             <View style={styles.inputGroup}>
                                 <TouchableOpacity
-                                    style={styles.selectInput}
+                                    style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowDanceTypePicker(true)}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={[styles.selectInputText, !danceType && styles.placeholderText]}>
+                                    <Text style={[styles.selectInputText, { color: danceType ? palette.text.primary : palette.text.secondary }]}>
                                         {danceType || 'Dans türü seçin'}
                                     </Text>
                                     <MaterialIcons
                                         name="keyboard-arrow-down"
                                         size={24}
-                                        color={colors.instructor.text.lightSecondary}
+                                        color={palette.text.secondary}
                                     />
                                 </TouchableOpacity>
                             </View>
@@ -233,7 +233,7 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Image Section */}
                 <View style={styles.section}>
                     <Card style={styles.imageCard}>
-                        <Text style={styles.sectionLabel}>Ders Görseli</Text>
+                        <Text style={[styles.sectionLabel, { color: palette.text.primary }]}>Ders Görseli</Text>
                         {renderImagePicker()}
                     </Card>
                 </View>
@@ -241,25 +241,25 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Basic Information */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={styles.sectionTitle}>Temel Bilgiler</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Temel Bilgiler</Text>
                         <View style={styles.formFields}>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Ders Başlığı</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Ders Başlığı</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                                     placeholder="Ders başlığı girin"
-                                    placeholderTextColor={colors.instructor.text.lightSecondary}
+                                    placeholderTextColor={palette.text.secondary}
                                     value={title}
                                     onChangeText={setTitle}
                                 />
                             </View>
                             
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Açıklama</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Açıklama</Text>
                                 <TextInput
-                                    style={[styles.input, styles.textArea]}
+                                    style={[styles.input, styles.textArea, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                                     placeholder="Ders açıklaması girin"
-                                    placeholderTextColor={colors.instructor.text.lightSecondary}
+                                    placeholderTextColor={palette.text.secondary}
                                     value={description}
                                     onChangeText={setDescription}
                                     multiline
@@ -274,16 +274,16 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Pricing & Duration */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={styles.sectionTitle}>Fiyatlandırma & Süre</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Fiyatlandırma & Süre</Text>
                         <View style={styles.gridRow}>
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={styles.inputLabel}>Fiyat</Text>
-                                <View style={styles.priceInputContainer}>
-                                    <Text style={styles.currencySymbol}>₺</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Fiyat</Text>
+                                <View style={[styles.priceInputContainer, { borderColor: palette.border, backgroundColor: palette.card }]}>
+                                    <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>₺</Text>
                                     <TextInput
-                                        style={[styles.input, styles.priceInput]}
+                                        style={[styles.input, styles.priceInput, { color: palette.text.primary }]}
                                         placeholder="0.00"
-                                        placeholderTextColor={colors.instructor.text.lightSecondary}
+                                        placeholderTextColor={palette.text.secondary}
                                         value={price}
                                         onChangeText={setPrice}
                                         keyboardType="numeric"
@@ -292,19 +292,19 @@ export const EditLessonScreen: React.FC = () => {
                             </View>
 
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={styles.inputLabel}>Ders Süresi</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Ders Süresi</Text>
                                 <TouchableOpacity
-                                    style={styles.selectInput}
+                                    style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowDurationPicker(true)}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={styles.selectInputText}>
+                                    <Text style={[styles.selectInputText, { color: palette.text.primary }]}>
                                         {DURATION_OPTIONS.find(opt => opt.value === duration)?.label || '60 dakika'}
                                     </Text>
                                     <MaterialIcons
                                         name="keyboard-arrow-down"
                                         size={24}
-                                        color={colors.instructor.text.lightSecondary}
+                                        color={palette.text.secondary}
                                     />
                                 </TouchableOpacity>
                             </View>
@@ -315,31 +315,31 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Scheduling */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={styles.sectionTitle}>Zamanlama</Text>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Zamanlama</Text>
                         <View style={styles.gridRow}>
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={styles.inputLabel}>Tarih Seç</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Tarih Seç</Text>
                                 <TouchableOpacity
-                                    style={styles.dateTimeInput}
+                                    style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowDatePicker(true)}
                                     activeOpacity={0.7}
                                 >
-                                    <MaterialIcons name="calendar-month" size={20} color={colors.instructor.text.lightSecondary} />
-                                    <Text style={[styles.dateTimeText, !selectedDate && styles.placeholderText]}>
+                                    <MaterialIcons name="calendar-month" size={20} color={palette.text.secondary} />
+                                    <Text style={[styles.dateTimeText, { color: selectedDate ? palette.text.primary : palette.text.secondary }]}>
                                         {selectedDate ? formatDate(selectedDate) : 'GG.AA.YYYY'}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
                             <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={styles.inputLabel}>Saat Seç</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>Saat Seç</Text>
                                 <TouchableOpacity
-                                    style={styles.dateTimeInput}
+                                    style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                     onPress={() => setShowTimePicker(true)}
                                     activeOpacity={0.7}
                                 >
-                                    <MaterialIcons name="schedule" size={20} color={colors.instructor.text.lightSecondary} />
-                                    <Text style={[styles.dateTimeText, !selectedTime && styles.placeholderText]}>
+                                    <MaterialIcons name="schedule" size={20} color={palette.text.secondary} />
+                                    <Text style={[styles.dateTimeText, { color: selectedTime ? palette.text.primary : palette.text.secondary }]}>
                                         {selectedTime ? formatTime(selectedTime) : 'SS:DD'}
                                     </Text>
                                 </TouchableOpacity>
@@ -348,13 +348,13 @@ export const EditLessonScreen: React.FC = () => {
 
                         <View style={styles.checkboxContainer}>
                             <TouchableOpacity
-                                style={styles.checkbox}
+                                style={[styles.checkbox, { borderColor: palette.border, backgroundColor: palette.card }]}
                                 onPress={() => setRecurring(!recurring)}
                                 activeOpacity={0.7}
                             >
                                 {recurring && <MaterialIcons name="check" size={20} color={colors.instructor.secondary} />}
                             </TouchableOpacity>
-                            <Text style={styles.checkboxLabel}>Her hafta tekrar et</Text>
+                            <Text style={[styles.checkboxLabel, { color: palette.text.primary }]}>Her hafta tekrar et</Text>
                         </View>
                     </Card>
                 </View>
@@ -388,12 +388,12 @@ export const EditLessonScreen: React.FC = () => {
                 transparent={true}
                 onRequestClose={() => setShowImagePicker(false)}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Ders Görseli Seç</Text>
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Ders Görseli Seç</Text>
                             <TouchableOpacity onPress={() => setShowImagePicker(false)}>
-                                <MaterialIcons name="close" size={24} color={colors.instructor.text.lightPrimary} />
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
                         <FlatList
@@ -477,12 +477,12 @@ export const EditLessonScreen: React.FC = () => {
                 transparent={true}
                 onRequestClose={() => setShowDurationPicker(false)}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Ders Süresi Seç</Text>
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Ders Süresi Seç</Text>
                             <TouchableOpacity onPress={() => setShowDurationPicker(false)}>
-                                <MaterialIcons name="close" size={24} color={colors.instructor.text.lightPrimary} />
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
                         <FlatList
@@ -492,6 +492,7 @@ export const EditLessonScreen: React.FC = () => {
                                 <TouchableOpacity
                                     style={[
                                         styles.pickerOption,
+                                        { borderBottomColor: palette.border },
                                         duration === item.value && styles.pickerOptionSelected,
                                     ]}
                                     onPress={() => {
@@ -502,6 +503,7 @@ export const EditLessonScreen: React.FC = () => {
                                     <Text
                                         style={[
                                             styles.pickerOptionText,
+                                            { color: palette.text.primary },
                                             duration === item.value && styles.pickerOptionTextSelected,
                                         ]}
                                     >
@@ -529,12 +531,12 @@ export const EditLessonScreen: React.FC = () => {
                 transparent={true}
                 onRequestClose={() => setShowDanceTypePicker(false)}
             >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Dans Türü Seç</Text>
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Dans Türü Seç</Text>
                             <TouchableOpacity onPress={() => setShowDanceTypePicker(false)}>
-                                <MaterialIcons name="close" size={24} color={colors.instructor.text.lightPrimary} />
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
                         <FlatList
@@ -544,6 +546,7 @@ export const EditLessonScreen: React.FC = () => {
                                 <TouchableOpacity
                                     style={[
                                         styles.pickerOption,
+                                        { borderBottomColor: palette.border },
                                         danceType === item && styles.pickerOptionSelected,
                                     ]}
                                     onPress={() => {
@@ -558,6 +561,7 @@ export const EditLessonScreen: React.FC = () => {
                                     <Text
                                         style={[
                                             styles.pickerOptionText,
+                                            { color: palette.text.primary },
                                             danceType === item && styles.pickerOptionTextSelected,
                                         ]}
                                     >
@@ -584,7 +588,6 @@ export const EditLessonScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.instructor.background.light,
     },
     scrollView: {
         flex: 1,
@@ -606,13 +609,11 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
-        color: colors.instructor.text.lightPrimary,
         marginBottom: spacing.sm,
     },
     sectionTitle: {
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
-        color: colors.instructor.text.lightPrimary,
         paddingHorizontal: spacing.md,
         paddingTop: spacing.md,
         paddingBottom: spacing.sm,
@@ -639,12 +640,10 @@ const styles = StyleSheet.create({
     imageInfoTitle: {
         fontSize: typography.fontSize.base,
         fontWeight: typography.fontWeight.bold,
-        color: colors.instructor.text.lightPrimary,
         marginBottom: spacing.xs,
     },
     imageInfoSubtitle: {
         fontSize: typography.fontSize.sm,
-        color: colors.instructor.text.lightSecondary,
     },
     changeImageButton: {
         backgroundColor: colors.instructor.secondary,
@@ -663,16 +662,13 @@ const styles = StyleSheet.create({
         height: 128,
         borderWidth: 2,
         borderStyle: 'dashed',
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.lg,
-        backgroundColor: colors.instructor.background.light,
         alignItems: 'center',
         justifyContent: 'center',
         gap: spacing.xs,
     },
     imageUploadText: {
         fontSize: typography.fontSize.sm,
-        color: colors.instructor.text.lightSecondary,
         textAlign: 'center',
     },
     imageUploadTextBold: {
@@ -680,7 +676,6 @@ const styles = StyleSheet.create({
     },
     imageUploadSubtext: {
         fontSize: typography.fontSize.xs,
-        color: colors.instructor.text.lightSecondary,
     },
     formFields: {
         padding: spacing.md,
@@ -693,17 +688,13 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
-        color: colors.instructor.text.lightPrimary,
     },
     input: {
         height: 48,
         borderWidth: 1,
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.lg,
         paddingHorizontal: spacing.md,
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightPrimary,
-        backgroundColor: colors.instructor.background.light,
     },
     textArea: {
         height: 128,
@@ -713,9 +704,7 @@ const styles = StyleSheet.create({
     selectInput: {
         height: 48,
         borderWidth: 1,
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.lg,
-        backgroundColor: colors.instructor.background.light,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -724,7 +713,6 @@ const styles = StyleSheet.create({
     selectInputText: {
         flex: 1,
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightPrimary,
     },
     gridRow: {
         flexDirection: 'row',
@@ -740,14 +728,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 48,
         borderWidth: 1,
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.lg,
-        backgroundColor: colors.instructor.background.light,
         paddingLeft: spacing.md,
     },
     currencySymbol: {
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightSecondary,
         marginRight: spacing.xs,
     },
     priceInput: {
@@ -760,19 +745,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 48,
         borderWidth: 1,
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.lg,
-        backgroundColor: colors.instructor.background.light,
         paddingHorizontal: spacing.md,
         gap: spacing.sm,
     },
     dateTimeText: {
         flex: 1,
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightPrimary,
     },
     placeholderText: {
-        color: colors.instructor.text.lightSecondary,
+        // Color will be set dynamically
     },
     checkboxContainer: {
         flexDirection: 'row',
@@ -785,15 +767,12 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         borderWidth: 2,
-        borderColor: colors.instructor.border.light,
         borderRadius: borderRadius.sm,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.instructor.background.light,
     },
     checkboxLabel: {
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightPrimary,
     },
     saveButton: {
         backgroundColor: colors.instructor.primary,
@@ -825,11 +804,9 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: colors.instructor.card.light,
         borderTopLeftRadius: borderRadius.xl,
         borderTopRightRadius: borderRadius.xl,
         maxHeight: '80%',
@@ -841,12 +818,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: colors.instructor.border.light,
     },
     modalTitle: {
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
-        color: colors.instructor.text.lightPrimary,
     },
     imageListContent: {
         padding: spacing.md,
@@ -884,14 +859,12 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: colors.instructor.border.light,
     },
     pickerOptionSelected: {
         backgroundColor: `${colors.instructor.secondary}10`,
     },
     pickerOptionText: {
         fontSize: typography.fontSize.base,
-        color: colors.instructor.text.lightPrimary,
     },
     pickerOptionTextSelected: {
         fontWeight: typography.fontWeight.bold,
