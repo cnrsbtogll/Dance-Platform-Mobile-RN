@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { MockDataService } from '../../services/mockDataService';
@@ -49,6 +50,8 @@ export const EditLessonScreen: React.FC = () => {
     const route = useRoute();
     const params = route.params as { lessonId?: string } | undefined;
     const lessonId = params?.lessonId;
+    const { isDarkMode } = useThemeStore();
+    const palette = getPalette('instructor', isDarkMode);
 
     const lesson = lessonId ? MockDataService.getLessonById(lessonId) : null;
 
@@ -58,16 +61,16 @@ export const EditLessonScreen: React.FC = () => {
             headerTitle: 'Ders Düzenle',
             headerBackTitle: '',
             headerStyle: {
-                backgroundColor: colors.instructor.background.light,
+                backgroundColor: palette.background,
             },
             headerTitleStyle: {
                 fontSize: typography.fontSize.lg,
                 fontWeight: typography.fontWeight.bold,
-                color: colors.instructor.text.lightPrimary,
+                color: palette.text.primary,
             },
-            headerTintColor: colors.instructor.text.lightPrimary,
+            headerTintColor: palette.text.primary,
         });
-    }, [navigation]);
+    }, [navigation, isDarkMode, palette]);
 
     // Initialize state with lesson data
     const [title, setTitle] = useState(lesson?.title || '');

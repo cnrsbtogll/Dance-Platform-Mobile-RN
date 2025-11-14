@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 
@@ -45,6 +46,8 @@ const DURATION_OPTIONS = [
 
 export const CreateLessonScreen: React.FC = () => {
     const navigation = useNavigation();
+    const { isDarkMode } = useThemeStore();
+    const palette = getPalette('instructor', isDarkMode);
 
     useEffect(() => {
         navigation.setOptions({
@@ -52,16 +55,16 @@ export const CreateLessonScreen: React.FC = () => {
             headerTitle: 'Ders Oluştur',
             headerBackTitle: '',
             headerStyle: {
-                backgroundColor: colors.instructor.background.light,
+                backgroundColor: palette.background,
             },
             headerTitleStyle: {
                 fontSize: typography.fontSize.lg,
                 fontWeight: typography.fontWeight.bold,
-                color: colors.instructor.text.lightPrimary,
+                color: palette.text.primary,
             },
-            headerTintColor: colors.instructor.text.lightPrimary,
+            headerTintColor: palette.text.primary,
         });
-    }, [navigation]);
+    }, [navigation, isDarkMode, palette]);
 
     const [title, setTitle] = useState('');
     const [danceType, setDanceType] = useState('');

@@ -180,11 +180,17 @@ const MainTabs: React.FC = () => {
 
 // Root Stack Navigator
 export const InstructorNavigator: React.FC = () => {
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('instructor', isDarkMode);
+  
   return (
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        headerTintColor: colors.instructor.text.lightPrimary,
+        headerTintColor: palette.text.primary,
+        headerStyle: {
+          backgroundColor: palette.background,
+        },
       }}
     >
       <Stack.Screen 
@@ -231,9 +237,12 @@ export const InstructorNavigator: React.FC = () => {
         options={{ 
           headerShown: true,
           headerBackTitle: '',
-          headerTintColor: colors.instructor.text.lightPrimary,
+          headerTintColor: palette.text.primary,
           headerStyle: {
-            backgroundColor: colors.instructor.background.light,
+            backgroundColor: palette.background,
+          },
+          headerTitleStyle: {
+            color: palette.text.primary,
           },
           presentation: 'card',
         }}
@@ -245,8 +254,11 @@ export const InstructorNavigator: React.FC = () => {
           headerShown: true,
           headerTitle: 'Profili Düzenle',
           headerBackTitle: '',
-          headerStyle: { backgroundColor: colors.instructor.background.light },
-          headerTintColor: colors.instructor.text.lightPrimary,
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
         }}
       />
     </Stack.Navigator>

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getUpcomingBookings, getPastBookings } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
@@ -16,6 +17,8 @@ export const MyLessonsScreen: React.FC = () => {
   const { getUserBookings } = useBookingStore();
   const bookings = getUserBookings();
   const [activeTab, setActiveTab] = useState<TabType>('active');
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
 
   const upcomingBookings = getUpcomingBookings(bookings);
   const pastBookings = getPastBookings(bookings);
@@ -45,11 +48,11 @@ export const MyLessonsScreen: React.FC = () => {
   }, [bookings, upcomingBookings, pastBookings]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Segmented Buttons */}
         <View style={styles.segmentedContainer}>
-          <View style={styles.segmentedWrapper}>
+          <View style={[styles.segmentedWrapper, { backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)' }]}>
             <TouchableOpacity
               style={[
                 styles.segmentedButton,
@@ -59,6 +62,7 @@ export const MyLessonsScreen: React.FC = () => {
             >
               <Text style={[
                 styles.segmentedButtonText,
+                { color: activeTab === 'active' ? '#ffffff' : palette.text.secondary },
                 activeTab === 'active' && styles.segmentedButtonTextActive
               ]}>
                 Aktif Dersler
@@ -73,6 +77,7 @@ export const MyLessonsScreen: React.FC = () => {
             >
               <Text style={[
                 styles.segmentedButtonText,
+                { color: activeTab === 'past' ? '#ffffff' : palette.text.secondary },
                 activeTab === 'past' && styles.segmentedButtonTextActive
               ]}>
                 Geçmiş Dersler
@@ -85,8 +90,8 @@ export const MyLessonsScreen: React.FC = () => {
         <View style={styles.lessonsList}>
           {displayBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateTitle}>Henüz bir dersiniz yok</Text>
-              <Text style={styles.emptyStateText}>
+              <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>Henüz bir dersiniz yok</Text>
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
                 Yeni dersler keşfetmeye ve öğrenmeye hemen başlayın.
               </Text>
               <TouchableOpacity style={styles.emptyStateButton}>
@@ -125,11 +130,11 @@ export const MyLessonsScreen: React.FC = () => {
                           />
                         )}
                         <View style={styles.lessonInfo}>
-                          <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                          <Text style={styles.lessonInstructor}>
+                          <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+                          <Text style={[styles.lessonInstructor, { color: palette.text.secondary }]}>
                             Eğitmen: {instructor?.name || 'Bilinmiyor'}
                           </Text>
-                          <Text style={styles.lessonDateTime}>
+                          <Text style={[styles.lessonDateTime, { color: palette.text.secondary }]}>
                             {formatDate(booking.date)}, {dayName} - {formatTime(booking.time)}
                           </Text>
                           {isUpcomingSoon && activeTab === 'active' && (
@@ -143,7 +148,7 @@ export const MyLessonsScreen: React.FC = () => {
                         <MaterialIcons 
                           name="chevron-right" 
                           size={24} 
-                          color={colors.student.text.secondaryLight} 
+                          color={palette.text.secondary} 
                         />
                       </View>
                     </View>
@@ -161,7 +166,6 @@ export const MyLessonsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   scrollView: {
     flex: 1,
@@ -173,7 +177,6 @@ const styles = StyleSheet.create({
   segmentedWrapper: {
     height: 40,
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: borderRadius.lg,
     padding: 2,
   },
@@ -191,7 +194,6 @@ const styles = StyleSheet.create({
   segmentedButtonText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.secondaryLight,
   },
   segmentedButtonTextActive: {
     color: '#ffffff',
@@ -229,17 +231,14 @@ const styles = StyleSheet.create({
   lessonTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
   },
   lessonInstructor: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   lessonDateTime: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   upcomingBadge: {
     alignSelf: 'flex-start',
@@ -269,14 +268,12 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   emptyStateText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
     textAlign: 'center',
     marginBottom: spacing.lg,
     maxWidth: 300,

@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { MockDataService } from '../../services/mockDataService';
 import { Card } from '../../components/common/Card';
@@ -14,6 +15,8 @@ export const InstructorLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('active');
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('instructor', isDarkMode);
 
   const instructorLessons = useMemo(() => {
     if (!user || user.role !== 'instructor') return [];
@@ -54,17 +57,17 @@ export const InstructorLessonsScreen: React.FC = () => {
       headerShown: true,
       headerTitle: 'Derslerim',
       headerStyle: {
-        backgroundColor: colors.instructor.background.light,
+        backgroundColor: palette.background,
       },
       headerTitleStyle: {
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
-        color: colors.instructor.text.lightPrimary,
+        color: palette.text.primary,
       },
-      headerTintColor: colors.instructor.text.lightPrimary,
+      headerTintColor: palette.text.primary,
       headerLeft: () => (
         <View style={{
-          backgroundColor: colors.instructor.secondary,
+          backgroundColor: palette.secondary,
           paddingHorizontal: spacing.sm,
           paddingVertical: 4,
           borderRadius: borderRadius.full,
@@ -89,12 +92,12 @@ export const InstructorLessonsScreen: React.FC = () => {
           <MaterialIcons
             name="add"
             size={28}
-            color={colors.instructor.text.lightPrimary}
+            color={palette.text.primary}
           />
         </TouchableOpacity>
       ),
     });
-  }, [navigation]);
+  }, [navigation, isDarkMode]);
 
   const handleEdit = (lesson: Lesson) => {
     (navigation as any).navigate('EditLesson', {
@@ -110,47 +113,47 @@ export const InstructorLessonsScreen: React.FC = () => {
   const renderLessonCard = (lesson: Lesson & { studentCount: number; averageRating: number }) => (
     <Card key={lesson.id} style={styles.lessonCard}>
       <View style={styles.lessonCardHeader}>
-        <Text style={styles.lessonTitle}>{lesson.title}</Text>
+        <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
         <View style={styles.lessonActions}>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleEdit(lesson)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="edit" size={20} color={colors.instructor.text.lightSecondary} />
+            <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDelete(lesson)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="delete" size={20} color={colors.instructor.text.lightSecondary} />
+            <MaterialIcons name="delete" size={20} color={palette.text.secondary} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.lessonStatus}>
-        <View style={[styles.statusDot, lesson.isActive && styles.statusDotActive]} />
-        <Text style={[styles.statusText, lesson.isActive && styles.statusTextActive]}>
+        <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
+        <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
           {lesson.isActive ? 'Aktif' : 'Pasif'}
         </Text>
       </View>
 
       <View style={styles.lessonStats}>
         <View style={styles.statItem}>
-          <MaterialIcons name="people" size={18} color={colors.instructor.text.lightSecondary} />
-          <Text style={styles.statText}>{lesson.studentCount} Kayıtlı Öğrenci</Text>
+          <MaterialIcons name="people" size={18} color={palette.text.secondary} />
+          <Text style={[styles.statText, { color: palette.text.secondary }]}>{lesson.studentCount} Kayıtlı Öğrenci</Text>
         </View>
         <View style={styles.statItem}>
           <MaterialIcons name="star" size={18} color="#FFB800" />
-          <Text style={styles.statText}>{lesson.averageRating.toFixed(1)} Ortalama Puan</Text>
+          <Text style={[styles.statText, { color: palette.text.secondary }]}>{lesson.averageRating.toFixed(1)} Ortalama Puan</Text>
         </View>
       </View>
     </Card>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.background }] }>
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
@@ -174,7 +177,7 @@ export const InstructorLessonsScreen: React.FC = () => {
       </View>
 
       {/* Lessons List */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {displayedLessons.length > 0 ? (
           <View style={styles.lessonsList}>
             {displayedLessons.map(lesson => renderLessonCard(lesson))}
@@ -184,9 +187,9 @@ export const InstructorLessonsScreen: React.FC = () => {
             <MaterialIcons
               name="school"
               size={64}
-              color={colors.instructor.text.lightSecondary}
+              color={palette.text.secondary}
             />
-            <Text style={styles.emptyStateText}>
+            <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
               {activeTab === 'active' ? 'Aktif ders bulunmuyor' : 'Geçmiş ders bulunmuyor'}
             </Text>
           </View>
@@ -199,7 +202,6 @@ export const InstructorLessonsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.instructor.background.light,
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -212,17 +214,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.instructor.card.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabActive: {
-    backgroundColor: colors.instructor.secondary,
-  },
+  tabActive: {},
   tabText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.instructor.text.lightPrimary,
   },
   tabTextActive: {
     color: '#ffffff',
@@ -249,7 +247,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.text.lightPrimary,
     marginRight: spacing.sm,
   },
   lessonActions: {
@@ -269,7 +266,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.instructor.text.lightSecondary,
   },
   statusDotActive: {
     backgroundColor: '#10B981',
@@ -277,7 +273,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.instructor.text.lightSecondary,
   },
   statusTextActive: {
     color: '#10B981',
@@ -294,7 +289,6 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: typography.fontSize.sm,
-    color: colors.instructor.text.lightSecondary,
   },
   emptyState: {
     flex: 1,
@@ -304,7 +298,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.fontSize.base,
-    color: colors.instructor.text.lightSecondary,
     marginTop: spacing.md,
   },
 });

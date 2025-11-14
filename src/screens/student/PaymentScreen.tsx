@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
@@ -14,6 +15,8 @@ export const PaymentScreen: React.FC = () => {
   const route = useRoute();
   const params = route.params as { lessonId?: string; date?: string; time?: string } | undefined;
   const insets = useSafeAreaInsets();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   
   const { createBooking } = useBookingStore();
   
@@ -33,17 +36,17 @@ export const PaymentScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       title: 'Ödeme Ekranı',
-      headerTintColor: colors.student.text.primaryLight,
+      headerTintColor: palette.text.primary,
       headerStyle: {
-        backgroundColor: colors.student.background.light,
+        backgroundColor: palette.background,
       },
       headerTitleStyle: {
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
-        color: colors.student.text.primaryLight,
+        color: palette.text.primary,
       },
     });
-  }, [navigation]);
+  }, [navigation, isDarkMode, palette]);
 
   const formatCardNumber = (text: string): string => {
     const cleaned = text.replace(/\s/g, '');
@@ -97,9 +100,9 @@ export const PaymentScreen: React.FC = () => {
 
   if (!lesson) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Ders bulunamadı</Text>
+          <Text style={[styles.errorText, { color: palette.text.primary }]}>Ders bulunamadı</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>Geri Dön</Text>
           </TouchableOpacity>
@@ -111,9 +114,9 @@ export const PaymentScreen: React.FC = () => {
   const totalAmount = lesson.price;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView 
-        style={styles.scrollView} 
+        style={[styles.scrollView, { backgroundColor: palette.background }]} 
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
@@ -127,15 +130,15 @@ export const PaymentScreen: React.FC = () => {
                   style={styles.instructorAvatar}
                 />
               ) : (
-                <View style={[styles.instructorAvatar, styles.avatarPlaceholder]}>
-                  <MaterialIcons name="person" size={24} color={colors.student.text.secondaryLight} />
+                <View style={[styles.instructorAvatar, styles.avatarPlaceholder, { backgroundColor: palette.border }]}>
+                  <MaterialIcons name="person" size={24} color={palette.text.secondary} />
                 </View>
               )}
               <View style={styles.lessonInfo}>
-                <Text style={styles.lessonTitle} numberOfLines={1}>
+                <Text style={[styles.lessonTitle, { color: palette.text.primary }]} numberOfLines={1}>
                   {lesson.title}
                 </Text>
-                <Text style={styles.lessonDetails} numberOfLines={2}>
+                <Text style={[styles.lessonDetails, { color: palette.text.secondary }]} numberOfLines={2}>
                   Öğretmen: {instructor?.name || 'Bilinmiyor'} | {params?.date ? formatDate(params.date) : ''}, {params?.time || ''}
                 </Text>
               </View>
@@ -145,15 +148,15 @@ export const PaymentScreen: React.FC = () => {
 
         {/* Payment Details Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ödeme Detayları</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Ödeme Detayları</Text>
           <Card style={styles.paymentDetailsCard}>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Ders Ücreti</Text>
-              <Text style={styles.paymentValue}>{formatPrice(lesson.price)}</Text>
+            <View style={[styles.paymentRow, { borderBottomColor: palette.border }]}>
+              <Text style={[styles.paymentLabel, { color: palette.text.secondary }]}>Ders Ücreti</Text>
+              <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price)}</Text>
             </View>
             <View style={[styles.paymentRow, styles.paymentRowTotal]}>
-              <Text style={styles.paymentLabelTotal}>Toplam Tutar</Text>
-              <Text style={styles.paymentValueTotal}>{formatPrice(totalAmount)}</Text>
+              <Text style={[styles.paymentLabelTotal, { color: palette.text.primary }]}>Toplam Tutar</Text>
+              <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount)}</Text>
             </View>
           </Card>
         </View>
@@ -167,7 +170,7 @@ export const PaymentScreen: React.FC = () => {
                   <View style={styles.cardBrandIcon}>
                     <MaterialIcons name="credit-card" size={24} color={colors.student.primary} />
                   </View>
-                  <Text style={styles.savedCardText}>
+                  <Text style={[styles.savedCardText, { color: palette.text.primary }]}>
                     {savedCard.brand} **** {savedCard.last4}
                   </Text>
                 </View>
@@ -181,11 +184,11 @@ export const PaymentScreen: React.FC = () => {
               {/* Credit Card Input Form */}
               <View style={styles.formSection}>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Kart Sahibinin Adı Soyadı</Text>
+                  <Text style={[styles.label, { color: palette.text.secondary }]}>Kart Sahibinin Adı Soyadı</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                     placeholder="Ad Soyad"
-                    placeholderTextColor={colors.student.text.secondaryLight}
+                    placeholderTextColor={palette.text.secondary}
                     value={cardholderName}
                     onChangeText={setCardholderName}
                     autoCapitalize="words"
@@ -193,11 +196,11 @@ export const PaymentScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Kart Numarası</Text>
+                  <Text style={[styles.label, { color: palette.text.secondary }]}>Kart Numarası</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                     placeholder="0000 0000 0000 0000"
-                    placeholderTextColor={colors.student.text.secondaryLight}
+                    placeholderTextColor={palette.text.secondary}
                     value={cardNumber}
                     onChangeText={handleCardNumberChange}
                     keyboardType="numeric"
@@ -207,11 +210,11 @@ export const PaymentScreen: React.FC = () => {
 
                 <View style={styles.rowInputs}>
                   <View style={[styles.inputGroup, styles.halfWidth]}>
-                    <Text style={styles.label}>Son K. Tarihi</Text>
+                    <Text style={[styles.label, { color: palette.text.secondary }]}>Son K. Tarihi</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                       placeholder="AA/YY"
-                      placeholderTextColor={colors.student.text.secondaryLight}
+                      placeholderTextColor={palette.text.secondary}
                       value={expirationDate}
                       onChangeText={handleExpirationDateChange}
                       keyboardType="numeric"
@@ -220,11 +223,11 @@ export const PaymentScreen: React.FC = () => {
                   </View>
 
                   <View style={[styles.inputGroup, styles.halfWidth]}>
-                    <Text style={styles.label}>CVV</Text>
+                    <Text style={[styles.label, { color: palette.text.secondary }]}>CVV</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                       placeholder="123"
-                      placeholderTextColor={colors.student.text.secondaryLight}
+                      placeholderTextColor={palette.text.secondary}
                       value={cvv}
                       onChangeText={handleCvvChange}
                       keyboardType="numeric"
@@ -240,10 +243,10 @@ export const PaymentScreen: React.FC = () => {
                 <Switch
                   value={saveCard}
                   onValueChange={setSaveCard}
-                  trackColor={{ false: '#E5E7EB', true: colors.student.primary }}
+                  trackColor={{ false: palette.border, true: colors.student.primary }}
                   thumbColor="#ffffff"
                 />
-                <Text style={styles.saveCardText}>
+                <Text style={[styles.saveCardText, { color: palette.text.primary }]}>
                   Kartımı sonraki ödemeler için kaydet
                 </Text>
               </View>
@@ -263,10 +266,10 @@ export const PaymentScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom CTA Bar */}
-      <SafeAreaView edges={['bottom']} style={styles.bottomBar}>
+      <SafeAreaView edges={['bottom']} style={[styles.bottomBar, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
         <View style={styles.securityMessage}>
-          <MaterialIcons name="lock" size={16} color={colors.student.text.secondaryLight} />
-          <Text style={styles.securityText}>
+          <MaterialIcons name="lock" size={16} color={palette.text.secondary} />
+          <Text style={[styles.securityText, { color: palette.text.secondary }]}>
             Ödemeniz güvenli bir şekilde işlenmektedir
           </Text>
         </View>
@@ -287,7 +290,6 @@ export const PaymentScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   scrollView: {
     flex: 1,
@@ -301,7 +303,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     marginBottom: spacing.sm,
     letterSpacing: -0.015,
   },
@@ -319,7 +320,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   avatarPlaceholder: {
-    backgroundColor: colors.student.card.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -331,12 +331,10 @@ const styles = StyleSheet.create({
   lessonTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
   },
   lessonDetails: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   paymentDetailsCard: {
     marginBottom: 0,
@@ -346,7 +344,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.student.border.light,
   },
   paymentRowTotal: {
     borderBottomWidth: 0,
@@ -356,22 +353,18 @@ const styles = StyleSheet.create({
   paymentLabel: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   paymentValue: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
   },
   paymentLabelTotal: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
   },
   paymentValueTotal: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
   },
   paymentMethodCard: {
     marginBottom: 0,
@@ -397,7 +390,6 @@ const styles = StyleSheet.create({
   savedCardText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.primaryLight,
     flex: 1,
   },
   changeButton: {
@@ -414,19 +406,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.secondaryLight,
     marginBottom: spacing.xs,
   },
   input: {
     width: '100%',
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.student.border.light,
-    backgroundColor: colors.student.card.light,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
-    color: colors.student.text.primaryLight,
     ...shadows.sm,
   },
   rowInputs: {
@@ -446,7 +434,6 @@ const styles = StyleSheet.create({
   saveCardText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.primaryLight,
     flex: 1,
   },
   useSavedCardButton: {
@@ -459,12 +446,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bottomBar: {
-    backgroundColor: colors.student.background.light,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
   },
   securityMessage: {
     flexDirection: 'row',
@@ -476,7 +461,6 @@ const styles = StyleSheet.create({
   securityText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   payButton: {
     width: '100%',
@@ -500,7 +484,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: typography.fontSize.lg,
-    color: colors.student.text.primaryLight,
     marginBottom: spacing.md,
   },
   backButton: {

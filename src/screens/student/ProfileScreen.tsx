@@ -144,6 +144,7 @@ export const ProfileScreen: React.FC = () => {
           <Text
             style={[
               styles.settingItemText,
+              { color: item.isDanger ? '#e53e3e' : palette.text.primary },
               item.isDanger && styles.settingItemTextDanger,
             ]}
           >
@@ -155,18 +156,18 @@ export const ProfileScreen: React.FC = () => {
             <MaterialIcons
               name="chevron-right"
               size={24}
-              color={colors.student.text.secondaryLight}
+              color={palette.text.secondary}
             />
           )}
         </View>
       </TouchableOpacity>
-      {!isLast && <View style={styles.divider} />}
+      {!isLast && <View style={[styles.divider, { backgroundColor: palette.border }]} />}
     </View>
   );
 
   const renderSettingsCard = (title: string, items: SettingItem[]) => (
     <Card style={styles.settingsCard}>
-      <Text style={styles.settingsCardTitle}>{title}</Text>
+      {title ? <Text style={[styles.settingsCardTitle, { color: palette.text.primary }]}>{title}</Text> : null}
       {items.map((item, index) => renderSettingItem(item, index === items.length - 1))}
     </Card>
   );
@@ -185,7 +186,7 @@ export const ProfileScreen: React.FC = () => {
             <TouchableOpacity onPress={() => {
               (navigation as any).getParent()?.navigate('EditProfile');
             }}>
-              <Text style={styles.editProfileLink}>Profili Düzenle</Text>
+              <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>Profili Düzenle</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -278,7 +279,6 @@ const styles = StyleSheet.create({
   settingsCardTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
@@ -308,7 +308,6 @@ const styles = StyleSheet.create({
   settingItemText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.primaryLight,
     flex: 1,
   },
   settingItemTextDanger: {
@@ -320,7 +319,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
     marginHorizontal: spacing.md,
   },
 });

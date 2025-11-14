@@ -24,19 +24,17 @@ export const EditProfileScreen: React.FC = () => {
     (navigation as any).goBack();
   };
 
-  const theme = colors.student;
-
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}> 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         <Card style={styles.card}>
-          <Text style={styles.sectionTitle}>Profil Bilgileri</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Profil Bilgileri</Text>
           <View style={styles.avatarRow}>
             {tempAvatar ? (
               <Image source={{ uri: tempAvatar }} style={styles.avatar} />
             ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <MaterialIcons name="person" size={32} color={theme.text.secondaryLight} />
+              <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: palette.border }]}>
+                <MaterialIcons name="person" size={32} color={palette.text.secondary} />
               </View>
             )}
             <TouchableOpacity style={styles.changeAvatarButton} onPress={() => setAvatarModalVisible(true)}>
@@ -58,8 +56,8 @@ export const EditProfileScreen: React.FC = () => {
         </Card>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.actionButton, styles.cancelButton]} onPress={() => (navigation as any).goBack()}>
-            <Text style={styles.cancelText}>İptal</Text>
+          <TouchableOpacity style={[styles.actionButton, styles.cancelButton, { backgroundColor: palette.border }]} onPress={() => (navigation as any).goBack()}>
+            <Text style={[styles.cancelText, { color: palette.text.primary }]}>İptal</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionButton, styles.saveButton]} onPress={handleSave}>
             <Text style={styles.saveText}>Kaydet</Text>
@@ -68,12 +66,12 @@ export const EditProfileScreen: React.FC = () => {
       </ScrollView>
 
       <Modal visible={avatarModalVisible} animationType="slide" transparent onRequestClose={() => setAvatarModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)' }]}>
           <View style={[styles.modalContent, { backgroundColor: palette.card }]}> 
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Avatar Seç</Text>
+              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>Avatar Seç</Text>
               <TouchableOpacity onPress={() => setAvatarModalVisible(false)}>
-                <MaterialIcons name="close" size={24} color={theme.text.primaryLight} />
+                <MaterialIcons name="close" size={24} color={palette.text.primary} />
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={styles.avatarGrid}>
@@ -121,7 +119,6 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F0F2F5',
   },
   changeAvatarButton: {
     paddingHorizontal: spacing.md,
@@ -138,18 +135,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.fontSize.sm,
-    color: colors.student.text.secondaryLight,
     marginBottom: spacing.xs,
   },
   input: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.student.border.light,
-    backgroundColor: '#ffffff',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
-    color: colors.student.text.primaryLight,
   },
   actions: {
     flexDirection: 'row',
@@ -166,13 +159,11 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   cancelButton: {
-    backgroundColor: '#EEF2F6',
   },
   saveButton: {
     backgroundColor: colors.student.primary,
   },
   cancelText: {
-    color: colors.student.text.primaryLight,
     fontWeight: typography.fontWeight.medium,
   },
   saveText: {
@@ -181,7 +172,6 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.md,

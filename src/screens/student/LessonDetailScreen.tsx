@@ -4,7 +4,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getDurationText } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
@@ -19,6 +20,8 @@ export const LessonDetailScreen: React.FC = () => {
   const bookingId = params?.bookingId;
   const isInstructor = params?.isInstructor || false;
   const insets = useSafeAreaInsets();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   
   const { toggleFavorite, favoriteLessons } = useLessonStore();
   const { createBooking } = useBookingStore();
@@ -34,9 +37,9 @@ export const LessonDetailScreen: React.FC = () => {
 
   if (!lesson) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Ders bulunamadı</Text>
+          <Text style={[styles.errorText, { color: palette.text.secondary }]}>Ders bulunamadı</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>Geri Dön</Text>
           </TouchableOpacity>
@@ -64,8 +67,8 @@ export const LessonDetailScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Hero Image Section */}
         <View style={styles.heroContainer}>
           {lesson.imageUrl && (
@@ -116,41 +119,41 @@ export const LessonDetailScreen: React.FC = () => {
         <View style={styles.content}>
           {/* Info Cards */}
           <View style={styles.infoCards}>
-            <View style={styles.infoCard}>
+            <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
-              <Text style={styles.infoCardLabel}>Tarih</Text>
-              <Text style={styles.infoCardValue}>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Tarih</Text>
+              <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
                 {booking ? `${formatDate(booking.date)}` : 'Belirtilmemiş'}
               </Text>
             </View>
-            <View style={styles.infoCard}>
+            <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="schedule" size={32} color={colors.student.primary} />
-              <Text style={styles.infoCardLabel}>Saat</Text>
-              <Text style={styles.infoCardValue}>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Saat</Text>
+              <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
                 {booking ? formatTime(booking.time) : 'Belirtilmemiş'}
               </Text>
             </View>
-            <View style={styles.infoCard}>
+            <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="hourglass-empty" size={32} color={colors.student.primary} />
-              <Text style={styles.infoCardLabel}>Süre</Text>
-              <Text style={styles.infoCardValue}>{getDurationText(lesson.duration)}</Text>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>Süre</Text>
+              <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>{getDurationText(lesson.duration)}</Text>
             </View>
           </View>
 
           {/* Description Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ders Açıklaması</Text>
-            <Text style={styles.descriptionText}>{lesson.description}</Text>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Ders Açıklaması</Text>
+            <Text style={[styles.descriptionText, { color: palette.text.secondary }]}>{lesson.description}</Text>
           </View>
 
           {/* Location Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Konum</Text>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Konum</Text>
             <View style={styles.locationContainer}>
               <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
               <View style={styles.locationTextContainer}>
-                <Text style={styles.locationName}>Dans Stüdyosu A</Text>
-                <Text style={styles.locationAddress}>
+                <Text style={[styles.locationName, { color: palette.text.primary }]}>Dans Stüdyosu A</Text>
+                <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
                   Merkez Mah. Sanat Sk. No:12, Beşiktaş/İstanbul
                 </Text>
               </View>
@@ -171,7 +174,7 @@ export const LessonDetailScreen: React.FC = () => {
 
       {/* Fixed Bottom Bar */}
       {isOwnLesson ? (
-        <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
+        <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
             <TouchableOpacity
               style={[styles.registerButton, { marginLeft: 0, flex: 1 }]}
@@ -190,11 +193,11 @@ export const LessonDetailScreen: React.FC = () => {
           </View>
         </SafeAreaView>
       ) : (
-        <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
+        <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
           <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>Ücret</Text>
-            <Text style={styles.priceValue}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
+            <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>Ücret</Text>
+            <Text style={[styles.priceValue, { color: colors.student.primary }]}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
           </View>
           <TouchableOpacity
             style={styles.registerButton}
@@ -222,7 +225,6 @@ export const LessonDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   scrollView: {
     flex: 1,
@@ -297,7 +299,6 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flex: 1,
-    backgroundColor: colors.student.card.light,
     borderRadius: borderRadius.xl,
     padding: spacing.sm,
     alignItems: 'center',
@@ -306,12 +307,10 @@ const styles = StyleSheet.create({
   infoCardLabel: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
     marginTop: spacing.xs,
   },
   infoCardValue: {
     fontSize: typography.fontSize.xs,
-    color: colors.student.text.secondaryLight,
     marginTop: 2,
   },
   section: {
@@ -320,12 +319,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     marginBottom: spacing.md,
   },
   descriptionText: {
     fontSize: typography.fontSize.base,
-    color: colors.student.text.secondaryLight,
     lineHeight: 24,
   },
   locationContainer: {
@@ -340,12 +337,10 @@ const styles = StyleSheet.create({
   locationName: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.primaryLight,
     marginBottom: 2,
   },
   locationAddress: {
     fontSize: typography.fontSize.sm,
-    color: colors.student.text.secondaryLight,
   },
   mapContainer: {
     height: 160,
@@ -362,9 +357,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.student.background.light,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
   bottomBar: {
     flexDirection: 'row',
@@ -377,12 +370,10 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: typography.fontSize.sm,
-    color: colors.student.text.secondaryLight,
   },
   priceValue: {
     fontSize: 24,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.primary,
   },
   registerButton: {
     flex: 1,
@@ -411,7 +402,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: typography.fontSize.lg,
-    color: colors.student.text.secondaryLight,
     marginBottom: spacing.md,
   },
   backButton: {

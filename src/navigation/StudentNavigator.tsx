@@ -162,11 +162,17 @@ const MainTabs: React.FC = () => {
 
 // Root Stack Navigator (includes detail screens)
 export const StudentNavigator: React.FC = () => {
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
+  
   return (
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        headerTintColor: colors.student.text.primaryLight,
+        headerTintColor: palette.text.primary,
+        headerStyle: {
+          backgroundColor: palette.background,
+        },
       }}
     >
       <Stack.Screen 
@@ -202,9 +208,12 @@ export const StudentNavigator: React.FC = () => {
         options={{ 
           headerShown: true,
           headerBackTitle: '',
-          headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
+          },
+          headerTitleStyle: {
+            color: palette.text.primary,
           },
           presentation: 'card',
         }}
@@ -215,9 +224,12 @@ export const StudentNavigator: React.FC = () => {
         options={{ 
           headerShown: true,
           headerBackTitle: '',
-           headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
+          },
+          headerTitleStyle: {
+            color: palette.text.primary,
           },
           presentation: 'card',
         }}
@@ -229,8 +241,11 @@ export const StudentNavigator: React.FC = () => {
           headerShown: true,
           headerTitle: 'Profili Düzenle',
           headerBackTitle: '',
-          headerStyle: { backgroundColor: colors.student.background.light },
-          headerTintColor: colors.student.text.primaryLight,
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
         }}
       />
       <Stack.Screen
@@ -240,8 +255,11 @@ export const StudentNavigator: React.FC = () => {
           headerShown: true,
           headerTitle: 'Eğitmen Ol',
           headerBackTitle: '',
-          headerStyle: { backgroundColor: colors.student.background.light },
-          headerTintColor: colors.student.text.primaryLight,
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
         }}
       />
     </Stack.Navigator>

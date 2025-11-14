@@ -17,9 +17,9 @@ export const BecomeInstructorScreen: React.FC = () => {
       <Card style={styles.card}>
         <View style={styles.headerRow}>
           <MaterialIcons name="school" size={24} color={colors.student.primary} />
-          <Text style={styles.title}>Eğitmen Ol</Text>
+          <Text style={[styles.title, { color: palette.text.primary }]}>Eğitmen Ol</Text>
         </View>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { color: palette.text.secondary }]}>
           Eğitmen olarak ders açmak ve öğrencilerle buluşmak için bizimle iletişime geç.
         </Text>
         <TouchableOpacity
@@ -51,11 +51,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
   },
   description: {
     fontSize: typography.fontSize.base,
-    color: colors.student.text.secondaryLight,
     marginBottom: spacing.lg,
   },
   whatsappButton: {
