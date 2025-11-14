@@ -9,25 +9,19 @@ import { MockDataService } from '../services/mockDataService';
 const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
   const navigationRef = useRef<any>(null);
 
-  // Set instructor user for testing instructor home screen
-  useEffect(() => {
-    if (!user) {
-      const instructorUser = MockDataService.getUserById('instructor1');
-      if (instructorUser) {
-        setUser(instructorUser);
-      }
-    }
-  }, [user, setUser]);
+  // Determine initial route based on user role
+  // If user is instructor, start with Instructor mode
+  // Otherwise, start with Student mode
+  const initialRouteName = user?.role === 'instructor' ? 'Instructor' : 'Student';
 
-  // Navigate to Instructor mode for testing
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
-        initialRouteName="Instructor"
+        initialRouteName={initialRouteName}
       >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />

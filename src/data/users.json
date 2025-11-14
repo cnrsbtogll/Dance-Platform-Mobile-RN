@@ -53,6 +53,28 @@
     "rating": 0,
     "totalLessons": 2,
     "createdAt": "2024-01-20T14:00:00Z"
+  },
+  {
+    "id": "dancer",
+    "name": "dancer",
+    "email": "dancer@example.com",
+    "role": "student",
+    "avatar": "",
+    "bio": "",
+    "rating": 0,
+    "totalLessons": 0,
+    "createdAt": "2024-01-25T10:00:00Z"
+  },
+  {
+    "id": "student_instructor",
+    "name": "Can Özkan",
+    "email": "can@example.com",
+    "role": "instructor",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuAJhqQ4KzAehAqHju2rv6ai3E7BsTG9CW2xfnywNDMv0H4Ift9weFwl6gJAvHBNPOV41fY4poJRV942DXPLEp7Acz6mcY1MrG_tJZ_gtamBizh9HFYRhAlGaqlCM-t-ySHZ3C3NkL37c-zomlTr--Twa8Ruf0365qgPfgnUiO6XWPRZJy6LC-Thm1JcFOAgMgwBwMnc0lQdweaiFq3ifcTsnodiGnl5lUV3CcGKyY0ofaQ4nWQ7O0px-S3pvsr-K9Jaqq2QaK1EcUVJ",
+    "bio": "Hem öğrenci hem eğitmen",
+    "rating": 4.5,
+    "totalLessons": 15,
+    "createdAt": "2024-01-18T12:00:00Z"
   }
 ]
 

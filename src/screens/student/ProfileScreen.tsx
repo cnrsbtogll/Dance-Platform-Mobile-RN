@@ -19,7 +19,7 @@ interface SettingItem {
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const { isDarkMode, setDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
@@ -27,6 +27,19 @@ export const ProfileScreen: React.FC = () => {
   const handleLogout = () => {
     logout();
     // Navigate to login screen if needed
+  };
+
+  const handleSwitchToInstructorMode = () => {
+    // Navigate to Instructor mode using CommonActions
+    const rootNavigation = navigation.getParent()?.getParent();
+    if (rootNavigation) {
+      rootNavigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Instructor' }],
+        })
+      );
+    }
   };
 
   const accountSettings: SettingItem[] = [
@@ -177,22 +190,48 @@ export const ProfileScreen: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <Image
-            source={{ uri: user?.avatar || '' }}
-            style={styles.avatar}
-          />
+          {user?.avatar ? (
+            <Image
+              source={{ uri: user.avatar }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatarPlaceholder, { backgroundColor: palette.card }]}>
+              <MaterialIcons
+                name="person"
+                size={48}
+                color={palette.text.secondary}
+              />
+            </View>
+          )}
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || 'Kullanıcı'}</Text>
-            <TouchableOpacity onPress={() => {
-              (navigation as any).getParent()?.navigate('EditProfile');
-            }}>
-              <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>Profili Düzenle</Text>
-            </TouchableOpacity>
+            <Text style={[styles.profileName, { color: palette.text.primary }]}>
+              {user?.name || 'dancer'}
+            </Text>
+            {isAuthenticated && user && (
+              <TouchableOpacity onPress={() => {
+                (navigation as any).getParent()?.navigate('EditProfile');
+              }}>
+                <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>Profili Düzenle</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
-        {/* Become Instructor Button for students */}
-        {user?.role === 'student' && (
+        {/* Switch to Instructor Mode Button - if user is instructor */}
+        {isAuthenticated && user?.role === 'instructor' && (
+          <TouchableOpacity 
+            style={styles.switchModeButton} 
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={handleSwitchToInstructorMode}
+          >
+            <Text style={styles.switchModeButtonText}>Eğitmen Moduna Geç</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Become Instructor Button - if user is student or not logged in */}
+        {(!isAuthenticated || user?.role === 'student') && (
           <TouchableOpacity 
             style={styles.switchModeButton} 
             activeOpacity={0.8}
@@ -201,7 +240,7 @@ export const ProfileScreen: React.FC = () => {
               (navigation as any).getParent()?.navigate('BecomeInstructor');
             }}
           >
-          <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
+            <Text style={styles.switchModeButtonText}>Eğitmen Ol</Text>
           </TouchableOpacity>
         )}
 
@@ -237,6 +276,14 @@ const styles = StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: 56,
+    ...shadows.md,
+  },
+  avatarPlaceholder: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...shadows.md,
   },
   profileInfo: {
