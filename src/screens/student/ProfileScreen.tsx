@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Modal } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -19,9 +20,11 @@ interface SettingItem {
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const { isDarkMode, setDarkMode } = useThemeStore();
+  const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const palette = getPalette('student', isDarkMode);
 
   const handleLogout = () => {
@@ -80,8 +83,20 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'language',
       icon: 'language',
-      title: 'Dil Seçimi',
-      onPress: () => {},
+      title: t('profile.language'),
+      onPress: () => setLanguageModalVisible(true),
+      rightComponent: (
+        <View style={styles.languageValueContainer}>
+          <Text style={[styles.languageValue, { color: palette.text.secondary }]}>
+            {language === 'tr' ? 'Türkçe' : 'English'}
+          </Text>
+          <MaterialIcons
+            name="chevron-right"
+            size={24}
+            color={palette.text.secondary}
+          />
+        </View>
+      ),
     },
     {
       id: 'theme',
@@ -256,6 +271,70 @@ export const ProfileScreen: React.FC = () => {
         {/* Bottom spacing */}
         <View style={{ height: spacing.xl }} />
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={languageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View 
+            style={[styles.modalContent, { backgroundColor: palette.card }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                {t('profile.language')}
+              </Text>
+              <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color={palette.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                language === 'tr' && { backgroundColor: `${colors.student.primary}20` },
+              ]}
+              onPress={() => {
+                setLanguage('tr');
+                setLanguageModalVisible(false);
+              }}
+            >
+              <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
+                Türkçe
+              </Text>
+              {language === 'tr' && (
+                <MaterialIcons name="check" size={24} color={colors.student.primary} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                language === 'en' && { backgroundColor: `${colors.student.primary}20` },
+              ]}
+              onPress={() => {
+                setLanguage('en');
+                setLanguageModalVisible(false);
+              }}
+            >
+              <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
+                English
+              </Text>
+              {language === 'en' && (
+                <MaterialIcons name="check" size={24} color={colors.student.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -367,5 +446,50 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginHorizontal: spacing.md,
+  },
+  languageValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  languageValue: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    ...shadows.lg,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalTitle: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.sm,
+  },
+  languageOptionText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
   },
 });

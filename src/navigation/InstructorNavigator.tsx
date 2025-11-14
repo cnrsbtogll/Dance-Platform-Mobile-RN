@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, getPalette } from '../utils/theme';
 import { useThemeStore } from '../store/useThemeStore';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
@@ -24,6 +25,7 @@ const Stack = createStackNavigator();
 // Main Tabs Navigator
 const MainTabs: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
   
@@ -52,9 +54,9 @@ const MainTabs: React.FC = () => {
         name="Home"
         component={InstructorHomeScreen}
         options={{
-          title: 'Ana Sayfa',
+          title: t('navigation.home'),
           headerShown: true,
-          headerTitle: 'Ana Sayfa',
+          headerTitle: t('navigation.home'),
           headerLeft: () => (
             <View style={{
               backgroundColor: palette.secondary,
@@ -68,7 +70,7 @@ const MainTabs: React.FC = () => {
                 fontWeight: typography.fontWeight.bold,
                 color: '#ffffff',
               }}>
-                EĞİTMEN
+                {t('instructor.badge')}
               </Text>
             </View>
           ),
@@ -87,7 +89,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Ana Sayfa
+              {t('navigation.home')}
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
@@ -103,7 +105,7 @@ const MainTabs: React.FC = () => {
         name="Lessons"
         component={InstructorLessonsScreen}
         options={{
-          title: 'Derslerim',
+          title: t('instructor.lessons'),
           headerShown: false,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
@@ -111,7 +113,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Derslerim
+              {t('instructor.lessons')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
@@ -144,9 +146,9 @@ const MainTabs: React.FC = () => {
         name="Profile"
         component={InstructorProfileScreen}
         options={{
-          title: 'Profil',
+          title: t('navigation.profile'),
           headerShown: true,
-          headerTitle: 'Profil',
+          headerTitle: t('navigation.profile'),
           headerStyle: {
             backgroundColor: palette.background,
           },
@@ -162,7 +164,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Profil
+              {t('navigation.profile')}
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
@@ -180,6 +182,7 @@ const MainTabs: React.FC = () => {
 
 // Root Stack Navigator
 export const InstructorNavigator: React.FC = () => {
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
   
@@ -236,6 +239,7 @@ export const InstructorNavigator: React.FC = () => {
         component={NotificationScreen}
         options={{ 
           headerShown: true,
+          headerTitle: t('notifications.title'),
           headerBackTitle: '',
           headerTintColor: palette.text.primary,
           headerStyle: {
@@ -252,7 +256,7 @@ export const InstructorNavigator: React.FC = () => {
         component={EditProfileScreen}
         options={{
           headerShown: true,
-          headerTitle: 'Profili Düzenle',
+          headerTitle: t('profile.editProfile'),
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,

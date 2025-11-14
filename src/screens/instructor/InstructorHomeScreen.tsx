@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -15,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const { isDarkMode } = useThemeStore();
@@ -119,7 +121,7 @@ export const InstructorHomeScreen: React.FC = () => {
             fontWeight: typography.fontWeight.bold,
             color: '#ffffff',
           }}>
-            EĞİTMEN
+            {t('instructor.badge')}
           </Text>
         </View>
       ),
@@ -164,7 +166,7 @@ export const InstructorHomeScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, unreadCount, isDarkMode, palette]);
+  }, [navigation, unreadCount, isDarkMode, palette, t]);
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
@@ -175,8 +177,8 @@ export const InstructorHomeScreen: React.FC = () => {
             <View style={styles.earningsContent}>
               <View style={styles.earningsHeader}>
                 <View style={styles.earningsHeaderLeft}>
-                  <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>Kazanç Özeti</Text>
-                  <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>Bu Ayki Kazancınız</Text>
+                  <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>{t('instructorHome.earningsSummary')}</Text>
+                  <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>{t('instructorHome.thisMonthEarnings')}</Text>
                 </View>
                 <View style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
                   <MaterialIcons
@@ -190,11 +192,11 @@ export const InstructorHomeScreen: React.FC = () => {
                 <View style={styles.earningsAmountContainer}>
                   <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings)}</Text>
                   <Text style={[styles.earningsTotal, { color: palette.text.primary }]}>
-                    Toplam Kazanç: {formatPrice(stats.totalEarnings)}
+                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings)}
                   </Text>
                 </View>
                 <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Detayları Gör</Text>
+                  <Text style={styles.detailsButtonText}>{t('instructorHome.viewDetails')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -204,25 +206,25 @@ export const InstructorHomeScreen: React.FC = () => {
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
           <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Aktif Dersler</Text>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
             <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
           </Card>
           <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Toplam Öğrenci</Text>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
             <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
           </Card>
           <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Değerlendirme</Text>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
             <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
           </Card>
         </View>
 
         {/* Upcoming Lessons */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Yaklaşan Derslerin</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('instructorHome.upcomingLessons')}</Text>
           {upcomingBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>Yaklaşan ders bulunmuyor</Text>
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>{t('instructorHome.noUpcomingLessons')}</Text>
             </View>
           ) : (
             <ScrollView
@@ -248,7 +250,7 @@ export const InstructorHomeScreen: React.FC = () => {
                     <View style={styles.upcomingInfo}>
                       <Text style={[styles.upcomingTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                       <Text style={[styles.upcomingDetails, { color: palette.text.secondary }]}>
-                        {formatDate(booking.date)}, {formatTime(booking.time)} - {student?.name || 'Öğrenci'}
+                        {formatDate(booking.date)}, {formatTime(booking.time)} - {student?.name || t('instructorHome.student')}
                       </Text>
                     </View>
                   </View>
@@ -260,10 +262,10 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Active Lessons */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Yayındaki Derslerin</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('instructorHome.activeLessonsList')}</Text>
           {activeLessons.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>Yayında ders bulunmuyor</Text>
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>{t('instructorHome.noActiveLessons')}</Text>
             </View>
           ) : (
             <View style={styles.activeLessonsList}>
@@ -293,7 +295,7 @@ export const InstructorHomeScreen: React.FC = () => {
                     <View style={styles.activeLessonInfo}>
                       <Text style={[styles.activeLessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                       <Text style={[styles.activeLessonStudents, { color: palette.text.secondary }]}>
-                        {enrolledCount}/{maxStudents} Öğrenci
+                        {t('instructorHome.studentsCount', { count: enrolledCount, max: maxStudents })}
                       </Text>
                     </View>
                     <MaterialIcons
@@ -327,7 +329,7 @@ export const InstructorHomeScreen: React.FC = () => {
           end={{ x: 1, y: 0 }}
         >
           <MaterialIcons name="add" size={28} color="#ffffff" />
-          <Text style={styles.fabText}>Yeni Ders Oluştur</Text>
+          <Text style={styles.fabText}>{t('instructorHome.createNewLesson')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>

@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, typography, getPalette } from '../utils/theme';
 import { useThemeStore } from '../store/useThemeStore';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
@@ -24,6 +25,7 @@ const Stack = createStackNavigator();
 // Main Tabs Navigator
 const MainTabs: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
   
@@ -52,7 +54,7 @@ const MainTabs: React.FC = () => {
         name="Home"
         component={StudentHomeScreen}
         options={{
-          title: 'Ana Sayfa',
+          title: t('navigation.home'),
           headerShown: true,
           headerStyle: {
             backgroundColor: palette.background,
@@ -64,7 +66,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Ana Sayfa
+              {t('navigation.home')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
@@ -76,9 +78,9 @@ const MainTabs: React.FC = () => {
         name="MyLessons"
         component={MyLessonsScreen}
         options={{
-          title: 'Derslerim',
+          title: t('navigation.myLessons'),
           headerShown: true,
-          headerTitle: 'Derslerim',
+          headerTitle: t('navigation.myLessons'),
           headerStyle: {
             backgroundColor: palette.background,
           },
@@ -94,7 +96,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Derslerim
+              {t('navigation.myLessons')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
@@ -127,9 +129,9 @@ const MainTabs: React.FC = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          title: 'Profil',
+          title: t('navigation.profile'),
           headerShown: true,
-          headerTitle: 'Profil',
+          headerTitle: t('navigation.profile'),
           headerStyle: {
             backgroundColor: palette.background,
           },
@@ -145,7 +147,7 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Profil
+              {t('navigation.profile')}
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
@@ -163,6 +165,7 @@ const MainTabs: React.FC = () => {
 
 // Root Stack Navigator (includes detail screens)
 export const StudentNavigator: React.FC = () => {
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
   
@@ -224,6 +227,7 @@ export const StudentNavigator: React.FC = () => {
         component={NotificationScreen}
         options={{ 
           headerShown: true,
+          headerTitle: t('notifications.title'),
           headerBackTitle: '',
           headerTintColor: palette.text.primary,
           headerStyle: {
@@ -240,7 +244,7 @@ export const StudentNavigator: React.FC = () => {
         component={EditProfileScreen}
         options={{
           headerShown: true,
-          headerTitle: 'Profili Düzenle',
+          headerTitle: t('profile.editProfile'),
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,
@@ -254,7 +258,7 @@ export const StudentNavigator: React.FC = () => {
         component={BecomeInstructorScreen}
         options={{
           headerShown: true,
-          headerTitle: 'Eğitmen Ol',
+          headerTitle: t('becomeInstructor.title'),
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,
@@ -268,7 +272,6 @@ export const StudentNavigator: React.FC = () => {
         component={LoginScreen}
         options={{
           headerShown: true,
-          headerTitle: 'Giriş / Kayıt',
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useLessonStore } from '../../store/useLessonStore';
@@ -15,6 +16,7 @@ import { SearchBar } from '../../components/common/SearchBar';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
@@ -31,7 +33,7 @@ export const StudentHomeScreen: React.FC = () => {
     return true;
   });
 
-  const categories = ['Hepsi', 'Salsa', 'Bachata', 'Tango', 'Kizomba'];
+  const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba'];
 
   useEffect(() => {
     if (user) {
@@ -48,7 +50,7 @@ export const StudentHomeScreen: React.FC = () => {
             style={styles.avatar}
           />
           <Text style={[styles.headerTitle, { color: palette.text.primary }] }>
-            Merhaba, {user?.name?.split(' ')[0] || 'Ahmet'}
+            {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || 'Ahmet' })}
           </Text>
         </View>
       ),
@@ -89,7 +91,7 @@ export const StudentHomeScreen: React.FC = () => {
             <SearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Dans veya eğitmen ara..."
+              placeholder={t('studentHome.searchPlaceholder')}
             />
           </View>
           <TouchableOpacity style={[styles.filterButton, { backgroundColor: palette.primary }]}>
@@ -107,16 +109,15 @@ export const StudentHomeScreen: React.FC = () => {
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
-              style={[
+                style={[
                 styles.chip,
-                { backgroundColor: palette.card },
-                (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) && { backgroundColor: palette.primary }
+                { backgroundColor: (selectedCategory === category || (category === t('studentHome.categoryAll') && !selectedCategory)) ? palette.primary : palette.card }
               ]}
-              onPress={() => setSelectedCategory(category === 'Hepsi' ? null : category)}
+              onPress={() => setSelectedCategory(category === t('studentHome.categoryAll') ? null : category)}
             >
               <Text style={[
                 styles.chipText,
-                { color: (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) ? '#ffffff' : palette.text.secondary }
+                { color: (selectedCategory === category || (category === t('studentHome.categoryAll') && !selectedCategory)) ? '#ffffff' : palette.text.secondary }
               ]}>
                 {category}
               </Text>
@@ -162,7 +163,9 @@ export const StudentHomeScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.lessonContent}>
-                  <Text style={[styles.instructorName, { color: palette.text.secondary }]}>Eğitmen: {instructor?.name || 'Bilinmiyor'}</Text>
+                  <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
+                    {t('studentHome.instructorLabel')}: {instructor?.name || t('studentHome.unknown')}
+                  </Text>
                   <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                   <View style={styles.lessonFooter}>
                     <View style={styles.ratingContainer}>
@@ -173,7 +176,7 @@ export const StudentHomeScreen: React.FC = () => {
                     </View>
                     <Text style={[styles.price, { color: palette.text.primary }]}>
                       {formatPrice(lesson.price)}
-                      <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> / saat</Text>
+                      <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                     </Text>
                   </View>
                 </View>

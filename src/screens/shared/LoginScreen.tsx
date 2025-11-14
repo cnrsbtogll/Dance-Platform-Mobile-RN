@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
@@ -21,9 +23,9 @@ export const LoginScreen: React.FC = () => {
   // Update header title when switching between login/signup
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: isSignUp ? 'Hesap Oluştur' : 'Giriş Yap',
+      headerTitle: isSignUp ? t('auth.signUp') : t('auth.login'),
     });
-  }, [isSignUp, navigation]);
+  }, [isSignUp, navigation, t]);
 
   const handleCreateAccount = async () => {
     // Validation
@@ -80,10 +82,10 @@ export const LoginScreen: React.FC = () => {
         {/* Title and Description */}
         <View style={styles.textContainer}>
           <Text style={[styles.headline, { color: palette.text.primary }]}>
-            Dans Tutkunuza Bir Adım Daha Yaklaşın
+            {t('auth.loginTitle')}
           </Text>
           <Text style={[styles.subtitle, { color: palette.text.secondary }]}>
-            En iyi eğitmenlerle tanışın ve dans etmeyi öğrenin.
+            {t('auth.loginSubtitle')}
           </Text>
         </View>
 
@@ -94,7 +96,7 @@ export const LoginScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <TextInput
                   style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                  placeholder="Ad"
+                  placeholder={t('auth.firstName')}
                   placeholderTextColor={palette.text.secondary}
                   value={firstName}
                   onChangeText={setFirstName}
@@ -104,7 +106,7 @@ export const LoginScreen: React.FC = () => {
               <View style={styles.inputGroup}>
                 <TextInput
                   style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                  placeholder="Soyad"
+                  placeholder={t('auth.lastName')}
                   placeholderTextColor={palette.text.secondary}
                   value={lastName}
                   onChangeText={setLastName}
@@ -116,7 +118,7 @@ export const LoginScreen: React.FC = () => {
           <View style={styles.inputGroup}>
             <TextInput
               style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-              placeholder="E-posta"
+              placeholder={t('auth.email')}
               placeholderTextColor={palette.text.secondary}
               value={email}
               onChangeText={setEmail}
@@ -127,7 +129,7 @@ export const LoginScreen: React.FC = () => {
           <View style={styles.inputGroup}>
             <TextInput
               style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-              placeholder="Şifre"
+              placeholder={t('auth.password')}
               placeholderTextColor={palette.text.secondary}
               value={password}
               onChangeText={setPassword}
@@ -138,7 +140,7 @@ export const LoginScreen: React.FC = () => {
             <View style={styles.inputGroup}>
               <TextInput
                 style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                placeholder="Şifre Tekrar"
+                placeholder={t('auth.confirmPassword')}
                 placeholderTextColor={palette.text.secondary}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -156,7 +158,7 @@ export const LoginScreen: React.FC = () => {
             activeOpacity={0.8}
           >
             <Text style={styles.primaryButtonText}>
-              {isSignUp ? 'Hesap Oluştur' : 'Giriş Yap'}
+              {isSignUp ? t('auth.createAccount') : t('auth.login')}
             </Text>
           </TouchableOpacity>
 
@@ -167,7 +169,7 @@ export const LoginScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Text style={[styles.secondaryButtonText, { color: colors.student.primary }]}>
-                Hesap Oluştur
+                {t('auth.createAccount')}
               </Text>
             </TouchableOpacity>
           )}
@@ -179,14 +181,14 @@ export const LoginScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Text style={[styles.secondaryButtonText, { color: colors.student.primary }]}>
-                Zaten hesabım var
+                {t('auth.alreadyHaveAccount')}
               </Text>
             </TouchableOpacity>
           )}
 
           <View style={styles.dividerContainer}>
             <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
-            <Text style={[styles.dividerText, { color: palette.text.secondary }]}>veya</Text>
+            <Text style={[styles.dividerText, { color: palette.text.secondary }]}>{t('common.or')}</Text>
             <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
           </View>
 
@@ -207,15 +209,21 @@ export const LoginScreen: React.FC = () => {
         {/* Terms and Privacy */}
         <View style={styles.termsContainer}>
           <Text style={[styles.termsText, { color: palette.text.secondary }]}>
-            Devam ederek{' '}
+            {t('auth.termsAndPrivacy', {
+              terms: '',
+              privacy: '',
+            }).split('{{terms}}')[0]}
             <Text style={[styles.termsLink, { color: colors.student.primary }]}>
-              Kullanım Koşullarımızı
+              {t('auth.terms')}
             </Text>
-            {' '}ve{' '}
+            {' '}{t('common.or')}{' '}
             <Text style={[styles.termsLink, { color: colors.student.primary }]}>
-              Gizlilik Politikamızı
+              {t('auth.privacy')}
             </Text>
-            {' '}kabul etmiş olursunuz.
+            {' '}{t('auth.termsAndPrivacy', {
+              terms: '',
+              privacy: '',
+            }).split('{{privacy}}')[1]}
           </Text>
         </View>
       </View>

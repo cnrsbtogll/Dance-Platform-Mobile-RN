@@ -12,10 +12,13 @@ export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const navigationRef = useRef<any>(null);
 
-  // Clear user for testing - login olmamış öğrenci
+  // Auto-login an instructor user for testing - hem login olmuş hem eğitmen olmuş kullanıcı
   useEffect(() => {
-    // Remove auto-login for testing
-    setUser(null);
+    // Set a logged-in instructor user for testing
+    const instructorUser = MockDataService.getUserById('instructor1');
+    if (instructorUser) {
+      setUser(instructorUser);
+    }
   }, []);
 
   // Determine initial route based on user role
@@ -27,7 +30,7 @@ export const RootNavigator: React.FC = () => {
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
-        initialRouteName="Student"
+        initialRouteName={initialRouteName}
       >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />
