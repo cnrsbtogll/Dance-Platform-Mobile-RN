@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
@@ -15,6 +16,8 @@ import { SearchBar } from '../../components/common/SearchBar';
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const filteredLessons = lessons.filter(lesson => {
@@ -44,7 +47,7 @@ export const StudentHomeScreen: React.FC = () => {
             source={{ uri: user?.avatar || '' }}
             style={styles.avatar}
           />
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: palette.text.primary }] }>
             Merhaba, {user?.name?.split(' ')[0] || 'Ahmet'}
           </Text>
         </View>
@@ -60,10 +63,10 @@ export const StudentHomeScreen: React.FC = () => {
             <MaterialIcons
               name="notifications"
               size={24}
-              color={colors.student.text.primaryLight}
+              color={palette.text.primary}
             />
             {unreadCount > 0 && (
-              <View style={styles.notificationBadge}>
+              <View style={[styles.notificationBadge, { borderColor: palette.background }]}>
                 <Text style={styles.notificationBadgeText}>
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
@@ -74,10 +77,10 @@ export const StudentHomeScreen: React.FC = () => {
       ),
       headerTitle: '',
     });
-  }, [navigation, user, unreadCount]);
+  }, [navigation, user, unreadCount, isDarkMode]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}> 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Search Bar & Filter */}
@@ -89,7 +92,7 @@ export const StudentHomeScreen: React.FC = () => {
               placeholder="Dans veya eğitmen ara..."
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity style={[styles.filterButton, { backgroundColor: palette.primary }]}>
             <MaterialIcons name="tune" size={24} color="#ffffff" />
           </TouchableOpacity>
         </View>
@@ -106,13 +109,14 @@ export const StudentHomeScreen: React.FC = () => {
               key={category}
               style={[
                 styles.chip,
-                (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) && styles.chipActive
+                { backgroundColor: palette.card },
+                (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) && { backgroundColor: palette.primary }
               ]}
               onPress={() => setSelectedCategory(category === 'Hepsi' ? null : category)}
             >
               <Text style={[
                 styles.chipText,
-                (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) && styles.chipTextActive
+                { color: (selectedCategory === category || (category === 'Hepsi' && !selectedCategory)) ? '#ffffff' : palette.text.secondary }
               ]}>
                 {category}
               </Text>
@@ -158,18 +162,18 @@ export const StudentHomeScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.lessonContent}>
-                  <Text style={styles.instructorName}>Eğitmen: {instructor?.name || 'Bilinmiyor'}</Text>
-                  <Text style={styles.lessonTitle}>{lesson.title}</Text>
+                  <Text style={[styles.instructorName, { color: palette.text.secondary }]}>Eğitmen: {instructor?.name || 'Bilinmiyor'}</Text>
+                  <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                   <View style={styles.lessonFooter}>
                     <View style={styles.ratingContainer}>
                       <AntDesign name="star" size={20} color={colors.student.secondary} />
-                      <Text style={styles.rating}>
-                        {lesson.rating.toFixed(1)} <Text style={styles.reviewCount}>({lesson.reviewCount})</Text>
+                      <Text style={[styles.rating, { color: palette.text.primary }] }>
+                        {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
                       </Text>
                     </View>
-                    <Text style={styles.price}>
+                    <Text style={[styles.price, { color: palette.text.primary }]}>
                       {formatPrice(lesson.price)}
-                      <Text style={styles.priceUnit}> / saat</Text>
+                      <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> / saat</Text>
                     </Text>
                   </View>
                 </View>

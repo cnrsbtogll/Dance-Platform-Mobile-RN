@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, borderRadius, spacing, typography } from '../../utils/theme';
+import { colors, borderRadius, spacing, typography, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 
 interface SearchBarProps {
   value: string;
@@ -16,23 +17,24 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Ara...',
   onFilterPress,
 }) => {
-  const theme = colors.student;
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   
   return (
     <View style={styles.container}>
-      <View style={[styles.searchContainer, { backgroundColor: theme.card.light }]}>
-        <MaterialIcons name="search" size={24} color={theme.text.secondaryLight} style={{ marginRight: 8 }} />
+      <View style={[styles.searchContainer, { backgroundColor: palette.card }]}>
+        <MaterialIcons name="search" size={24} color={palette.text.secondary} style={{ marginRight: 8 }} />
         <TextInput
-          style={[styles.input, { color: theme.text.primaryLight }]}
+          style={[styles.input, { color: palette.text.primary }]}
           placeholder={placeholder}
-          placeholderTextColor={theme.text.secondaryLight}
+          placeholderTextColor={palette.text.secondary}
           value={value}
           onChangeText={onChangeText}
         />
       </View>
       {onFilterPress && (
         <TouchableOpacity
-          style={[styles.filterButton, { backgroundColor: theme.primary }]}
+          style={[styles.filterButton, { backgroundColor: palette.primary }]}
           onPress={onFilterPress}
         >
           <MaterialIcons name="tune" size={24} color="#ffffff" />

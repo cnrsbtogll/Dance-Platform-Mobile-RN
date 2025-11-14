@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { colors, borderRadius, shadows } from '../../utils/theme';
+import { colors, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useThemeStore } from '../../store/useThemeStore';
 
 interface CardProps {
   children: React.ReactNode;
@@ -9,8 +11,10 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, style, variant = 'light' }) => {
-  const theme = colors.student;
-  const cardStyle = variant === 'dark' ? theme.card.dark : theme.card.light;
+  const { user } = useAuthStore();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette(user?.role === 'instructor' ? 'instructor' : 'student', isDarkMode);
+  const cardStyle = palette.card;
   
   return (
     <View style={[styles.card, { backgroundColor: cardStyle }, shadows.md, { elevation: 4 }, style]}>

@@ -73,7 +73,7 @@ export const ProfileScreen: React.FC = () => {
     {
       id: 'theme',
       icon: 'contrast',
-      title: 'Görünüm',
+      title: 'Karanlık Mod',
       rightComponent: (
         <Switch
           value={isDarkMode}
