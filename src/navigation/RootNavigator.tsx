@@ -12,23 +12,22 @@ export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const navigationRef = useRef<any>(null);
 
-  // Commented out for testing login flow
-  // useEffect(() => {
-  //   // Mock: Auto-login as student (user1) for development
-  //   if (!user) {
-  //     const defaultUser = MockDataService.getUserById('user1');
-  //     if (defaultUser) {
-  //       setUser(defaultUser);
-  //     }
-  //   }
-  // }, [user, setUser]);
+  // Set instructor user for testing instructor home screen
+  useEffect(() => {
+    if (!user) {
+      const instructorUser = MockDataService.getUserById('instructor1');
+      if (instructorUser) {
+        setUser(instructorUser);
+      }
+    }
+  }, [user, setUser]);
 
-  // Direkt öğrenci ana sayfasına yönlendir (login gerekmez)
+  // Navigate to Instructor mode for testing
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
-        initialRouteName="Student"
+        initialRouteName="Instructor"
       >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />

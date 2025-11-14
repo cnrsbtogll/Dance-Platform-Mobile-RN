@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { MockDataService } from '../../services/mockDataService';
@@ -16,6 +17,8 @@ export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user } = useAuthStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('instructor', isDarkMode);
   const insets = useSafeAreaInsets();
   
   // Get instructor's lessons
@@ -96,6 +99,30 @@ export const InstructorHomeScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
+      headerStyle: {
+        backgroundColor: palette.background,
+      },
+      headerTintColor: palette.text.primary,
+      headerTitleStyle: {
+        color: palette.text.primary,
+      },
+      headerLeft: () => (
+        <View style={{
+          backgroundColor: colors.instructor.secondary,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: 4,
+          borderRadius: borderRadius.full,
+          marginLeft: spacing.sm,
+        }}>
+          <Text style={{
+            fontSize: typography.fontSize.xs,
+            fontWeight: typography.fontWeight.bold,
+            color: '#ffffff',
+          }}>
+            EĞİTMEN
+          </Text>
+        </View>
+      ),
       headerRight: () => (
         <TouchableOpacity
           style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
@@ -107,7 +134,7 @@ export const InstructorHomeScreen: React.FC = () => {
             <MaterialIcons
               name="notifications"
               size={28}
-              color={colors.instructor.text.lightPrimary}
+              color={palette.text.primary}
             />
             {unreadCount > 0 && (
               <View style={{
@@ -122,7 +149,7 @@ export const InstructorHomeScreen: React.FC = () => {
                 justifyContent: 'center',
                 paddingHorizontal: 4,
                 borderWidth: 2,
-                borderColor: colors.instructor.background.light,
+                borderColor: palette.background,
               }}>
                 <Text style={{
                   fontSize: 10,
@@ -137,21 +164,21 @@ export const InstructorHomeScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, unreadCount]);
+  }, [navigation, unreadCount, isDarkMode, palette]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Earnings Card */}
         <View style={[styles.section, styles.earningsSection]}>
-          <View style={styles.earningsCard}>
+          <View style={[styles.earningsCard, { backgroundColor: palette.card }]}>
             <View style={styles.earningsContent}>
               <View style={styles.earningsHeader}>
                 <View style={styles.earningsHeaderLeft}>
-                  <Text style={styles.earningsLabel}>Kazanç Özeti</Text>
-                  <Text style={styles.earningsTitle}>Bu Ayki Kazancınız</Text>
+                  <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>Kazanç Özeti</Text>
+                  <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>Bu Ayki Kazancınız</Text>
                 </View>
-                <View style={styles.earningsIconContainer}>
+                <View style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
                   <MaterialIcons
                     name="account-balance-wallet"
                     size={32}
@@ -161,8 +188,8 @@ export const InstructorHomeScreen: React.FC = () => {
               </View>
               <View style={styles.earningsRow}>
                 <View style={styles.earningsAmountContainer}>
-                  <Text style={styles.earningsAmount}>{formatPrice(stats.thisMonthEarnings)}</Text>
-                  <Text style={styles.earningsTotal}>
+                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings)}</Text>
+                  <Text style={[styles.earningsTotal, { color: palette.text.primary }]}>
                     Toplam Kazanç: {formatPrice(stats.totalEarnings)}
                   </Text>
                 </View>
@@ -176,26 +203,26 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statLabel}>Aktif Dersler</Text>
-            <Text style={styles.statValue}>{stats.activeLessons}</Text>
+          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Aktif Dersler</Text>
+            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
           </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statLabel}>Toplam Öğrenci</Text>
-            <Text style={styles.statValue}>{stats.totalStudents}</Text>
+          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Toplam Öğrenci</Text>
+            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
           </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statLabel}>Değerlendirme</Text>
-            <Text style={styles.statValue}>{stats.avgRating}</Text>
+          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+            <Text style={[styles.statLabel, { color: palette.text.primary }]}>Değerlendirme</Text>
+            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
           </Card>
         </View>
 
         {/* Upcoming Lessons */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Yaklaşan Derslerin</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Yaklaşan Derslerin</Text>
           {upcomingBookings.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Yaklaşan ders bulunmuyor</Text>
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>Yaklaşan ders bulunmuyor</Text>
             </View>
           ) : (
             <ScrollView
@@ -210,7 +237,7 @@ export const InstructorHomeScreen: React.FC = () => {
                 if (!lesson) return null;
 
                 return (
-                  <View key={booking.id} style={styles.upcomingCard}>
+                  <View key={booking.id} style={[styles.upcomingCard, { backgroundColor: palette.card }]}>
                     {lesson.imageUrl && (
                       <Image
                         source={{ uri: lesson.imageUrl }}
@@ -219,8 +246,8 @@ export const InstructorHomeScreen: React.FC = () => {
                       />
                     )}
                     <View style={styles.upcomingInfo}>
-                      <Text style={styles.upcomingTitle}>{lesson.title}</Text>
-                      <Text style={styles.upcomingDetails}>
+                      <Text style={[styles.upcomingTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+                      <Text style={[styles.upcomingDetails, { color: palette.text.secondary }]}>
                         {formatDate(booking.date)}, {formatTime(booking.time)} - {student?.name || 'Öğrenci'}
                       </Text>
                     </View>
@@ -233,10 +260,10 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Active Lessons */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Yayındaki Derslerin</Text>
+          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Yayındaki Derslerin</Text>
           {activeLessons.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Yayında ders bulunmuyor</Text>
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>Yayında ders bulunmuyor</Text>
             </View>
           ) : (
             <View style={styles.activeLessonsList}>
@@ -248,7 +275,7 @@ export const InstructorHomeScreen: React.FC = () => {
                 return (
                   <TouchableOpacity
                     key={lesson.id}
-                    style={styles.activeLessonCard}
+                    style={[styles.activeLessonCard, { backgroundColor: palette.card }]}
                     onPress={() => {
                       (navigation as any).navigate('LessonDetail', { 
                         lessonId: lesson.id,
@@ -264,15 +291,15 @@ export const InstructorHomeScreen: React.FC = () => {
                       />
                     )}
                     <View style={styles.activeLessonInfo}>
-                      <Text style={styles.activeLessonTitle}>{lesson.title}</Text>
-                      <Text style={styles.activeLessonStudents}>
+                      <Text style={[styles.activeLessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+                      <Text style={[styles.activeLessonStudents, { color: palette.text.secondary }]}>
                         {enrolledCount}/{maxStudents} Öğrenci
                       </Text>
                     </View>
                     <MaterialIcons
                       name="chevron-right"
                       size={24}
-                      color={colors.instructor.text.lightSecondary}
+                      color={palette.text.secondary}
                     />
                   </TouchableOpacity>
                 );
@@ -310,7 +337,6 @@ export const InstructorHomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.instructor.background.light,
   },
   scrollView: {
     flex: 1,
@@ -331,7 +357,6 @@ const styles = StyleSheet.create({
   earningsCard: {
     marginBottom: 0,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.instructor.card.light,
     ...shadows.md,
     elevation: 4,
   },
@@ -361,12 +386,10 @@ const styles = StyleSheet.create({
   earningsLabel: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.instructor.text.lightSecondary,
   },
   earningsTitle: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.text.lightPrimary,
     letterSpacing: -0.015,
   },
   earningsRow: {
@@ -383,12 +406,10 @@ const styles = StyleSheet.create({
   earningsAmount: {
     fontSize: 28,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.primary,
   },
   earningsTotal: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.normal,
-    color: colors.instructor.text.lightSecondary,
   },
   detailsButton: {
     backgroundColor: colors.instructor.secondary,
@@ -420,18 +441,15 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.instructor.text.lightPrimary,
   },
   statValue: {
     fontSize: 32,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.primary,
     letterSpacing: -0.5,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.text.lightPrimary,
     marginBottom: spacing.sm,
     letterSpacing: -0.015,
   },
@@ -445,7 +463,6 @@ const styles = StyleSheet.create({
   upcomingCard: {
     width: 256,
     gap: spacing.sm,
-    backgroundColor: colors.instructor.card.light,
     borderRadius: borderRadius.xl,
     padding: spacing.sm,
     ...shadows.md,
@@ -462,12 +479,10 @@ const styles = StyleSheet.create({
   upcomingTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.instructor.text.lightPrimary,
   },
   upcomingDetails: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.instructor.text.lightSecondary,
   },
   activeLessonsList: {
     gap: spacing.sm,
@@ -477,7 +492,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.sm,
-    backgroundColor: colors.instructor.card.light,
     borderRadius: borderRadius.xl,
     ...shadows.md,
     elevation: 4,
@@ -494,12 +508,10 @@ const styles = StyleSheet.create({
   activeLessonTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.instructor.text.lightPrimary,
   },
   activeLessonStudents: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.instructor.text.lightSecondary,
   },
   fab: {
     position: 'absolute',
@@ -530,6 +542,5 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.fontSize.base,
-    color: colors.instructor.text.lightSecondary,
   },
 });
