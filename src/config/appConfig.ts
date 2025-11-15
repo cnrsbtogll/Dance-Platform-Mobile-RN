@@ -29,7 +29,7 @@ const getBrand = (): Brand => {
   if (envBrand === 'feriha' || envBrand === 'codecanyon') {
     return envBrand;
   }
-  return 'codecanyon'; // Default for main branch
+  return 'feriha'; // Default for feriha-production branch
 };
 
 const brand = getBrand();
