@@ -243,7 +243,17 @@ export const InstructorHomeScreen: React.FC = () => {
                 if (!lesson) return null;
 
                 return (
-                  <View key={booking.id} style={[styles.upcomingCard, { backgroundColor: palette.card }]}>
+                  <View 
+                    key={booking.id} 
+                    style={[
+                      styles.upcomingCard, 
+                      { 
+                        backgroundColor: palette.card,
+                        borderWidth: 2,
+                        borderColor: isDarkMode ? palette.border : '#E5E7EB',
+                      }
+                    ]}
+                  >
                     {lesson.imageUrl ? (
                       <Image
                         source={getLessonImageSource(lesson.imageUrl)}
@@ -478,8 +488,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderRadius: borderRadius.xl,
     padding: spacing.sm,
-    ...shadows.md,
-    elevation: 4,
   },
   upcomingImage: {
     width: '100%',

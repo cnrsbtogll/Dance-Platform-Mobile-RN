@@ -11,14 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { MockDataService } from '../../services/mockDataService';
 import { CURRENCY_SYMBOLS } from '../../utils/helpers';
-
-// Helper function to get image source (supports both local assets and URLs)
-const getImageSource = (image: any) => {
-    if (typeof image === 'string') {
-        return { uri: image }; // URL image
-    }
-    return image; // Local require() result
-};
+import { getImageSource } from '../../utils/imageHelper';
 
 // Predefined lesson images for each dance type
 const LESSON_IMAGES: { [key: string]: any[] } = {
@@ -112,7 +105,31 @@ export const EditLessonScreen: React.FC = () => {
         return null;
     });
     const [recurring, setRecurring] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<any>(lesson?.imageUrl || null);
+    
+    // Initialize selectedImage from lesson imageUrl
+    const getInitialSelectedImage = () => {
+        if (!lesson?.imageUrl || !lesson?.category) return null;
+        const availableImages = LESSON_IMAGES[lesson.category] || [];
+        if (availableImages.length === 0) return null;
+        
+        // Try to match by filename pattern (e.g., "salsa-1.jpeg" -> first image in Salsa array)
+        const imageUrlString = lesson.imageUrl;
+        const filename = imageUrlString.split('/').pop() || imageUrlString;
+        
+        // Extract number from filename (e.g., "salsa-1.jpeg" -> 1)
+        const match = filename.match(/-(\d+)\./);
+        if (match) {
+            const index = parseInt(match[1], 10) - 1;
+            if (index >= 0 && index < availableImages.length) {
+                return availableImages[index];
+            }
+        }
+        
+        // Fallback: use first image
+        return availableImages[0];
+    };
+    
+    const [selectedImage, setSelectedImage] = useState<any>(getInitialSelectedImage());
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -180,27 +197,6 @@ export const EditLessonScreen: React.FC = () => {
     };
 
     const renderImagePicker = () => {
-        if (selectedImage) {
-            return (
-                <View style={styles.imageUploadContainer}>
-                    <Image source={getImageSource(selectedImage)} style={styles.currentImage} resizeMode="cover" />
-                    <View style={styles.imageInfoContainer}>
-                        <View style={styles.imageInfo}>
-                            <Text style={[styles.imageInfoTitle, { color: palette.text.primary }]}>{t('lessons.currentCoverImage')}</Text>
-                            <Text style={[styles.imageInfoSubtitle, { color: palette.text.secondary }]}>{t('lessons.tapToChangeImage')}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.changeImageButton}
-                            onPress={() => setShowImagePicker(true)}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.changeImageButtonText}>{t('lessons.change')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            );
-        }
-
         if (!danceType) {
             return (
                 <View style={styles.imageUploadContainer}>
@@ -214,17 +210,30 @@ export const EditLessonScreen: React.FC = () => {
 
         return (
             <View style={styles.imageUploadContainer}>
-                <TouchableOpacity
-                    style={[styles.imageUploadPlaceholder, { borderColor: palette.border, backgroundColor: palette.card }]}
-                    onPress={() => setShowImagePicker(true)}
-                    activeOpacity={0.7}
-                >
-                    <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
-                    <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>
-                        <Text style={styles.imageUploadTextBold}>{t('lessons.clickToUpload')}</Text> {t('lessons.orDrag')}
-                    </Text>
-                    <Text style={[styles.imageUploadSubtext, { color: palette.text.secondary }]}>{t('lessons.imageFormat')}</Text>
-                </TouchableOpacity>
+                {selectedImage ? (
+                    <TouchableOpacity
+                        style={styles.selectedImageContainer}
+                        onPress={() => setShowImagePicker(true)}
+                    >
+                        <Image source={getImageSource(selectedImage)} style={styles.selectedImage} resizeMode="cover" />
+                        <View style={styles.imageOverlay}>
+                            <MaterialIcons name="edit" size={24} color="#ffffff" />
+                            <Text style={styles.imageOverlayText}>{t('lessons.change')}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.imageUploadPlaceholder, { borderColor: palette.border, backgroundColor: palette.card }]}
+                        onPress={() => setShowImagePicker(true)}
+                        activeOpacity={0.7}
+                    >
+                        <MaterialIcons name="cloud-upload" size={48} color={palette.text.secondary} />
+                        <Text style={[styles.imageUploadText, { color: palette.text.secondary }]}>
+                            <Text style={styles.imageUploadTextBold}>{t('lessons.clickToUpload')}</Text> {t('lessons.orDrag')}
+                        </Text>
+                        <Text style={[styles.imageUploadSubtext, { color: palette.text.secondary }]}>{t('lessons.imageFormat')}</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     };
@@ -702,7 +711,7 @@ const styles = StyleSheet.create({
         padding: 0,
         paddingTop: spacing.md,
         paddingHorizontal: spacing.md,
-        paddingBottom: spacing.sm,
+        paddingBottom: spacing.md,
     },
     formCard: {
         padding: 0,
@@ -711,7 +720,7 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
-        marginBottom: spacing.sm,
+        marginBottom: spacing.xs,
     },
     sectionTitle: {
         fontSize: typography.fontSize.lg,
@@ -724,42 +733,35 @@ const styles = StyleSheet.create({
     imageUploadContainer: {
         width: '100%',
         alignSelf: 'flex-start',
+        flexShrink: 1,
     },
-    currentImage: {
+    selectedImageContainer: {
         width: '100%',
         aspectRatio: 16 / 9,
         maxHeight: 200,
         borderRadius: borderRadius.lg,
-        marginBottom: spacing.md,
+        overflow: 'hidden',
+        position: 'relative',
     },
-    imageInfoContainer: {
-        flexDirection: 'row',
+    selectedImage: {
+        width: '100%',
+        height: '100%',
+    },
+    imageOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: spacing.md,
+        justifyContent: 'center',
+        gap: spacing.xs,
     },
-    imageInfo: {
-        flex: 1,
-    },
-    imageInfoTitle: {
-        fontSize: typography.fontSize.base,
-        fontWeight: typography.fontWeight.bold,
-        marginBottom: spacing.xs,
-    },
-    imageInfoSubtitle: {
-        fontSize: typography.fontSize.sm,
-    },
-    changeImageButton: {
-        backgroundColor: colors.instructor.secondary,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.lg,
-        minWidth: 84,
-    },
-    changeImageButtonText: {
+    imageOverlayText: {
+        color: '#ffffff',
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
-        color: '#ffffff',
     },
     imageUploadPlaceholder: {
         width: '100%',

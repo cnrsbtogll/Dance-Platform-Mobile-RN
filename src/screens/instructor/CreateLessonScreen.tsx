@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
         padding: 0,
         paddingTop: spacing.md,
         paddingHorizontal: spacing.md,
-        paddingBottom: spacing.xs,
+        paddingBottom: spacing.md,
     },
     formCard: {
         padding: 0,
