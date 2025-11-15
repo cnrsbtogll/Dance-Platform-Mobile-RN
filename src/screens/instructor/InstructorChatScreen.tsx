@@ -40,6 +40,11 @@ export const InstructorChatScreen: React.FC = () => {
 
     // Get all unique conversation partners
     messages.forEach((message) => {
+      // Only process messages where current user is sender or receiver
+      if (message.senderId !== user.id && message.receiverId !== user.id) {
+        return;
+      }
+      
       const partnerId = message.senderId === user.id ? message.receiverId : message.senderId;
       const partner = MockDataService.getUserById(partnerId);
       

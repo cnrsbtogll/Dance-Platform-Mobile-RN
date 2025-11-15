@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { User } from '../../types';
 
 interface Message {
   id: string;
@@ -20,6 +21,40 @@ interface Message {
   isRead: boolean;
   createdAt: string;
 }
+
+interface HeaderTitleProps {
+  partner: User | null;
+  palette: ReturnType<typeof getPalette>;
+  t: (key: string) => string;
+}
+
+// Create HeaderTitle component outside ChatDetailScreen to avoid closure issues
+const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
+  if (!partner) {
+    return (
+      <Text style={[styles.headerName, { color: palette.text.primary }]}>
+        {t('chat.user')}
+      </Text>
+    );
+  }
+  
+  return (
+    <View style={styles.headerTitleContainer}>
+      <Image
+        source={getAvatarSource(partner.avatar, partner.id)}
+        style={styles.headerAvatar}
+      />
+      <View style={styles.headerTitleText}>
+        <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
+          {partner.name || t('chat.user')}
+        </Text>
+        <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
+          {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
+        </Text>
+      </View>
+    </View>
+  );
+});
 
 export const ChatDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -42,17 +77,19 @@ export const ChatDetailScreen: React.FC = () => {
     currentUserId: user?.id,
   });
   
-  const partner = partnerId ? MockDataService.getUserById(partnerId) : null;
-  
-  console.log('[ChatDetailScreen] Partner info:', partner ? {
-    id: partner.id,
-    name: partner.name,
-    role: partner.role,
-    avatar: partner.avatar,
-    hasAvatar: !!partner.avatar,
-    email: partner.email,
-    bio: partner.bio,
-  } : null);
+  const partner = useMemo(() => {
+    const p = partnerId ? MockDataService.getUserById(partnerId) : null;
+    console.log('[ChatDetailScreen] Partner memoized:', p ? {
+      id: p.id,
+      name: p.name,
+      role: p.role,
+      avatar: p.avatar,
+      hasAvatar: !!p.avatar,
+      email: p.email,
+      bio: p.bio,
+    } : null);
+    return p;
+  }, [partnerId]);
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -79,42 +116,34 @@ export const ChatDetailScreen: React.FC = () => {
     }, 100);
   }, [messages]);
 
-  useEffect(() => {
+  // Update header when screen is focused or partner changes
+  const updateHeader = React.useCallback(() => {
+    console.log('[ChatDetailScreen] updateHeader - Setting header options, partner:', partner ? {
+      id: partner.id,
+      name: partner.name,
+      role: partner.role,
+      hasAvatar: !!partner.avatar,
+    } : null);
+    
     navigation.setOptions({
       headerBackTitle: '',
       headerTintColor: palette.text.primary,
       headerStyle: {
         backgroundColor: palette.background,
       },
-      headerTitle: () => {
-        if (!partner) {
-          return (
-            <View style={styles.headerTitleContainer}>
-              <Text style={[styles.headerName, { color: palette.text.secondary }]} numberOfLines={1}>
-                {t('chat.user')}
-              </Text>
-            </View>
-          );
-        }
-        return (
-          <View style={styles.headerTitleContainer}>
-            <Image
-              source={getAvatarSource(partner.avatar, partner.id)}
-              style={styles.headerAvatar}
-            />
-            <View style={styles.headerTitleText}>
-              <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-                {partner.name}
-              </Text>
-              <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-                {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
-              </Text>
-            </View>
-          </View>
-        );
-      },
+      headerTitle: () => <HeaderTitle partner={partner} palette={palette} t={t} />,
     });
   }, [navigation, partner, palette, t]);
+
+  useLayoutEffect(() => {
+    updateHeader();
+  }, [updateHeader]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      updateHeader();
+    }, [updateHeader])
+  );
 
   const formatMessageTime = (dateString: string): string => {
     const date = new Date(dateString);
@@ -345,15 +374,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    flex: 1,
+    width: '100%',
+    maxWidth: '100%',
   },
   headerAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    flexShrink: 0,
   },
   headerTitleText: {
     flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   headerName: {
     fontSize: typography.fontSize.base,
