@@ -9,33 +9,45 @@ import { useThemeStore } from '../../store/useThemeStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 
+// Helper function to get image source (supports both local assets and URLs)
+const getImageSource = (image: any) => {
+    if (typeof image === 'string') {
+        return { uri: image }; // URL image
+    }
+    return image; // Local require() result
+};
+
 // Predefined lesson images for each dance type
-const LESSON_IMAGES: { [key: string]: string[] } = {
+const LESSON_IMAGES: { [key: string]: any[] } = {
     Salsa: [
-        'https://avatars.mds.yandex.net/i?id=ddbb349f1b55622d00375ab354eec9442085e0f9-4299853-images-thumbs&n=13',
-        'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQmVVBLbFat_j1m1j-hv-tIcveNi0wkO1hqyGaqSrgIXJXXrizY',
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzfCoXz4Fk0r8oJOosTGnul_uDyXYxSSJn5tj2lh5T_K0sF9Uc',
+        require('../../../assets/lessons/salsa/salsa-1.jpeg'),
+        require('../../../assets/lessons/salsa/salsa-2.jpeg'),
+        require('../../../assets/lessons/salsa/salsa-3.jpeg'),
+        require('../../../assets/lessons/salsa/salsa-4.jpeg'),
     ],
     Bachata: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr',
-        'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQfYwXEpetAF4RLyA1S10GrldHSDQn6S7kTWfQabM6t0CP1KlWv',
-        'https://kultura-volyne.cz/wp-content/uploads/2025/09/tanecni_volyne_A3_spad-scaled-e1758277008245-1024x724.jpg',
+        require('../../../assets/lessons/bachata/bachata-1.jpeg'),
+        require('../../../assets/lessons/bachata/bachata-2.jpeg'),
+        require('../../../assets/lessons/bachata/bachata-3.jpeg'),
+        require('../../../assets/lessons/bachata/bachata-4.jpeg'),
     ],
     Kizomba: [
-        'https://cdn.vectorstock.com/i/1000v/15/09/kizomba-dancing-couple-vector-20271509.jpg',
-        'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRrwdMdJiIf5cUsOwpt3zE9FLcyZYrfq6tl8--kX0Empz0uK7S7',
-        'https://us.123rf.com/450wm/chachar/chachar1812/chachar181200011/120120697-ballroom-dancers-couple-stylized-illustration-of-young-couples-dancing-tango-foxtrot-isolated-on.jpg',
-        'https://img.freepik.com/premium-vektor/arjantin-tangosu-dansci-cift-cizgi-film_12402-1230.jpg?semt=ais_hybrid&w=740&q=80'
+        require('../../../assets/lessons/kizomba/kizomba-1.jpeg'),
+        require('../../../assets/lessons/kizomba/kizomba-2.jpeg'),
+        require('../../../assets/lessons/kizomba/kizomba-3.jpeg'),
+        require('../../../assets/lessons/kizomba/kizomba-4.jpeg'),
     ],
     Tango: [
-        'https://www.tangoturco.com/wp-content/uploads/2018/10/fff.jpg',
-        'https://img.freepik.com/premium-vektor/uluslararasi-tango-gunu-kadin-ve-erkek-birlikte-dans-ediyor_499739-1320.jpg',
-        'https://st3.depositphotos.com/10507036/13361/v/450/depositphotos_133612658-stock-illustration-international-tango-day.jpg'
+        require('../../../assets/lessons/tango/tango-1.jpeg'),
+        require('../../../assets/lessons/tango/tango-2.jpeg'),
+        require('../../../assets/lessons/tango/tango-3.jpeg'),
+        require('../../../assets/lessons/tango/tango-4.jpeg'),
     ],
     Modern: [
-        'https://www.shutterstock.com/image-vector/man-woman-dancing-home-living-600nw-1722758842.jpg',
-        'https://media.istockphoto.com/id/1037376044/tr/vekt%C3%B6r/g%C3%BCzel-%C3%A7ift-tango-dans-d%C3%BCz-ill%C3%BCstrasyon-vekt%C3%B6r.jpg?s=612x612&w=0&k=20&c=QhUe-Mb7P2kxQNJvnHJ3Pnhg7Wp-3haqE-VWzO_bFJ0=',
-        'https://www.citadela-litvinov.cz/data/USR_056_DEFAULT/Venecek___web.png',
+        require('../../../assets/lessons/moderndance/moderndance-1.jpeg'),
+        require('../../../assets/lessons/moderndance/moderndance-2.jpeg'),
+        require('../../../assets/lessons/moderndance/moderndance-3.jpeg'),
+        require('../../../assets/lessons/moderndance/moderndance-4.jpeg'),
     ],
 };
 
@@ -77,7 +89,7 @@ export const CreateLessonScreen: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<Date | null>(null);
     const [recurring, setRecurring] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<any>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
@@ -140,7 +152,7 @@ export const CreateLessonScreen: React.FC = () => {
                         style={styles.selectedImageContainer}
                         onPress={() => setShowImagePicker(true)}
                     >
-                        <Image source={{ uri: selectedImage }} style={styles.selectedImage} resizeMode="cover" />
+                        <Image source={getImageSource(selectedImage)} style={styles.selectedImage} resizeMode="cover" />
                         <View style={styles.imageOverlay}>
                             <MaterialIcons name="edit" size={24} color="#ffffff" />
                             <Text style={styles.imageOverlayText}>{t('lessons.change')}</Text>
@@ -366,7 +378,7 @@ export const CreateLessonScreen: React.FC = () => {
                                         setShowImagePicker(false);
                                     }}
                                 >
-                                    <Image source={{ uri: item }} style={styles.imageOptionImage} resizeMode="cover" />
+                                    <Image source={getImageSource(item)} style={styles.imageOptionImage} resizeMode="cover" />
                                     {selectedImage === item && (
                                         <View style={styles.imageOptionCheck}>
                                             <MaterialIcons name="check-circle" size={24} color="#ffffff" />

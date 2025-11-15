@@ -83,7 +83,7 @@ export const EditProfileScreen: React.FC = () => {
               {AVATARS.map((url, index) => (
                 <TouchableOpacity 
                   key={`${url}-${index}`} 
-                  style={styles.avatarItem} 
+                  style={[styles.avatarItem, { backgroundColor: palette.border }]} 
                   onPress={() => { 
                     setTempAvatar(url); 
                     setAvatarModalVisible(false); 
@@ -220,7 +220,6 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
-    backgroundColor: colors.light.border,
     ...shadows.sm,
   },
   avatarImage: {

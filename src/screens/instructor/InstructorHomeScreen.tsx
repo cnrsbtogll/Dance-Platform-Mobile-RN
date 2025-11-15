@@ -13,6 +13,7 @@ import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getLessonImageSource } from '../../utils/imageHelper';
 
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -245,7 +246,7 @@ export const InstructorHomeScreen: React.FC = () => {
                   <View key={booking.id} style={[styles.upcomingCard, { backgroundColor: palette.card }]}>
                     {lesson.imageUrl && (
                       <Image
-                        source={{ uri: lesson.imageUrl }}
+                        source={getLessonImageSource(lesson.imageUrl)}
                         style={styles.upcomingImage}
                         resizeMode="cover"
                       />
@@ -290,7 +291,7 @@ export const InstructorHomeScreen: React.FC = () => {
                   >
                     {lesson.imageUrl && (
                       <Image
-                        source={{ uri: lesson.imageUrl }}
+                        source={getLessonImageSource(lesson.imageUrl)}
                         style={styles.activeLessonImage}
                         resizeMode="cover"
                       />

@@ -12,6 +12,7 @@ import { formatDate, formatTime, getDurationText } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { getLessonImageSource } from '../../utils/imageHelper';
 
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -99,7 +100,7 @@ export const LessonDetailScreen: React.FC = () => {
         <View style={styles.heroContainer}>
           {lesson.imageUrl && (
             <Image
-              source={{ uri: lesson.imageUrl }}
+              source={getLessonImageSource(lesson.imageUrl)}
               style={styles.heroImage}
               resizeMode="cover"
             />

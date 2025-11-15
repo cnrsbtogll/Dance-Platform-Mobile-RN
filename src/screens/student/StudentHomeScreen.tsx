@@ -13,6 +13,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { SearchBar } from '../../components/common/SearchBar';
+import { getLessonImageSource } from '../../utils/imageHelper';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -146,7 +147,7 @@ export const StudentHomeScreen: React.FC = () => {
                 <View style={styles.lessonImageContainer}>
                   {lesson.imageUrl && (
                     <Image
-                      source={{ uri: lesson.imageUrl }}
+                      source={getLessonImageSource(lesson.imageUrl)}
                       style={styles.lessonImage}
                       resizeMode="cover"
                     />

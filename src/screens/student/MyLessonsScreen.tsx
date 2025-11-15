@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getUpcomingBookings, getPastBookings } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
+import { getLessonImageSource } from '../../utils/imageHelper';
 
 type TabType = 'active' | 'past';
 
@@ -134,7 +135,7 @@ export const MyLessonsScreen: React.FC = () => {
                       <View style={styles.lessonCardLeft}>
                         {lesson.imageUrl && (
                           <Image
-                            source={{ uri: lesson.imageUrl }}
+                            source={getLessonImageSource(lesson.imageUrl)}
                             style={styles.lessonThumbnail}
                             resizeMode="cover"
                           />
