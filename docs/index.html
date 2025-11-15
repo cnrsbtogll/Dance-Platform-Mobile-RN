@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Platform - Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>Dance Platform</h1>
+                <p class="version">v1.0.0</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li>
+                    <a href="#features">Features</a>
+                    <ul class="submenu">
+                        <li><a href="#student-module">Student Module</a></li>
+                        <li><a href="#instructor-module">Instructor Module</a></li>
+                        <li><a href="#shared-features">Shared Features</a></li>
+                    </ul>
+                </li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#customization">Customization</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <section id="introduction">
+                <h1>Introduction</h1>
+                <p>Dance Platform is a comprehensive mobile application that connects dance students with professional instructors. Built with React Native, TypeScript, and Expo, it provides a seamless experience for both students and instructors.</p>
+
+                <h2>Project Overview</h2>
+                <p>The application supports multiple dance styles including:</p>
+                <ul>
+                    <li>Salsa</li>
+                    <li>Bachata</li>
+                    <li>Kizomba</li>
+                    <li>Tango</li>
+                    <li>Modern Dance</li>
+                </ul>
+
+                <h2>Technology Stack</h2>
+                <div class="tech-stack">
+                    <div class="tech-item">
+                        <strong>Framework:</strong> React Native 0.74.5
+                    </div>
+                    <div class="tech-item">
+                        <strong>Platform:</strong> Expo SDK 51
+                    </div>
+                    <div class="tech-item">
+                        <strong>Language:</strong> TypeScript 5.3.3
+                    </div>
+                    <div class="tech-item">
+                        <strong>State Management:</strong> Zustand 5.0.8
+                    </div>
+                    <div class="tech-item">
+                        <strong>Navigation:</strong> React Navigation 7.x
+                    </div>
+                    <div class="tech-item">
+                        <strong>i18n:</strong> i18next & react-i18next
+                    </div>
+                </div>
+            </section>
+
+            <section id="getting-started">
+                <h1>Getting Started</h1>
+
+                <h2>Prerequisites</h2>
+                <p>Before you begin, ensure you have the following installed:</p>
+                <ul>
+                    <li>Node.js v18.0.0 or higher</li>
+                    <li>npm v9.0.0 or higher</li>
+                    <li>Expo CLI (install globally: <code>npm install -g expo-cli</code>)</li>
+                    <li>For iOS: Xcode 14.0+ (Mac only)</li>
+                    <li>For Android: Android Studio with Android SDK</li>
+                </ul>
+
+                <h2>Installation</h2>
+                <ol>
+                    <li>Navigate to the project directory</li>
+                    <li>Install dependencies:
+                        <pre><code class="language-bash">npm install</code></pre>
+                    </li>
+                    <li>For iOS (Mac only), install CocoaPods:
+                        <pre><code class="language-bash">cd ios
+pod install
+cd ..</code></pre>
+                    </li>
+                </ol>
+
+                <h2>Running the Project</h2>
+                <h3>Development Mode</h3>
+                <pre><code class="language-bash">npm start</code></pre>
+
+                <h3>iOS Simulator</h3>
+                <pre><code class="language-bash">npm run ios</code></pre>
+
+                <h3>Android Emulator</h3>
+                <pre><code class="language-bash">npm run android</code></pre>
+
+                <h3>Web Browser</h3>
+                <pre><code class="language-bash">npm start --web</code></pre>
+            </section>
+
+            <section id="architecture">
+                <h1>Architecture</h1>
+
+                <h2>Project Structure</h2>
+                <pre><code class="language-text">src/
+├── components/      # Reusable React components
+├── screens/         # Screen components
+├── navigation/      # Navigation configuration
+├── data/           # Mock data JSON files
+├── services/       # Service layer
+├── store/          # Zustand state management
+├── types/          # TypeScript type definitions
+└── utils/          # Utility functions</code></pre>
+
+                <h2>State Management</h2>
+                <p>The application uses Zustand for state management. Key stores include:</p>
+                <ul>
+                    <li><strong>useAuthStore:</strong> User authentication and session management</li>
+                    <li><strong>useLessonStore:</strong> Lesson data and operations</li>
+                    <li><strong>useBookingStore:</strong> Booking management</li>
+                    <li><strong>useNotificationStore:</strong> Notification handling</li>
+                    <li><strong>useProfileStore:</strong> Profile editing state</li>
+                    <li><strong>useThemeStore:</strong> Theme and language preferences</li>
+                </ul>
+
+                <h2>Navigation Structure</h2>
+                <p>The app uses a nested navigation structure:</p>
+                <ul>
+                    <li><strong>RootNavigator:</strong> Top-level navigator switching between Student and Instructor modes</li>
+                    <li><strong>StudentNavigator:</strong> Stack navigator for student screens with bottom tabs</li>
+                    <li><strong>InstructorNavigator:</strong> Stack navigator for instructor screens with bottom tabs</li>
+                </ul>
+
+                <h2>Data Flow</h2>
+                <ol>
+                    <li>User interactions trigger actions in components</li>
+                    <li>Actions update Zustand stores</li>
+                    <li>Stores notify subscribed components</li>
+                    <li>Components re-render with new data</li>
+                    <li>Mock data service provides data layer abstraction</li>
+                </ol>
+            </section>
+
+            <section id="features">
+                <h1>Features Documentation</h1>
+
+                <h2 id="student-module">Student Module</h2>
+
+                <h3>Home Screen</h3>
+                <p>The student home screen displays:</p>
+                <ul>
+                    <li>Personalized greeting with user's name</li>
+                    <li>Category filter chips (All, Salsa, Bachata, Tango, Kizomba, Modern)</li>
+                    <li>Filter button for advanced filtering (price, rating, duration)</li>
+                    <li>Lesson cards with image, title, instructor, price, rating, and duration</li>
+                    <li>Notification badge in header</li>
+                </ul>
+
+                <h3>Lesson Discovery</h3>
+                <p>Students can:</p>
+                <ul>
+                    <li>Browse lessons by category</li>
+                    <li>Filter by price range, minimum rating, and maximum duration</li>
+                    <li>View lesson details including description, schedule, and instructor info</li>
+                    <li>See reviews and ratings from other students</li>
+                </ul>
+
+                <h3>Booking Flow</h3>
+                <ol>
+                    <li>Select a lesson from the home screen</li>
+                    <li>View lesson details (LessonDetailScreen)</li>
+                    <li>Click "Derse Kaydol" (Register for Lesson)</li>
+                    <li>If not logged in, redirect to LoginScreen</li>
+                    <li>After login, navigate to PaymentScreen</li>
+                    <li>Complete payment (currently mock)</li>
+                    <li>Booking is created and added to "My Lessons"</li>
+                </ol>
+
+                <h3>My Lessons</h3>
+                <p>Students can view:</p>
+                <ul>
+                    <li>Upcoming lessons (active tab)</li>
+                    <li>Past lessons (past tab)</li>
+                    <li>Lesson details, instructor contact, and cancellation options</li>
+                </ul>
+
+                <h2 id="instructor-module">Instructor Module</h2>
+
+                <h3>Dashboard</h3>
+                <p>The instructor dashboard displays:</p>
+                <ul>
+                    <li>Statistics: Active lessons, total students, average rating, total earnings</li>
+                    <li>Upcoming lessons with date, time, and student count</li>
+                    <li>Quick actions: Create lesson, view all lessons</li>
+                    <li>Earnings overview with "View Details" button</li>
+                </ul>
+
+                <h3>Lesson Creation</h3>
+                <p>Instructors can create lessons with:</p>
+                <ul>
+                    <li>Lesson image selection (from predefined set)</li>
+                    <li>Basic information: title, description, category, price</li>
+                    <li>Duration selection (30, 60, 90, 120 minutes)</li>
+                    <li>Date and time scheduling</li>
+                    <li>Currency selection (USD, EUR, TRY)</li>
+                </ul>
+
+                <h3>Lesson Management</h3>
+                <p>Instructors can:</p>
+                <ul>
+                    <li>View all lessons (active and past)</li>
+                    <li>Edit existing lessons</li>
+                    <li>Delete lessons (planned)</li>
+                    <li>View student count and average rating per lesson</li>
+                </ul>
+
+                <h3>Earnings</h3>
+                <p>Instructors can:</p>
+                <ul>
+                    <li>View total earnings on dashboard</li>
+                    <li>Access detailed earnings screen with graph</li>
+                    <li>See earnings breakdown by date</li>
+                    <li>Filter earnings by time period</li>
+                </ul>
+
+                <h2 id="shared-features">Shared Features</h2>
+
+                <h3>Messaging</h3>
+                <p>Both students and instructors can:</p>
+                <ul>
+                    <li>View conversation list</li>
+                    <li>Start new conversations</li>
+                    <li>Send and receive messages in real-time (mock)</li>
+                    <li>See message timestamps and read status</li>
+                    <li>View partner information in chat header</li>
+                </ul>
+
+                <h3>Notifications</h3>
+                <p>Users receive notifications for:</p>
+                <ul>
+                    <li>New messages</li>
+                    <li>Lesson bookings</li>
+                    <li>Lesson updates</li>
+                    <li>Payment confirmations</li>
+                </ul>
+
+                <h3>Profile Management</h3>
+                <p>Users can:</p>
+                <ul>
+                    <li>View profile information</li>
+                    <li>Edit name and avatar</li>
+                    <li>Select from predefined avatars</li>
+                    <li>Change language (Turkish/English)</li>
+                    <li>Toggle dark mode</li>
+                    <li>Access account settings</li>
+                </ul>
+            </section>
+
+            <section id="api-reference">
+                <h1>API Reference (Mock Data Service)</h1>
+
+                <p>The application uses a mock data service located in <code>src/services/mockDataService.ts</code>. This service provides methods to access and manipulate mock data.</p>
+
+                <h2>Service Methods</h2>
+
+                <h3>User Methods</h3>
+                <pre><code class="language-typescript">// Get all users
+static getUsers(): User[]
+
+// Get user by ID
+static getUserById(id: string): User | undefined
+
+// Get users by role
+static getUsersByRole(role: 'student' | 'instructor'): User[]</code></pre>
+
+                <h3>Lesson Methods</h3>
+                <pre><code class="language-typescript">// Get all lessons
+static getLessons(): Lesson[]
+
+// Get lesson by ID
+static getLessonById(id: string): Lesson | undefined
+
+// Get lessons by instructor
+static getLessonsByInstructor(instructorId: string): Lesson[]
+
+// Get lessons by category
+static getLessonsByCategory(category: string): Lesson[]
+
+// Get active lessons
+static getActiveLessons(): Lesson[]</code></pre>
+
+                <h3>Booking Methods</h3>
+                <pre><code class="language-typescript">// Get all bookings
+static getBookings(): Booking[]
+
+// Get booking by ID
+static getBookingById(id: string): Booking | undefined
+
+// Get bookings by user
+static getBookingsByUserId(userId: string): Booking[]
+
+// Get bookings by lesson
+static getBookingsByLessonId(lessonId: string): Booking[]</code></pre>
+
+                <h3>Message Methods</h3>
+                <pre><code class="language-typescript">// Get all messages
+static getMessages(): Message[]
+
+// Get messages by conversation
+static getMessagesByConversation(conversationId: string): Message[]</code></pre>
+
+                <h3>Notification Methods</h3>
+                <pre><code class="language-typescript">// Get all notifications
+static getNotifications(): Notification[]
+
+// Get notifications by user
+static getNotificationsByUserId(userId: string): Notification[]</code></pre>
+
+                <h3>Review Methods</h3>
+                <pre><code class="language-typescript">// Get all reviews
+static getReviews(): Review[]
+
+// Get reviews by lesson
+static getReviewsByLessonId(lessonId: string): Review[]</code></pre>
+
+                <h2>Data Structures</h2>
+
+                <h3>User</h3>
+                <pre><code class="language-typescript">interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'instructor';
+  avatar?: string;
+  bio?: string;
+  rating?: number;
+  totalLessons?: number;
+  currency?: 'USD' | 'EUR' | 'TRY'; // For instructors
+  createdAt: string;
+  updatedAt?: string;
+}</code></pre>
+
+                <h3>Lesson</h3>
+                <pre><code class="language-typescript">interface Lesson {
+  id: string;
+  instructorId: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  duration: number; // in minutes
+  imageUrl: string;
+  rating: number;
+  totalBookings: number;
+  isActive: boolean;
+  date?: string;
+  time?: string;
+  createdAt: string;
+  updatedAt?: string;
+}</code></pre>
+
+                <h3>Booking</h3>
+                <pre><code class="language-typescript">interface Booking {
+  id: string;
+  userId: string;
+  lessonId: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  date?: string;
+  time?: string;
+  createdAt: string;
+  updatedAt?: string;
+}</code></pre>
+
+                <h2>Usage Examples</h2>
+
+                <h3>Getting User Data</h3>
+                <pre><code class="language-typescript">import { MockDataService } from '../services/mockDataService';
+
+// Get current user
+const user = MockDataService.getUserById('user1');
+
+// Get all instructors
+const instructors = MockDataService.getUsersByRole('instructor');</code></pre>
+
+                <h3>Getting Lesson Data</h3>
+                <pre><code class="language-typescript">// Get all lessons
+const lessons = MockDataService.getLessons();
+
+// Get lessons by category
+const salsaLessons = MockDataService.getLessonsByCategory('Salsa');
+
+// Get instructor's lessons
+const myLessons = MockDataService.getLessonsByInstructor('instructor1');</code></pre>
+            </section>
+
+            <section id="customization">
+                <h1>Customization Guide</h1>
+
+                <h2>Theme Customization</h2>
+                <p>Edit <code>src/utils/theme.ts</code> to customize:</p>
+                <ul>
+                    <li>Color schemes (student/instructor, light/dark)</li>
+                    <li>Spacing values</li>
+                    <li>Typography settings</li>
+                    <li>Border radius values</li>
+                </ul>
+
+                <h3>Example: Changing Primary Color</h3>
+                <pre><code class="language-typescript">export const colors = {
+  student: {
+    primary: '#005f73', // Change this value
+    // ...
+  }
+};</code></pre>
+
+                <h2>Adding New Languages</h2>
+                <ol>
+                    <li>Create a new JSON file in <code>src/locales/</code> (e.g., <code>de.json</code>)</li>
+                    <li>Copy the structure from <code>en.json</code></li>
+                    <li>Translate all values</li>
+                    <li>Update <code>src/utils/i18n.ts</code>:
+                        <pre><code class="language-typescript">import de from '../locales/de.json';
+
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    tr: { translation: tr },
+    de: { translation: de }, // Add new language
+  },
+  // ...
+});</code></pre>
+                    </li>
+                </ol>
+
+                <h2>Modifying Mock Data</h2>
+                <p>To modify mock data:</p>
+                <ol>
+                    <li>Open the relevant JSON file in <code>src/data/</code></li>
+                    <li>Edit the data structure</li>
+                    <li>Save the file</li>
+                    <li>The app will automatically reload with new data</li>
+                </ol>
+
+                <h2>Adding New Screens</h2>
+                <ol>
+                    <li>Create the screen component in the appropriate folder:
+                        <ul>
+                            <li><code>src/screens/student/</code> for student screens</li>
+                            <li><code>src/screens/instructor/</code> for instructor screens</li>
+                            <li><code>src/screens/shared/</code> for shared screens</li>
+                        </ul>
+                    </li>
+                    <li>Add the screen to the navigation:
+                        <pre><code class="language-typescript">// In StudentNavigator.tsx or InstructorNavigator.tsx
+&lt;Stack.Screen
+  name="MyNewScreen"
+  component={MyNewScreen}
+  options={{ 
+    headerShown: true,
+    headerTitle: t('myNewScreen.title'),
+  }}
+/&gt;</code></pre>
+                    </li>
+                    <li>Add translations to <code>src/locales/tr.json</code> and <code>src/locales/en.json</code></li>
+                </ol>
+            </section>
+
+            <section id="troubleshooting">
+                <h1>Troubleshooting</h1>
+
+                <h2>Common Issues</h2>
+
+                <h3>Metro Bundler Issues</h3>
+                <p><strong>Problem:</strong> Metro bundler not starting or cache issues</p>
+                <p><strong>Solution:</strong></p>
+                <pre><code class="language-bash">npm start -- --reset-cache</code></pre>
+                <p>Or:</p>
+                <pre><code class="language-bash">npx expo start --clear</code></pre>
+
+                <h3>iOS Build Issues</h3>
+                <p><strong>Problem:</strong> CocoaPods installation fails</p>
+                <p><strong>Solution:</strong></p>
+                <pre><code class="language-bash">cd ios
+pod deintegrate
+pod install
+cd ..</code></pre>
+
+                <h3>Android Build Issues</h3>
+                <p><strong>Problem:</strong> Gradle build fails</p>
+                <p><strong>Solution:</strong></p>
+                <pre><code class="language-bash">cd android
+./gradlew clean
+cd ..</code></pre>
+
+                <h3>TypeScript Errors</h3>
+                <p><strong>Problem:</strong> Type errors after updating dependencies</p>
+                <p><strong>Solution:</strong></p>
+                <pre><code class="language-bash">npm install
+npx tsc --noEmit</code></pre>
+
+                <h3>Navigation Issues</h3>
+                <p><strong>Problem:</strong> Navigation not working or screen not found</p>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check that the screen is properly registered in the navigator</li>
+                    <li>Ensure screen names match exactly (case-sensitive)</li>
+                    <li>Check navigation params are correctly typed</li>
+                </ul>
+
+                <h3>Dark Mode Not Working</h3>
+                <p><strong>Problem:</strong> Dark mode not applying correctly</p>
+                <p><strong>Solution:</strong></p>
+                <ul>
+                    <li>Check <code>useThemeStore</code> is properly initialized</li>
+                    <li>Verify <code>getPalette</code> is called with correct parameters</li>
+                    <li>Ensure theme colors are properly defined in <code>theme.ts</code></li>
+                </ul>
+            </section>
+
+            <section id="faq">
+                <h1>Frequently Asked Questions</h1>
+
+                <h3>Q: How do I switch between student and instructor modes?</h3>
+                <p>A: Use the "Switch to Instructor Mode" button in the student profile, or "Switch to Student Mode" in the instructor profile.</p>
+
+                <h3>Q: Can I use real backend APIs instead of mock data?</h3>
+                <p>A: Yes, replace the <code>MockDataService</code> calls with actual API calls. The service layer is designed to be easily replaceable.</p>
+
+                <h3>Q: How do I add a new dance category?</h3>
+                <p>A: Add the category to the category filter chips in <code>StudentHomeScreen.tsx</code> and ensure lessons with that category exist in <code>lessons.json</code>.</p>
+
+                <h3>Q: How do I change the app name and icon?</h3>
+                <p>A: Update <code>app.json</code> with your app name, and replace the icon files in the <code>assets/</code> folder.</p>
+
+                <h3>Q: Is Firebase integration included?</h3>
+                <p>A: Firebase integration is planned but not yet implemented. The structure is in place in <code>src/services/firebase/</code>.</p>
+
+                <h3>Q: How do I enable Stripe payments?</h3>
+                <p>A: The Stripe package is installed but not yet configured. You'll need to add your Stripe keys and implement the payment flow in <code>PaymentScreen.tsx</code>.</p>
+
+                <h3>Q: Can I customize the color scheme?</h3>
+                <p>A: Yes, edit <code>src/utils/theme.ts</code> to modify colors for both student and instructor themes, including dark mode variants.</p>
+            </section>
+
+            <footer>
+                <p>For support, contact: <a href="mailto:cnrsbtogll@gmail.com">cnrsbtogll@gmail.com</a></p>
+                <p>Version 1.0.0 | Last Updated: December 2024</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
+
