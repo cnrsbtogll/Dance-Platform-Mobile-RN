@@ -11,6 +11,7 @@ import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
 import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
 import { ChatScreen } from '../screens/student/ChatScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
+import { NewChatScreen } from '../screens/student/NewChatScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { BecomeInstructorScreen } from '../screens/shared/BecomeInstructorScreen';
@@ -211,6 +212,14 @@ export const StudentNavigator: React.FC = () => {
           headerTitleStyle: {
             color: palette.text.primary,
           },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="NewChat"
+        component={NewChatScreen}
+        options={{ 
+          headerShown: false,
           presentation: 'card',
         }}
       />

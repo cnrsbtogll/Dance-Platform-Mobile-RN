@@ -94,7 +94,10 @@ export const InstructorChatScreen: React.FC = () => {
           <MaterialIcons name="search" size={24} color={palette.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
-        <TouchableOpacity style={styles.headerButton}>
+        <TouchableOpacity 
+          style={styles.headerButton}
+          onPress={() => (navigation as any).navigate('NewChat')}
+        >
           <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
         </TouchableOpacity>
       </View>

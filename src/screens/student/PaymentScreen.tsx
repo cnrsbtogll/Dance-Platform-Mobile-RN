@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 export const PaymentScreen: React.FC = () => {
   const navigation = useNavigation();
