@@ -62,6 +62,8 @@ export const ChatDetailScreen: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
+    if (!partner) return;
+    
     navigation.setOptions({
       headerBackTitle: '',
       headerTintColor: palette.text.primary,
@@ -71,15 +73,15 @@ export const ChatDetailScreen: React.FC = () => {
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <Image
-            source={{ uri: partner?.avatar || '' }}
+            source={{ uri: partner.avatar || '' }}
             style={styles.headerAvatar}
           />
           <View style={styles.headerTitleText}>
             <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-              {partner?.name || t('chat.user')}
+              {partner.name}
             </Text>
             <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-              {partner?.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
+              {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
             </Text>
           </View>
         </View>

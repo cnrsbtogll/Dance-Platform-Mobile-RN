@@ -202,6 +202,7 @@ export const StudentNavigator: React.FC = () => {
         component={ChatDetailScreen}
         options={{ 
           headerShown: true,
+          headerTitle: '', // Will be set dynamically in ChatDetailScreen
           headerBackTitle: '',
           headerTintColor: palette.text.primary,
           headerStyle: {
