@@ -650,6 +650,85 @@ When reporting issues, please include:
 - Error messages or logs
 - Screenshots (if applicable)
 
+## Branch Strategy
+
+This project uses a multi-brand branching strategy to maintain two different versions of the application:
+
+### Branches
+
+1. **`main`** (Default)
+   - Base branch with all features
+   - Default brand: `codecanyon` (Dancer Community)
+   - All modules enabled (chat, notifications)
+   - Uses mock data (no Firebase/Stripe)
+
+2. **`codecanyon-template`**
+   - Template version for Codecanyon sales
+   - Brand: `codecanyon` (Dancer Community)
+   - **Features**: Chat ✅, Notifications ✅
+   - **Integrations**: Firebase ❌, Stripe ❌
+   - Uses mock data
+   - All modules visible and functional
+
+3. **`feriha-production`**
+   - Production version for personal use
+   - Brand: `feriha` (Feriha Dance Platform)
+   - **Features**: Chat ❌, Notifications ❌
+   - **Integrations**: Firebase ✅, Stripe ✅
+   - Full backend integration
+   - Chat and notification modules hidden
+
+### Switching Between Brands
+
+You can override the default brand using environment variables:
+
+```bash
+# Run Codecanyon version
+APP_BRAND=codecanyon npm start
+
+# Run Feriha version
+APP_BRAND=feriha npm start
+```
+
+### Brand-Specific Configuration
+
+Brand configuration is managed in `src/config/appConfig.ts`:
+
+- **App Name**: Different app names per brand
+- **Splash Screen**: Different splash images (`splash.png` vs `splash-feriha.png`)
+- **Favicon**: Different favicons (`favicon.png` vs `favicon-feriha.png`)
+- **Bundle Identifiers**: Different package names per brand
+- **Feature Flags**: Chat and notifications can be enabled/disabled
+- **Backend Integration**: Firebase and Stripe can be enabled/disabled
+
+### Building for Different Brands
+
+```bash
+# Build Codecanyon version
+npm run build:codecanyon:ios
+npm run build:codecanyon:android
+
+# Build Feriha version
+npm run build:feriha:ios
+npm run build:feriha:android
+```
+
+### Maintenance Guidelines
+
+1. **Main Branch**: Keep as the base with all features
+2. **Feature Development**: Develop on `main`, then merge to appropriate branches
+3. **Brand-Specific Changes**: Make changes directly on the target branch
+4. **Shared Code**: Most code is shared; only configuration differs
+5. **Assets**: Brand-specific assets (icons, splash screens) should be in `assets/` folder
+
+### Branch Workflow
+
+```
+main (base)
+├── codecanyon-template (all features, mock data)
+└── feriha-production (selected features, Firebase/Stripe)
+```
+
 ## License
 
 This project is proprietary software. All rights reserved.
