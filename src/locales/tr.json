@@ -257,7 +257,18 @@
     "categoryAll": "Hepsi",
     "instructorLabel": "Eğitmen",
     "priceUnit": "/ saat",
-    "unknown": "Bilinmiyor"
+    "unknown": "Bilinmiyor",
+    "filter": "Filtrele",
+    "priceRange": "Fiyat Aralığı",
+    "minPrice": "Min Fiyat",
+    "maxPrice": "Max Fiyat",
+    "minRating": "Minimum Değerlendirme",
+    "maxDuration": "Maksimum Süre",
+    "onlyFavorites": "Sadece Favoriler",
+    "reset": "Sıfırla",
+    "apply": "Uygula",
+    "all": "Tümü",
+    "minutes": "dakika"
   },
   "instructorHome": {
     "earningsSummary": "Kazanç Özeti",

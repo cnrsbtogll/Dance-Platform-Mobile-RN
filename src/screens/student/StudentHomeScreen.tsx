@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Switch, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Switch, TextInput, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useLessonStore } from '../../store/useLessonStore';
@@ -21,6 +22,7 @@ export const StudentHomeScreen: React.FC = () => {
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
+  const insets = useSafeAreaInsets();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const filteredLessons = lessons.filter(lesson => {
@@ -35,7 +37,6 @@ export const StudentHomeScreen: React.FC = () => {
     if (maxPrice !== null && lesson.price > maxPrice) return false;
     if (lesson.rating < minRating) return false;
     if (maxDuration !== null && lesson.duration > maxDuration) return false;
-    if (onlyFavorites && !favoriteLessons.includes(lesson.id)) return false;
     return true;
   });
 
@@ -47,7 +48,6 @@ export const StudentHomeScreen: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minRating, setMinRating] = useState<number>(0);
   const [maxDuration, setMaxDuration] = useState<number | null>(null);
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -318,21 +318,15 @@ export const StudentHomeScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Only Favorites */}
-              <View style={[styles.filterSection, styles.switchSection]}>
-                <Text style={[styles.filterSectionTitle, { color: palette.text.primary }]}>
-                  {t('studentHome.onlyFavorites')}
-                </Text>
-                <Switch
-                  value={onlyFavorites}
-                  onValueChange={setOnlyFavorites}
-                  trackColor={{ false: palette.border, true: palette.primary }}
-                  thumbColor="#ffffff"
-                />
-              </View>
             </ScrollView>
 
-            <View style={[styles.modalFooter, { borderTopColor: palette.border }]}>
+            <View style={[
+              styles.modalFooter, 
+              { 
+                borderTopColor: palette.border,
+                paddingBottom: Math.max(insets.bottom, spacing.md),
+              }
+            ]}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.resetButton, { backgroundColor: palette.background }]}
                 onPress={() => {
@@ -340,7 +334,6 @@ export const StudentHomeScreen: React.FC = () => {
                   setMaxPrice(null);
                   setMinRating(0);
                   setMaxDuration(null);
-                  setOnlyFavorites(false);
                 }}
               >
                 <Text style={[styles.modalButtonText, { color: palette.text.primary }]}>
@@ -628,7 +621,8 @@ const styles = StyleSheet.create({
   },
   modalFooter: {
     flexDirection: 'row',
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
     gap: spacing.sm,
     borderTopWidth: 1,
   },

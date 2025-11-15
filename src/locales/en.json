@@ -257,7 +257,18 @@
     "categoryAll": "All",
     "instructorLabel": "Instructor",
     "priceUnit": "/ hour",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "filter": "Filter",
+    "priceRange": "Price Range",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "minRating": "Minimum Rating",
+    "maxDuration": "Max Duration",
+    "onlyFavorites": "Only Favorites",
+    "reset": "Reset",
+    "apply": "Apply",
+    "all": "All",
+    "minutes": "minutes"
   },
   "instructorHome": {
     "earningsSummary": "Earnings Summary",
