@@ -9,7 +9,7 @@
  * Default: codecanyon
  */
 
-const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'codecanyon';
+const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'feriha';
 
 // Brand-specific configurations
 const brands = {
@@ -35,7 +35,7 @@ const brands = {
   },
 };
 
-const currentBrand = brands[APP_BRAND] || brands.codecanyon;
+const currentBrand = brands[APP_BRAND] || brands.feriha;
 
 // Log in development
 if (process.env.NODE_ENV !== 'production') {
