@@ -628,7 +628,10 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     imageCard: {
-        padding: spacing.md,
+        padding: 0,
+        paddingTop: spacing.md,
+        paddingHorizontal: spacing.md,
+        paddingBottom: spacing.xs,
     },
     formCard: {
         padding: 0,
@@ -637,7 +640,7 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
-        marginBottom: spacing.sm,
+        marginBottom: spacing.xs,
     },
     sectionTitle: {
         fontSize: typography.fontSize.lg,
@@ -649,6 +652,8 @@ const styles = StyleSheet.create({
     },
     imageUploadContainer: {
         width: '100%',
+        alignSelf: 'flex-start',
+        flexShrink: 1,
     },
     imageUploadPlaceholder: {
         width: '100%',
@@ -672,7 +677,8 @@ const styles = StyleSheet.create({
     },
     selectedImageContainer: {
         width: '100%',
-        height: 128,
+        aspectRatio: 16 / 9,
+        maxHeight: 200,
         borderRadius: borderRadius.lg,
         overflow: 'hidden',
         position: 'relative',

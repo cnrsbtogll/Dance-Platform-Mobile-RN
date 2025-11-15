@@ -99,8 +99,18 @@ export const EditLessonScreen: React.FC = () => {
     const [description, setDescription] = useState(lesson?.description || '');
     const [price, setPrice] = useState(lesson?.price?.toString() || '150');
     const [duration, setDuration] = useState(lesson?.duration || 60);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [selectedTime, setSelectedTime] = useState<Date | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(
+        lesson?.date ? new Date(lesson.date) : null
+    );
+    const [selectedTime, setSelectedTime] = useState<Date | null>(() => {
+        if (lesson?.time) {
+            const [hours, minutes] = lesson.time.split(':');
+            const date = new Date();
+            date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            return date;
+        }
+        return null;
+    });
     const [recurring, setRecurring] = useState(false);
     const [selectedImage, setSelectedImage] = useState<any>(lesson?.imageUrl || null);
     const [showImagePicker, setShowImagePicker] = useState(false);
@@ -689,7 +699,10 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     imageCard: {
-        padding: spacing.md,
+        padding: 0,
+        paddingTop: spacing.md,
+        paddingHorizontal: spacing.md,
+        paddingBottom: spacing.sm,
     },
     formCard: {
         padding: 0,
@@ -710,10 +723,12 @@ const styles = StyleSheet.create({
     },
     imageUploadContainer: {
         width: '100%',
+        alignSelf: 'flex-start',
     },
     currentImage: {
         width: '100%',
         aspectRatio: 16 / 9,
+        maxHeight: 200,
         borderRadius: borderRadius.lg,
         marginBottom: spacing.md,
     },

@@ -13,7 +13,21 @@
     "ok": "OK",
     "yes": "Yes",
     "no": "No",
-    "or": "or"
+    "or": "or",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "minutes": "minutes",
+    "hours": "hours"
   },
   "auth": {
     "login": "Sign In",
@@ -147,6 +161,7 @@
     "selectTime": "Select Time",
     "datePlaceholder": "DD.MM.YYYY",
     "timePlaceholder": "HH:MM",
+    "selectWhenRegistering": "Select when registering",
     "currentCoverImage": "Current Cover Image",
     "tapToChangeImage": "Tap to change image",
     "enterLessonTitle": "Enter lesson title",

@@ -1,4 +1,5 @@
 import { Lesson, Booking, Currency } from '../types';
+import i18n from './i18n';
 
 export const CURRENCY_SYMBOLS: { [key in Currency]: string } = {
   USD: '$',
@@ -19,16 +20,25 @@ export const formatDate = (dateString: string): string => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays === 0) {
-    return 'Bugün';
+    return i18n.t('common.today');
   } else if (diffDays === 1) {
-    return 'Yarın';
+    return i18n.t('common.tomorrow');
   } else if (diffDays === -1) {
-    return 'Dün';
+    return i18n.t('common.yesterday');
   } else if (diffDays > 1 && diffDays < 7) {
-    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-    return days[date.getDay()];
+    const dayNames = [
+      i18n.t('common.days.sunday'),
+      i18n.t('common.days.monday'),
+      i18n.t('common.days.tuesday'),
+      i18n.t('common.days.wednesday'),
+      i18n.t('common.days.thursday'),
+      i18n.t('common.days.friday'),
+      i18n.t('common.days.saturday'),
+    ];
+    return dayNames[date.getDay()];
   } else {
-    return date.toLocaleDateString('tr-TR', {
+    const locale = i18n.language === 'en' ? 'en-US' : 'tr-TR';
+    return date.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
     });
@@ -45,11 +55,14 @@ export const formatDateTime = (dateString: string, timeString: string): string =
 
 export const getDurationText = (minutes: number): string => {
   if (minutes < 60) {
-    return `${minutes} dakika`;
+    return `${minutes} ${i18n.t('common.minutes')}`;
   }
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return mins > 0 ? `${hours} saat ${mins} dakika` : `${hours} saat`;
+  if (mins > 0) {
+    return `${hours} ${i18n.t('common.hours')} ${mins} ${i18n.t('common.minutes')}`;
+  }
+  return `${hours} ${i18n.t('common.hours')}`;
 };
 
 export const calculateTotalPrice = (bookings: Booking[]): number => {
@@ -111,8 +124,16 @@ export const debounce = <T extends (...args: any[]) => any>(
 
 export const getDayName = (dateString: string): string => {
   const date = new Date(dateString);
-  const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-  return days[date.getDay()];
+  const dayNames = [
+    i18n.t('common.days.sunday'),
+    i18n.t('common.days.monday'),
+    i18n.t('common.days.tuesday'),
+    i18n.t('common.days.wednesday'),
+    i18n.t('common.days.thursday'),
+    i18n.t('common.days.friday'),
+    i18n.t('common.days.saturday'),
+  ];
+  return dayNames[date.getDay()];
 };
 
 export const formatNotificationTime = (dateString: string): string => {
@@ -126,12 +147,21 @@ export const formatNotificationTime = (dateString: string): string => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   } else if (diffDays === 1) {
-    return 'Dün';
+    return i18n.t('common.yesterday');
   } else if (diffDays < 7) {
-    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-    return days[date.getDay()];
+    const dayNames = [
+      i18n.t('common.days.sunday'),
+      i18n.t('common.days.monday'),
+      i18n.t('common.days.tuesday'),
+      i18n.t('common.days.wednesday'),
+      i18n.t('common.days.thursday'),
+      i18n.t('common.days.friday'),
+      i18n.t('common.days.saturday'),
+    ];
+    return dayNames[date.getDay()];
   } else {
-    return date.toLocaleDateString('tr-TR', {
+    const locale = i18n.language === 'en' ? 'en-US' : 'tr-TR';
+    return date.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
     });

@@ -9,6 +9,8 @@ export interface Lesson {
   price: number;
   duration: number; // minutes
   imageUrl?: string;
+  date?: string; // ISO date (YYYY-MM-DD)
+  time?: string; // HH:mm format
   rating: number;
   reviewCount: number;
   favoriteCount: number;

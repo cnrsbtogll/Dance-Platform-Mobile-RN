@@ -13,7 +13,21 @@
     "ok": "Tamam",
     "yes": "Evet",
     "no": "Hayır",
-    "or": "veya"
+    "or": "veya",
+    "today": "Bugün",
+    "tomorrow": "Yarın",
+    "yesterday": "Dün",
+    "days": {
+      "sunday": "Pazar",
+      "monday": "Pazartesi",
+      "tuesday": "Salı",
+      "wednesday": "Çarşamba",
+      "thursday": "Perşembe",
+      "friday": "Cuma",
+      "saturday": "Cumartesi"
+    },
+    "minutes": "dakika",
+    "hours": "saat"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -147,6 +161,7 @@
     "selectTime": "Saat Seç",
     "datePlaceholder": "GG.AA.YYYY",
     "timePlaceholder": "SS:DD",
+    "selectWhenRegistering": "Kayıt olurken seçin",
     "currentCoverImage": "Mevcut Kapak Görseli",
     "tapToChangeImage": "Görseli değiştirmek için dokunun",
     "enterLessonTitle": "Ders başlığı girin",

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
-import { formatDate, formatTime, getDurationText } from '../../utils/helpers';
+import { formatDate, formatTime, getDurationText, formatPrice } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -152,14 +152,14 @@ export const LessonDetailScreen: React.FC = () => {
               <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.date')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? `${formatDate(booking.date)}` : t('lessons.notSpecified')}
+                {booking ? formatDate(booking.date) : lesson.date ? formatDate(lesson.date) : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="schedule" size={32} color={colors.student.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.time')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? formatTime(booking.time) : t('lessons.notSpecified')}
+                {booking ? formatTime(booking.time) : lesson.time ? formatTime(lesson.time) : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
@@ -226,7 +226,13 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.bottomBar}>
           <View style={styles.priceContainer}>
             <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
-            <Text style={[styles.priceValue, { color: colors.student.primary }]}>₺{lesson.price.toLocaleString('tr-TR')}</Text>
+            <Text style={[styles.priceValue, { color: colors.student.primary }]}>
+              {(() => {
+                const instructor = MockDataService.getInstructorForLesson(lesson.id);
+                const currency = instructor?.currency || 'USD';
+                return formatPrice(lesson.price, currency);
+              })()}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.registerButton}
