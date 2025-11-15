@@ -6,9 +6,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { MockDataService } from '../../services/mockDataService';
+import { CURRENCY_SYMBOLS } from '../../utils/helpers';
 
 // Helper function to get image source (supports both local assets and URLs)
 const getImageSource = (image: any) => {
@@ -66,7 +68,11 @@ export const EditLessonScreen: React.FC = () => {
     const params = route.params as { lessonId?: string } | undefined;
     const lessonId = params?.lessonId;
     const { isDarkMode } = useThemeStore();
+    const { user } = useAuthStore();
     const palette = getPalette('instructor', isDarkMode);
+    
+    const currency = user?.currency || 'USD';
+    const currencySymbol = CURRENCY_SYMBOLS[currency];
 
     const lesson = lessonId ? MockDataService.getLessonById(lessonId) : null;
 
@@ -294,7 +300,7 @@ export const EditLessonScreen: React.FC = () => {
                             <View style={[styles.inputGroup, styles.gridItem]}>
                                 <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.price')}</Text>
                                 <View style={[styles.priceInputContainer, { borderColor: palette.border, backgroundColor: palette.card }]}>
-                                    <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>₺</Text>
+                                    <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>{currencySymbol}</Text>
                                     <TextInput
                                         style={[styles.input, styles.priceInput, { color: palette.text.primary }]}
                                         placeholder="0.00"
@@ -415,6 +421,7 @@ export const EditLessonScreen: React.FC = () => {
                             data={availableImages}
                             numColumns={2}
                             keyExtractor={(item, index) => index.toString()}
+                            columnWrapperStyle={styles.imageListRow}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={[
@@ -442,47 +449,104 @@ export const EditLessonScreen: React.FC = () => {
 
             {/* Date Picker */}
             {showDatePicker && (
-                <DateTimePicker
-                    value={selectedDate || new Date()}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={(event, date) => {
-                        if (Platform.OS === 'android') {
+                Platform.OS === 'ios' ? (
+                    <Modal
+                        visible={showDatePicker}
+                        animationType="slide"
+                        transparent={true}
+                        onRequestClose={() => setShowDatePicker(false)}
+                    >
+                        <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                            <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
+                                <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectDate')}</Text>
+                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={selectedDate || new Date()}
+                                    mode="date"
+                                    display="spinner"
+                                    onChange={(event, date) => {
+                                        if (event.type === 'set' && date) {
+                                            setSelectedDate(date);
+                                        }
+                                    }}
+                                    minimumDate={new Date()}
+                                    textColor={palette.text.primary}
+                                    themeVariant={isDarkMode ? 'dark' : 'light'}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+                ) : (
+                    <DateTimePicker
+                        value={selectedDate || new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={(event, date) => {
                             setShowDatePicker(false);
-                        }
-                        if (event.type === 'set' && date) {
-                            setSelectedDate(date);
-                            if (Platform.OS === 'ios') {
-                                setShowDatePicker(false);
+                            if (event.type === 'set' && date) {
+                                setSelectedDate(date);
                             }
-                        } else if (event.type === 'dismissed') {
-                            setShowDatePicker(false);
-                        }
-                    }}
-                    minimumDate={new Date()}
-                />
+                        }}
+                        minimumDate={new Date()}
+                    />
+                )
             )}
 
             {/* Time Picker */}
             {showTimePicker && (
-                <DateTimePicker
-                    value={selectedTime || new Date()}
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={(event, time) => {
-                        if (Platform.OS === 'android') {
+                Platform.OS === 'ios' ? (
+                    <Modal
+                        visible={showTimePicker}
+                        animationType="slide"
+                        transparent={true}
+                        onRequestClose={() => setShowTimePicker(false)}
+                    >
+                        <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                            <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
+                                <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={selectedTime || new Date()}
+                                    mode="time"
+                                    display="spinner"
+                                    onChange={(event, time) => {
+                                        if (event.type === 'set' && time) {
+                                            setSelectedTime(time);
+                                        }
+                                    }}
+                                    textColor={palette.text.primary}
+                                    themeVariant={isDarkMode ? 'dark' : 'light'}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+                ) : (
+                    <DateTimePicker
+                        value={selectedTime || new Date()}
+                        mode="time"
+                        display="default"
+                        onChange={(event, time) => {
                             setShowTimePicker(false);
-                        }
-                        if (event.type === 'set' && time) {
-                            setSelectedTime(time);
-                            if (Platform.OS === 'ios') {
-                                setShowTimePicker(false);
+                            if (event.type === 'set' && time) {
+                                setSelectedTime(time);
                             }
-                        } else if (event.type === 'dismissed') {
-                            setShowTimePicker(false);
-                        }
-                    }}
-                />
+                        }}
+                    />
+                )
             )}
 
             {/* Duration Picker Modal */}
@@ -827,6 +891,31 @@ const styles = StyleSheet.create({
         fontWeight: typography.fontWeight.medium,
         color: '#e53e3e',
     },
+    pickerModalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    pickerModalContent: {
+        borderTopLeftRadius: borderRadius.xl,
+        borderTopRightRadius: borderRadius.xl,
+        paddingBottom: spacing.lg,
+        maxHeight: '50%',
+    },
+    pickerModalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: spacing.md,
+        borderBottomWidth: 1,
+    },
+    pickerModalTitle: {
+        fontSize: typography.fontSize.lg,
+        fontWeight: typography.fontWeight.bold,
+    },
+    pickerModalButton: {
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.medium,
+    },
     modalOverlay: {
         flex: 1,
         justifyContent: 'flex-end',
@@ -851,6 +940,10 @@ const styles = StyleSheet.create({
     imageListContent: {
         padding: spacing.md,
         gap: spacing.md,
+    },
+    imageListRow: {
+        justifyContent: 'space-between',
+        gap: spacing.sm,
     },
     imageOption: {
         width: '48%',

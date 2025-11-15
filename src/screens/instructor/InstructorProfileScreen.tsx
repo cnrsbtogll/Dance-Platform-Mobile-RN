@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Modal, FlatList } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { colors, spacing, typography, borderRadius, shadows, getPalette } from '
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
+import { Currency } from '../../types';
 
 interface SettingItem {
   id: string;
@@ -21,11 +22,20 @@ interface SettingItem {
 export const InstructorProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateCurrency } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const palette = getPalette('instructor', isDarkMode);
+  
+  const currentCurrency: Currency = user?.currency || 'USD';
+  
+  const currencies: { code: Currency; symbol: string; name: string }[] = [
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+  ];
 
   useEffect(() => {
     navigation.setOptions({
@@ -105,6 +115,24 @@ export const InstructorProfileScreen: React.FC = () => {
         <View style={styles.languageValueContainer}>
           <Text style={[styles.languageValue, { color: palette.text.secondary }]}>
             {language === 'tr' ? t('profile.turkish') : t('profile.english')}
+          </Text>
+          <MaterialIcons
+            name="chevron-right"
+            size={24}
+            color={palette.text.secondary}
+          />
+        </View>
+      ),
+    },
+    {
+      id: 'currency',
+      icon: 'attach-money',
+      title: t('profile.currency'),
+      onPress: () => setCurrencyModalVisible(true),
+      rightComponent: (
+        <View style={styles.languageValueContainer}>
+          <Text style={[styles.languageValue, { color: palette.text.secondary }]}>
+            {currencies.find(c => c.code === currentCurrency)?.symbol || '$'}
           </Text>
           <MaterialIcons
             name="chevron-right"
@@ -343,6 +371,60 @@ export const InstructorProfileScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Currency Selection Modal */}
+      <Modal
+        visible={currencyModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCurrencyModalVisible(false)}
+        >
+          <View 
+            style={[styles.modalContent, { backgroundColor: palette.card }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                {t('profile.currency')}
+              </Text>
+              <TouchableOpacity onPress={() => setCurrencyModalVisible(false)}>
+                <MaterialIcons name="close" size={24} color={palette.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            
+            {currencies.map((currency) => (
+              <TouchableOpacity
+                key={currency.code}
+                style={[
+                  styles.languageOption,
+                  currentCurrency === currency.code && { backgroundColor: `${colors.instructor.secondary}20` },
+                ]}
+                onPress={() => {
+                  updateCurrency(currency.code);
+                  setCurrencyModalVisible(false);
+                }}
+              >
+                <View style={styles.currencyOptionContent}>
+                  <Text style={[styles.currencySymbol, { color: palette.text.primary }]}>
+                    {currency.symbol}
+                  </Text>
+                  <Text style={[styles.languageOptionText, { color: palette.text.primary }]}>
+                    {currency.name} ({currency.code})
+                  </Text>
+                </View>
+                {currentCurrency === currency.code && (
+                  <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -498,6 +580,17 @@ const styles = StyleSheet.create({
   languageOptionText: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
+  },
+  currencyOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  currencySymbol: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    minWidth: 24,
   },
 });
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from '../types';
+import { User, Currency } from '../types';
 import { MockDataService } from '../services/mockDataService';
 
 interface AuthState {
@@ -8,6 +8,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   setUser: (user: User | null) => void;
+  updateCurrency: (currency: Currency) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -20,6 +21,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     const user = users.find(u => u.email === email);
     
     if (user) {
+      // Set default currency for instructors if not set
+      if (user.role === 'instructor' && !user.currency) {
+        user.currency = 'USD';
+      }
       set({ user, isAuthenticated: true });
       return true;
     }
@@ -31,7 +36,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   
   setUser: (user: User | null) => {
+    // Set default currency for instructors if not set
+    if (user && user.role === 'instructor' && !user.currency) {
+      user.currency = 'USD';
+    }
     set({ user, isAuthenticated: !!user });
+  },
+  
+  updateCurrency: (currency: Currency) => {
+    set((state) => {
+      if (state.user && state.user.role === 'instructor') {
+        return {
+          user: { ...state.user, currency },
+        };
+      }
+      return state;
+    });
   },
 }));
 

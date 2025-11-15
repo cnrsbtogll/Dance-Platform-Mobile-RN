@@ -19,6 +19,7 @@
     "bio": "Professional dance instructor with 10 years of experience",
     "rating": 4.8,
     "totalLessons": 32,
+    "currency": "USD",
     "createdAt": "2024-01-10T08:00:00Z"
   },
   {
@@ -30,6 +31,7 @@
     "bio": "Bachata specialist instructor",
     "rating": 4.9,
     "totalLessons": 51,
+    "currency": "USD",
     "createdAt": "2024-01-08T09:00:00Z"
   },
   {
@@ -41,6 +43,7 @@
     "bio": "Kizomba and Tango instructor",
     "rating": 4.7,
     "totalLessons": 18,
+    "currency": "USD",
     "createdAt": "2024-01-12T11:00:00Z"
   },
   {
@@ -74,6 +77,7 @@
     "bio": "Both student and instructor",
     "rating": 4.5,
     "totalLessons": 15,
+    "currency": "USD",
     "createdAt": "2024-01-18T12:00:00Z"
   }
 ]

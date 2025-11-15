@@ -191,9 +191,9 @@ export const InstructorHomeScreen: React.FC = () => {
               </View>
               <View style={styles.earningsRow}>
                 <View style={styles.earningsAmountContainer}>
-                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings)}</Text>
+                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings, user?.currency || 'USD')}</Text>
                   <Text style={[styles.earningsTotal, { color: palette.text.primary }]}>
-                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings)}
+                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency || 'USD')}
                   </Text>
                 </View>
                 <TouchableOpacity 
@@ -244,12 +244,19 @@ export const InstructorHomeScreen: React.FC = () => {
 
                 return (
                   <View key={booking.id} style={[styles.upcomingCard, { backgroundColor: palette.card }]}>
-                    {lesson.imageUrl && (
+                    {lesson.imageUrl ? (
                       <Image
                         source={getLessonImageSource(lesson.imageUrl)}
                         style={styles.upcomingImage}
                         resizeMode="cover"
+                        onError={(error) => {
+                          console.log('Image load error:', error);
+                        }}
                       />
+                    ) : (
+                      <View style={[styles.upcomingImage, { backgroundColor: palette.border, justifyContent: 'center', alignItems: 'center' }]}>
+                        <MaterialIcons name="image" size={32} color={palette.text.secondary} />
+                      </View>
                     )}
                     <View style={styles.upcomingInfo}>
                       <Text style={[styles.upcomingTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
@@ -476,8 +483,9 @@ const styles = StyleSheet.create({
   },
   upcomingImage: {
     width: '100%',
-    aspectRatio: 1,
+    height: 200,
     borderRadius: borderRadius.xl,
+    overflow: 'hidden',
   },
   upcomingInfo: {
     gap: spacing.xs,

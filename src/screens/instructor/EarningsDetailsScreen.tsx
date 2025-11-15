@@ -120,7 +120,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.totalEarnings')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(totalEarnings)}
+                {formatPrice(totalEarnings, user?.currency || 'USD')}
               </Text>
             </Card>
             <Card style={[styles.summaryCard, { backgroundColor: palette.card }]}>
@@ -128,7 +128,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.averageMonthly')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(averageEarnings)}
+                {formatPrice(averageEarnings, user?.currency || 'USD')}
               </Text>
             </Card>
           </View>
@@ -160,7 +160,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                       {getMonthName(item.date).substring(0, 3)}
                     </Text>
                     <Text style={[styles.chartValueLabel, { color: palette.text.primary }]}>
-                      {formatPrice(item.earnings)}
+                      {formatPrice(item.earnings, user?.currency || 'USD')}
                     </Text>
                   </View>
                 );
@@ -211,7 +211,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                     </View>
                     <View style={styles.earningItemRight}>
                       <Text style={[styles.earningAmount, { color: colors.instructor.primary }]}>
-                        {formatPrice(booking.price)}
+                        {formatPrice(booking.price, user?.currency || 'USD')}
                       </Text>
                       <View style={[styles.earningStatusBadge, { backgroundColor: booking.paymentStatus === 'paid' ? '#10B981' + '20' : '#F59E0B' + '20' }]}>
                         <Text style={[styles.earningStatusText, { color: booking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }]}>

@@ -1,4 +1,5 @@
 export type UserRole = 'student' | 'instructor';
+export type Currency = 'USD' | 'EUR' | 'TRY';
 
 export interface User {
   id: string;
@@ -9,6 +10,7 @@ export interface User {
   bio?: string;
   rating?: number;
   totalLessons?: number;
+  currency?: Currency; // For instructors only
   createdAt: string;
   updatedAt?: string;
 }

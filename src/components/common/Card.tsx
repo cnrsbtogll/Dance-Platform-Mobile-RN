@@ -6,7 +6,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   variant?: 'light' | 'dark';
 }
 

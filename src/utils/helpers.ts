@@ -1,7 +1,15 @@
-import { Lesson, Booking } from '../types';
+import { Lesson, Booking, Currency } from '../types';
 
-export const formatPrice = (price: number): string => {
-  return `₺${price.toLocaleString('tr-TR')}`;
+export const CURRENCY_SYMBOLS: { [key in Currency]: string } = {
+  USD: '$',
+  EUR: '€',
+  TRY: '₺',
+};
+
+export const formatPrice = (price: number, currency: Currency = 'USD'): string => {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const locale = currency === 'TRY' ? 'tr-TR' : currency === 'EUR' ? 'de-DE' : 'en-US';
+  return `${symbol}${price.toLocaleString(locale)}`;
 };
 
 export const formatDate = (dateString: string): string => {

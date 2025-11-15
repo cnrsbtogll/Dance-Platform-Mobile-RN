@@ -176,7 +176,11 @@ export const StudentHomeScreen: React.FC = () => {
                       </Text>
                     </View>
                     <Text style={[styles.price, { color: palette.text.primary }]}>
-                      {formatPrice(lesson.price)}
+                      {(() => {
+                        const instructor = MockDataService.getInstructorForLesson(lesson.id);
+                        const currency = instructor?.currency || 'USD';
+                        return formatPrice(lesson.price, currency);
+                      })()}
                       <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                     </Text>
                   </View>
