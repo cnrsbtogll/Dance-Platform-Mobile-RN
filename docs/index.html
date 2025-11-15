@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance Platform - Documentation</title>
+    <title>Dancer Community - Documentation</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
@@ -13,12 +13,13 @@
     <div class="container">
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1>Dance Platform</h1>
+                <h1>Dancer Community</h1>
                 <p class="version">v1.0.0</p>
             </div>
             <ul class="nav-menu">
                 <li><a href="#introduction">Introduction</a></li>
                 <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#branding">Branding Your App</a></li>
                 <li><a href="#architecture">Architecture</a></li>
                 <li>
                     <a href="#features">Features</a>
@@ -38,7 +39,7 @@
         <main class="content">
             <section id="introduction">
                 <h1>Introduction</h1>
-                <p>Dance Platform is a comprehensive mobile application that connects dance students with professional instructors. Built with React Native, TypeScript, and Expo, it provides a seamless experience for both students and instructors.</p>
+                <p>Dancer Community is a comprehensive mobile application that connects dance students with professional instructors. Built with React Native, TypeScript, and Expo, it provides a seamless experience for both students and instructors.</p>
 
                 <h2>Project Overview</h2>
                 <p>The application supports multiple dance styles including:</p>
@@ -111,6 +112,226 @@ cd ..</code></pre>
 
                 <h3>Web Browser</h3>
                 <pre><code class="language-bash">npm start --web</code></pre>
+            </section>
+
+            <section id="branding">
+                <h1>Branding Your App</h1>
+                <p>Before diving into development, you should customize your app's branding elements. This includes the app name, logo, splash screen, and other visual assets.</p>
+
+                <h2>App Name</h2>
+                <p>To change your app name, you need to update the configuration in <code>app.config.js</code>:</p>
+                <ol>
+                    <li>Open <code>app.config.js</code> in the root directory</li>
+                    <li>Locate the <code>brands</code> object</li>
+                    <li>Update the <code>name</code> property in the <code>codecanyon</code> brand object:
+                        <pre><code class="language-javascript">const brands = {
+  codecanyon: {
+    name: 'Your App Name', // ✅ Change this - Update your app name here
+    slug: 'your-app-slug',
+    // ...
+  }
+};</code></pre>
+                    </li>
+                </ol>
+                <p><strong>Important:</strong> Update the <code>name</code> property inside the <code>codecanyon</code> brand object.</p>
+                <p><strong>Note:</strong> The app name will also appear in the About screen. You can customize it further in the translation files (<code>src/locales/tr.json</code> and <code>src/locales/en.json</code>) under the <code>about.appNameCodecanyon</code> key.</p>
+
+                <h2>App Icon</h2>
+                <p>To replace the app icon:</p>
+                <ol>
+                    <li>Prepare your icon files:
+                        <ul>
+                            <li><strong>iOS:</strong> 1024x1024px PNG (no transparency)</li>
+                            <li><strong>Android:</strong> 1024x1024px PNG (no transparency)</li>
+                            <li><strong>Adaptive Icon (Android):</strong> 1024x1024px PNG with safe zone (foreground should be centered in 768x768px area)</li>
+                        </ul>
+                    </li>
+                    <li>Replace the icon files in the <code>assets/</code> folder:
+                        <ul>
+                            <li><code>assets/icon.png</code> - Main app icon</li>
+                            <li><code>assets/adaptive-icon.png</code> - Android adaptive icon</li>
+                        </ul>
+                    </li>
+                    <li>Update <code>app.config.js</code> to reference your icon files (if using different filenames):
+                        <pre><code class="language-javascript">const brands = {
+  codecanyon: {
+    icon: './assets/icon.png', // Your icon file
+    adaptiveIcon: './assets/adaptive-icon.png', // Your adaptive icon
+    // ...
+  }
+};</code></pre>
+                    </li>
+                </ol>
+                <p><strong>Best Practices:</strong></p>
+                <ul>
+                    <li>Use a square icon with rounded corners (the system will apply the appropriate mask)</li>
+                    <li>Keep important content within the center 80% of the icon</li>
+                    <li>Use high-resolution images (1024x1024px minimum)</li>
+                    <li>Avoid text in icons (it may be too small to read)</li>
+                </ul>
+
+                <h2>Splash Screen</h2>
+                <p>The splash screen is the first screen users see when launching your app. To customize it:</p>
+                <ol>
+                    <li>Create your splash screen image:
+                        <ul>
+                            <li><strong>Recommended size:</strong> 1242x2436px (iPhone X and newer) or 2048x2732px (iPad)</li>
+                            <li><strong>Format:</strong> PNG with transparency support</li>
+                            <li><strong>Content:</strong> Your logo or app branding centered on the screen</li>
+                        </ul>
+                    </li>
+                    <li>Save your splash screen to the <code>assets/</code> folder:
+                        <ul>
+                            <li><code>assets/splash.png</code> - Your splash screen</li>
+                        </ul>
+                    </li>
+                    <li>Update <code>app.config.js</code>:
+                        <pre><code class="language-javascript">const brands = {
+  codecanyon: {
+    splash: './assets/splash.png', // Your splash screen
+    // ...
+  }
+};
+
+// In the expo config:
+splash: {
+  image: currentBrand.splash,
+  resizeMode: 'contain',
+  backgroundColor: '#ffffff', // Change this to match your design
+}</code></pre>
+                    </li>
+                    <li>Customize the background color in <code>app.config.js</code> to match your splash screen design</li>
+                </ol>
+                <p><strong>Note:</strong> The splash screen also appears in the About screen. Make sure your splash image is appropriate for both contexts.</p>
+
+                <h2>Favicon (Web)</h2>
+                <p>For web builds, you'll need a favicon:</p>
+                <ol>
+                    <li>Create a favicon file:
+                        <ul>
+                            <li><strong>Size:</strong> 32x32px or 48x48px</li>
+                            <li><strong>Format:</strong> PNG or ICO</li>
+                        </ul>
+                    </li>
+                    <li>Save it to <code>assets/favicon.png</code></li>
+                    <li>The configuration in <code>app.config.js</code> will automatically use it:
+                        <pre><code class="language-javascript">web: {
+  favicon: currentBrand.favicon,
+}</code></pre>
+                    </li>
+                </ol>
+
+                <h2>About Screen Logo</h2>
+                <p>The About screen displays your splash screen image as the app logo. To customize it:</p>
+                <ol>
+                    <li>Update <code>src/screens/shared/AboutScreen.tsx</code>:
+                        <pre><code class="language-typescript">// The About screen uses the splash image
+&lt;Image
+  source={require('../../../assets/splash.png')}
+  style={styles.logoImage}
+  resizeMode="contain"
+/&gt;</code></pre>
+                    </li>
+                    <li>If you want to use a different image for the About screen, replace the <code>require()</code> path with your custom logo file</li>
+                </ol>
+
+                <h2>Lesson Images</h2>
+                <p>To customize lesson images displayed throughout the app:</p>
+                <ol>
+                    <li>Add your lesson images to the <code>assets/lessons/</code> folder</li>
+                    <li>Update <code>src/screens/instructor/CreateLessonScreen.tsx</code> and <code>src/screens/instructor/EditLessonScreen.tsx</code>:
+                        <pre><code class="language-typescript">// In CreateLessonScreen.tsx and EditLessonScreen.tsx
+const LESSON_IMAGES = [
+  require('../../../assets/lessons/salsa-1.jpg'),
+  require('../../../assets/lessons/salsa-2.jpg'),
+  require('../../../assets/lessons/bachata-1.jpg'),
+  // Add your custom lesson images here
+];</code></pre>
+                    </li>
+                    <li>Update the <code>imageUrl</code> values in <code>src/data/lessons.json</code> to match your image filenames</li>
+                </ol>
+                <p><strong>Recommended Image Specifications:</strong></p>
+                <ul>
+                    <li><strong>Aspect Ratio:</strong> 16:9 (recommended for lesson cards)</li>
+                    <li><strong>Minimum Resolution:</strong> 800x450px</li>
+                    <li><strong>Format:</strong> JPG or PNG</li>
+                    <li><strong>File Size:</strong> Keep under 500KB for optimal performance</li>
+                </ul>
+
+                <h2>Bundle Identifier and Package Name</h2>
+                <p>To change your app's bundle identifier (iOS) and package name (Android):</p>
+                <ol>
+                    <li>Open <code>app.config.js</code></li>
+                    <li>Update the <code>bundleIdentifier</code> (iOS) and <code>package</code> (Android) for your brand:
+                        <pre><code class="language-javascript">const brands = {
+  codecanyon: {
+    bundleIdentifier: 'com.yourcompany.yourapp', // iOS
+    package: 'com.yourcompany.yourapp', // Android
+    // ...
+  }
+};</code></pre>
+                    </li>
+                    <li><strong>Important:</strong> Once you publish to app stores, you cannot change these identifiers. Choose them carefully!</li>
+                </ol>
+                <p><strong>Naming Convention:</strong></p>
+                <ul>
+                    <li>Use reverse domain notation: <code>com.yourcompany.appname</code></li>
+                    <li>Use lowercase letters and numbers only</li>
+                    <li>No spaces or special characters</li>
+                    <li>Must be unique (check availability before publishing)</li>
+                </ul>
+
+                <h2>Translation Files (App Name in UI)</h2>
+                <p>To update the app name displayed in the UI (About screen, etc.):</p>
+                <ol>
+                    <li>Open <code>src/locales/tr.json</code> and <code>src/locales/en.json</code></li>
+                    <li>Update the <code>about.appNameCodecanyon</code> key:
+                        <pre><code class="language-json">{
+  "about": {
+    "appNameCodecanyon": "Your App Name",
+    // ...
+  }
+}</code></pre>
+                    </li>
+                    <li>Update <code>about.copyrightCodecanyon</code> to include your app name:
+                        <pre><code class="language-json">{
+  "about": {
+    "copyrightCodecanyon": "© 2024 Your App Name. All rights reserved."
+  }
+}</code></pre>
+                    </li>
+                </ol>
+
+                <h2>Quick Checklist</h2>
+                <p>Before publishing, ensure you've customized:</p>
+                <ul>
+                    <li>✅ App name in <code>app.config.js</code> → Update <code>brands.codecanyon.name</code></li>
+                    <li>✅ App icon (<code>assets/icon.png</code>)</li>
+                    <li>✅ Adaptive icon for Android (<code>assets/adaptive-icon.png</code>)</li>
+                    <li>✅ Splash screen (<code>assets/splash.png</code>)</li>
+                    <li>✅ Favicon for web (<code>assets/favicon.png</code>)</li>
+                    <li>✅ Bundle identifier and package name → Update <code>brands.codecanyon.bundleIdentifier</code> and <code>brands.codecanyon.package</code></li>
+                    <li>✅ App name in translation files → Update <code>about.appNameCodecanyon</code> in <code>src/locales/tr.json</code> and <code>src/locales/en.json</code></li>
+                    <li>✅ Copyright text in translation files → Update <code>about.copyrightCodecanyon</code></li>
+                    <li>✅ Lesson images (if customizing)</li>
+                </ul>
+
+                <h2>Testing Your Branding</h2>
+                <p>After making branding changes:</p>
+                <ol>
+                    <li>Clear the Expo cache:
+                        <pre><code class="language-bash">npx expo start --clear</code></pre>
+                    </li>
+                    <li>Rebuild the app (icons and splash screens require a rebuild):
+                        <pre><code class="language-bash"># For iOS
+npm run ios
+
+# For Android
+npm run android</code></pre>
+                    </li>
+                    <li>Check the About screen to verify your splash screen/logo appears correctly</li>
+                    <li>Verify the app name appears correctly in the app header and About screen</li>
+                </ol>
             </section>
 
             <section id="architecture">

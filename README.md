@@ -1,4 +1,4 @@
-# Feriha Dance Platform - Mobile React Native App
+# Dancer Community - Mobile React Native App
 
 A comprehensive mobile application that connects dance students with professional instructors. Built with React Native, TypeScript, and Expo.
 
@@ -21,7 +21,7 @@ A comprehensive mobile application that connects dance students with professiona
 
 ## Project Overview
 
-Feriha Dance Platform is a modern mobile application that brings dance enthusiasts together with professional instructors. The app supports multiple dance styles including Salsa, Bachata, Kizomba, Tango, and Modern Dance.
+Dancer Community is a modern mobile application that brings dance enthusiasts together with professional instructors. The app supports multiple dance styles including Salsa, Bachata, Kizomba, Tango, and Modern Dance.
 
 ### Key Features
 
@@ -247,32 +247,26 @@ Dance-Platform-Mobile-RN/
 
 ## Configuration
 
-### App Configuration (`app.json`)
+### App Configuration (`app.config.js`)
 
-The `app.json` file contains Expo configuration:
+The `app.config.js` file contains Expo configuration with brand-specific settings:
 
-```json
-{
-  "expo": {
-    "name": "Dance Platform",
-    "slug": "dance-platform",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "bundleIdentifier": "com.danceplatform.app"
-    },
-    "android": {
-      "package": "com.danceplatform.app"
-    }
+```javascript
+const brands = {
+  codecanyon: {
+    name: 'Dancer Community',
+    slug: 'dancer-community',
+    bundleIdentifier: 'com.dancercommunity.app',
+    package: 'com.dancercommunity.app',
+    icon: './assets/icon.png',
+    splash: './assets/splash.png',
+    favicon: './assets/favicon.png',
+    // ...
   }
-}
+};
 ```
+
+To customize your app name, icon, splash screen, and other branding elements, update the `codecanyon` brand object in `app.config.js`. See the [Branding Your App](#branding-your-app) section in the documentation for detailed instructions.
 
 ### Environment Variables
 
@@ -650,83 +644,40 @@ When reporting issues, please include:
 - Error messages or logs
 - Screenshots (if applicable)
 
-## Branch Strategy
+## App Configuration
 
-This project uses a multi-brand branching strategy to maintain two different versions of the application:
+### Brand Configuration
 
-### Branches
+The app uses a brand-based configuration system. All branding elements are managed in `app.config.js`:
 
-1. **`main`** (Default)
-   - Base branch with all features
-   - Default brand: `codecanyon` (Dancer Community)
-   - All modules enabled (chat, notifications)
-   - Uses mock data (no Firebase/Stripe)
+- **App Name**: Configured in `brands.codecanyon.name`
+- **Splash Screen**: `assets/splash.png`
+- **Favicon**: `assets/favicon.png`
+- **Bundle Identifiers**: Configured in `brands.codecanyon.bundleIdentifier` and `brands.codecanyon.package`
+- **Feature Flags**: Chat and notifications are enabled by default
+- **Backend Integration**: Uses mock data (Firebase/Stripe integration can be added)
 
-2. **`codecanyon-template`**
-   - Template version for Codecanyon sales
-   - Brand: `codecanyon` (Dancer Community)
-   - **Features**: Chat ✅, Notifications ✅
-   - **Integrations**: Firebase ❌, Stripe ❌
-   - Uses mock data
-   - All modules visible and functional
+### Customizing Your App
 
-3. **`feriha-production`**
-   - Production version for personal use
-   - Brand: `feriha` (Feriha Dance Platform)
-   - **Features**: Chat ❌, Notifications ❌
-   - **Integrations**: Firebase ✅, Stripe ✅
-   - Full backend integration
-   - Chat and notification modules hidden
+To customize your app's branding:
 
-### Switching Between Brands
+1. **App Name**: Update `brands.codecanyon.name` in `app.config.js`
+2. **Icons**: Replace `assets/icon.png` and `assets/adaptive-icon.png`
+3. **Splash Screen**: Replace `assets/splash.png`
+4. **Favicon**: Replace `assets/favicon.png`
+5. **Bundle Identifiers**: Update `brands.codecanyon.bundleIdentifier` and `brands.codecanyon.package`
+6. **Translation Files**: Update `about.appNameCodecanyon` and `about.copyrightCodecanyon` in `src/locales/tr.json` and `src/locales/en.json`
 
-You can override the default brand using environment variables:
+For detailed instructions, see the [Branding Your App](#branding-your-app) section in the documentation (`docs/index.html`).
+
+### Building for Production
 
 ```bash
-# Run Codecanyon version
-APP_BRAND=codecanyon npm start
-
-# Run Feriha version
-APP_BRAND=feriha npm start
-```
-
-### Brand-Specific Configuration
-
-Brand configuration is managed in `src/config/appConfig.ts`:
-
-- **App Name**: Different app names per brand
-- **Splash Screen**: Different splash images (`splash.png` vs `splash-feriha.png`)
-- **Favicon**: Different favicons (`favicon.png` vs `favicon-feriha.png`)
-- **Bundle Identifiers**: Different package names per brand
-- **Feature Flags**: Chat and notifications can be enabled/disabled
-- **Backend Integration**: Firebase and Stripe can be enabled/disabled
-
-### Building for Different Brands
-
-```bash
-# Build Codecanyon version
+# Build for iOS
 npm run build:codecanyon:ios
+
+# Build for Android
 npm run build:codecanyon:android
-
-# Build Feriha version
-npm run build:feriha:ios
-npm run build:feriha:android
-```
-
-### Maintenance Guidelines
-
-1. **Main Branch**: Keep as the base with all features
-2. **Feature Development**: Develop on `main`, then merge to appropriate branches
-3. **Brand-Specific Changes**: Make changes directly on the target branch
-4. **Shared Code**: Most code is shared; only configuration differs
-5. **Assets**: Brand-specific assets (icons, splash screens) should be in `assets/` folder
-
-### Branch Workflow
-
-```
-main (base)
-├── codecanyon-template (all features, mock data)
-└── feriha-production (selected features, Firebase/Stripe)
 ```
 
 ## License
