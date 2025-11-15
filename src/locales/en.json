@@ -236,7 +236,8 @@
     "now": "Now",
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} hours ago",
-    "instructorSuffix": "Instructor"
+    "instructorSuffix": "Instructor",
+    "remove": "remove"
   },
   "payment": {
     "title": "Payment Screen",
@@ -366,17 +367,17 @@
     "contactUs": "Contact Us"
   },
   "about": {
-    "appName": "Dance Platform",
+    "appName": "Feriha Dance Platform",
     "version": "Version",
     "aboutApp": "About the App",
-    "description": "Dance Platform is a modern platform that brings dance enthusiasts together with the best instructors. You can take lessons in Salsa, Bachata, Kizomba, Tango, and Modern dance styles, create your own lessons, and be part of the dance community.",
+    "description": "Feriha Dance Platform is a modern platform that brings dance enthusiasts together with the best instructors. You can take lessons in Salsa, Bachata, Kizomba, Tango, and Modern dance styles, create your own lessons, and be part of the dance community.",
     "features": "Features",
     "feature1": "Wide variety of dance styles",
     "feature2": "Experienced and certified instructors",
     "feature3": "Flexible lesson schedules",
     "feature4": "Secure payment system",
     "contact": "Contact",
-    "copyright": "© 2024 Dance Platform. All rights reserved."
+    "copyright": "© 2024 Feriha Dance Platform. All rights reserved."
   },
   "privacyPolicy": {
     "title": "Privacy Policy",

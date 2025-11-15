@@ -43,23 +43,62 @@ export const ChatScreen: React.FC = () => {
       const partnerId = message.senderId === user.id ? message.receiverId : message.senderId;
       const partner = MockDataService.getUserById(partnerId);
       
-      if (!partner) return;
+      console.log('[ChatScreen] Processing message:', {
+        messageId: message.id,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        currentUserId: user.id,
+        partnerId,
+        partner: partner ? {
+          id: partner.id,
+          name: partner.name,
+          role: partner.role,
+          avatar: partner.avatar,
+          hasAvatar: !!partner.avatar,
+        } : null,
+      });
+      
+      if (!partner) {
+        console.warn('[ChatScreen] Partner not found for partnerId:', partnerId);
+        return;
+      }
 
       const conversationId = [user.id, partnerId].sort().join('_');
       
       if (!conversationMap.has(conversationId)) {
-        conversationMap.set(conversationId, {
+        const lessons = MockDataService.getLessonsByInstructor(partnerId);
+        const category = lessons[0]?.category || t('chat.instructor');
+        const userName = partner.role === 'instructor' 
+          ? `${partner.name} - ${category} ${t('chat.instructorSuffix')}`
+          : `${t('chat.student')} - ${partner.name}`;
+        
+        // Use getAvatarSource to ensure default avatar is used if partner.avatar is empty
+        const avatarSource = getAvatarSource(partner.avatar, partnerId);
+        const userAvatar = avatarSource.uri || '';
+        
+        const conversation = {
           id: conversationId,
           userId: partnerId,
-          userName: partner.role === 'instructor' 
-            ? `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || t('chat.instructor')} ${t('chat.instructorSuffix')}`
-            : `${t('chat.student')} - ${partner.name}`,
-          userAvatar: partner.avatar || '',
+          userName,
+          userAvatar,
           lastMessage: message.message,
           lastMessageTime: message.createdAt,
           unreadCount: 0,
           isOnline: Math.random() > 0.5, // Mock online status
+        };
+        
+        console.log('[ChatScreen] Creating new conversation:', {
+          conversationId,
+          userId: conversation.userId,
+          userName: conversation.userName,
+          userAvatar: conversation.userAvatar,
+          hasAvatar: !!conversation.userAvatar,
+          partnerName: partner.name,
+          partnerRole: partner.role,
+          category,
         });
+        
+        conversationMap.set(conversationId, conversation);
       } else {
         const conv = conversationMap.get(conversationId)!;
         const messageTime = new Date(message.createdAt);
@@ -77,9 +116,19 @@ export const ChatScreen: React.FC = () => {
     });
 
     // Sort by last message time
-    return Array.from(conversationMap.values()).sort((a, b) => {
+    const sortedConversations = Array.from(conversationMap.values()).sort((a, b) => {
       return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
     });
+    
+    console.log('[ChatScreen] Final conversations:', sortedConversations.map(conv => ({
+      id: conv.id,
+      userId: conv.userId,
+      userName: conv.userName,
+      userAvatar: conv.userAvatar,
+      hasAvatar: !!conv.userAvatar,
+    })));
+    
+    return sortedConversations;
   }, [user, t]);
 
   const formatMessageTime = (dateString: string): string => {
@@ -228,6 +277,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 56,
     height: 56,
+    flexShrink: 0,
   },
   avatar: {
     width: 56,

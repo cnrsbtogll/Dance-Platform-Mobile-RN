@@ -35,7 +35,24 @@ export const ChatDetailScreen: React.FC = () => {
   const conversationId = params?.conversationId;
   const partnerId = params?.userId || (conversationId ? conversationId.split('_').find(id => id !== user?.id) : null);
   
+  console.log('[ChatDetailScreen] Route params:', {
+    conversationId,
+    userId: params?.userId,
+    partnerId,
+    currentUserId: user?.id,
+  });
+  
   const partner = partnerId ? MockDataService.getUserById(partnerId) : null;
+  
+  console.log('[ChatDetailScreen] Partner info:', partner ? {
+    id: partner.id,
+    name: partner.name,
+    role: partner.role,
+    avatar: partner.avatar,
+    hasAvatar: !!partner.avatar,
+    email: partner.email,
+    bio: partner.bio,
+  } : null);
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -63,42 +80,39 @@ export const ChatDetailScreen: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (!partner) return;
-    
     navigation.setOptions({
       headerBackTitle: '',
       headerTintColor: palette.text.primary,
       headerStyle: {
         backgroundColor: palette.background,
       },
-      headerTitle: () => (
-        <View style={styles.headerTitleContainer}>
-          <Image
-            source={getAvatarSource(partner.avatar, partner.id)}
-            style={styles.headerAvatar}
-          />
-          <View style={styles.headerTitleText}>
-            <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-              {partner.name}
-            </Text>
-            <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-              {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
-            </Text>
+      headerTitle: () => {
+        if (!partner) {
+          return (
+            <View style={styles.headerTitleContainer}>
+              <Text style={[styles.headerName, { color: palette.text.secondary }]} numberOfLines={1}>
+                {t('chat.user')}
+              </Text>
+            </View>
+          );
+        }
+        return (
+          <View style={styles.headerTitleContainer}>
+            <Image
+              source={getAvatarSource(partner.avatar, partner.id)}
+              style={styles.headerAvatar}
+            />
+            <View style={styles.headerTitleText}>
+              <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
+                {partner.name}
+              </Text>
+              <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
+                {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
+              </Text>
+            </View>
           </View>
-        </View>
-      ),
-      headerRight: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => {}}
-        >
-          <MaterialIcons
-            name="more-vert"
-            size={24}
-            color={palette.text.primary}
-          />
-        </TouchableOpacity>
-      ),
+        );
+      },
     });
   }, [navigation, partner, palette, t]);
 
@@ -355,6 +369,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
+  },
+  headerRemoveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginRight: spacing.sm,
+    gap: spacing.xs,
+  },
+  headerRemoveText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
   },
   messagesContainer: {
     flex: 1,

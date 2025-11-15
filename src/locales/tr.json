@@ -236,7 +236,8 @@
     "now": "Şimdi",
     "minutesAgo": "{{count}} dk önce",
     "hoursAgo": "{{count}} saat önce",
-    "instructorSuffix": "Eğitmeni"
+    "instructorSuffix": "Eğitmeni",
+    "remove": "kaldır"
   },
   "payment": {
     "title": "Ödeme Ekranı",
@@ -366,17 +367,17 @@
     "contactUs": "Bize Ulaşın"
   },
   "about": {
-    "appName": "Dance Platform",
+    "appName": "Feriha Dance Platform",
     "version": "Versiyon",
     "aboutApp": "Uygulama Hakkında",
-    "description": "Dance Platform, dans tutkunlarını en iyi eğitmenlerle buluşturan modern bir platformdur. Salsa, Bachata, Kizomba, Tango ve Modern dans türlerinde dersler alabilir, kendi derslerinizi oluşturabilir ve dans topluluğunun bir parçası olabilirsiniz.",
+    "description": "Feriha Dance Platform, dans tutkunlarını en iyi eğitmenlerle buluşturan modern bir platformdur. Salsa, Bachata, Kizomba, Tango ve Modern dans türlerinde dersler alabilir, kendi derslerinizi oluşturabilir ve dans topluluğunun bir parçası olabilirsiniz.",
     "features": "Özellikler",
     "feature1": "Geniş dans türü seçeneği",
     "feature2": "Deneyimli ve sertifikalı eğitmenler",
     "feature3": "Esnek ders programları",
     "feature4": "Güvenli ödeme sistemi",
     "contact": "İletişim",
-    "copyright": "© 2024 Dance Platform. Tüm hakları saklıdır."
+    "copyright": "© 2024 Feriha Dance Platform. Tüm hakları saklıdır."
   },
   "privacyPolicy": {
     "title": "Gizlilik Politikası",

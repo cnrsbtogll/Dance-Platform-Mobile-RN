@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,24 +32,25 @@ export const AboutScreen: React.FC = () => {
   }, [navigation, isDarkMode, palette, t, user?.role]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView 
         style={[styles.scrollView, { backgroundColor: palette.background }]} 
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
+        {/* App Logo/Icon - En üstte */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../../assets/splash.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={[styles.appVersion, { color: palette.text.secondary }]}>
+            {t('about.version')} 1.0.0
+          </Text>
+        </View>
+
         <View style={styles.section}>
-          {/* App Logo/Icon */}
-          <View style={styles.logoContainer}>
-            <View style={[styles.logoPlaceholder, { backgroundColor: colors.student.primary }]}>
-              <MaterialIcons name="music-note" size={48} color="#ffffff" />
-            </View>
-            <Text style={[styles.appName, { color: palette.text.primary }]}>
-              {t('about.appName')}
-            </Text>
-            <Text style={[styles.appVersion, { color: palette.text.secondary }]}>
-              {t('about.version')} 1.0.0
-            </Text>
-          </View>
 
           {/* App Description */}
           <Card style={[styles.infoCard, { backgroundColor: palette.card }]}>
@@ -102,7 +103,7 @@ export const AboutScreen: React.FC = () => {
             <View style={styles.contactItem}>
               <MaterialIcons name="email" size={20} color={palette.text.secondary} />
               <Text style={[styles.contactText, { color: palette.text.secondary }]}>
-                support@danceplatform.com
+                cnrsbtogll@gmail.com
               </Text>
             </View>
             <View style={styles.contactItem}>
@@ -119,7 +120,7 @@ export const AboutScreen: React.FC = () => {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -130,30 +131,28 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingTop: 0,
+  },
   section: {
     padding: spacing.md,
+    paddingTop: spacing.sm,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
-    marginTop: spacing.lg,
-  },
-  logoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: borderRadius.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing.md,
+    marginTop: 0,
+    paddingTop: 0,
   },
-  appName: {
-    fontSize: typography.fontSize.xxl,
-    fontWeight: typography.fontWeight.bold,
-    marginBottom: spacing.xs,
+  logoImage: {
+    width: 220,
+    height: 220,
+    marginBottom: 0,
   },
   appVersion: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
+    marginTop: -spacing.md,
   },
   infoCard: {
     marginBottom: spacing.md,

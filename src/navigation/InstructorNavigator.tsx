@@ -11,7 +11,7 @@ import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
-import { NewChatScreen as InstructorNewChatScreen } from '../screens/instructor/NewChatScreen';
+import { InstructorNewChatScreen } from '../screens/instructor/NewChatScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { EarningsDetailsScreen } from '../screens/instructor/EarningsDetailsScreen';
