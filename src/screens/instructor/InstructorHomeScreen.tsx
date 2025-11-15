@@ -126,7 +126,7 @@ export const InstructorHomeScreen: React.FC = () => {
           </Text>
         </View>
       ),
-      headerRight: () => (
+      headerRight: appConfig.features.notifications ? () => (
         <TouchableOpacity
           style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
           onPress={() => {
@@ -165,7 +165,7 @@ export const InstructorHomeScreen: React.FC = () => {
             )}
           </View>
         </TouchableOpacity>
-      ),
+      ) : undefined,
     });
   }, [navigation, unreadCount, isDarkMode, palette, t]);
 

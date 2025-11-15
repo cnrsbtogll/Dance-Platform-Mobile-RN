@@ -368,16 +368,19 @@
   },
   "about": {
     "appName": "Feriha Dance Platform",
+    "appNameCodecanyon": "Dancer Community",
     "version": "Version",
     "aboutApp": "About the App",
     "description": "Feriha Dance Platform is a modern platform that brings dance enthusiasts together with the best instructors. You can take lessons in Salsa, Bachata, Kizomba, Tango, and Modern dance styles, create your own lessons, and be part of the dance community.",
+    "descriptionCodecanyon": "Dancer Community is a comprehensive platform that brings dance enthusiasts together. You can take lessons in Salsa, Bachata, Kizomba, Tango, and Modern dance styles, create lessons as an instructor, and be an active member of the dance community with live chat features.",
     "features": "Features",
     "feature1": "Wide variety of dance styles",
     "feature2": "Experienced and certified instructors",
     "feature3": "Flexible lesson schedules",
     "feature4": "Secure payment system",
     "contact": "Contact",
-    "copyright": "© 2024 Feriha Dance Platform. All rights reserved."
+    "copyright": "© 2024 Feriha Dance Platform. All rights reserved.",
+    "copyrightCodecanyon": "© 2024 Dancer Community. All rights reserved."
   },
   "privacyPolicy": {
     "title": "Privacy Policy",

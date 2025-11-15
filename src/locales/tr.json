@@ -368,16 +368,19 @@
   },
   "about": {
     "appName": "Feriha Dance Platform",
+    "appNameCodecanyon": "Dancer Community",
     "version": "Versiyon",
     "aboutApp": "Uygulama Hakkında",
     "description": "Feriha Dance Platform, dans tutkunlarını en iyi eğitmenlerle buluşturan modern bir platformdur. Salsa, Bachata, Kizomba, Tango ve Modern dans türlerinde dersler alabilir, kendi derslerinizi oluşturabilir ve dans topluluğunun bir parçası olabilirsiniz.",
+    "descriptionCodecanyon": "Dancer Community, dans tutkunlarını bir araya getiren kapsamlı bir platformdur. Salsa, Bachata, Kizomba, Tango ve Modern dans türlerinde dersler alabilir, eğitmen olarak derslerinizi oluşturabilir ve canlı sohbet özellikleriyle dans topluluğunun aktif bir üyesi olabilirsiniz.",
     "features": "Özellikler",
     "feature1": "Geniş dans türü seçeneği",
     "feature2": "Deneyimli ve sertifikalı eğitmenler",
     "feature3": "Esnek ders programları",
     "feature4": "Güvenli ödeme sistemi",
     "contact": "İletişim",
-    "copyright": "© 2024 Feriha Dance Platform. Tüm hakları saklıdır."
+    "copyright": "© 2024 Feriha Dance Platform. Tüm hakları saklıdır.",
+    "copyrightCodecanyon": "© 2024 Dancer Community. Tüm hakları saklıdır."
   },
   "privacyPolicy": {
     "title": "Gizlilik Politikası",

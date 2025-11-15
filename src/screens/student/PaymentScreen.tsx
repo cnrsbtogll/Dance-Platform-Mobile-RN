@@ -11,6 +11,8 @@ import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { paymentService } from '../../services/backendService';
+import { appConfig } from '../../config/appConfig';
 
 export const PaymentScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -80,7 +82,7 @@ export const PaymentScreen: React.FC = () => {
     setCvv(cleaned.substring(0, 3));
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!lesson || !params?.date || !params?.time) return;
 
     // Validate form if not using saved card
@@ -91,14 +93,29 @@ export const PaymentScreen: React.FC = () => {
       }
     }
 
-    // Create booking
-    const booking = createBooking(lesson.id, params.date, params.time, lesson.price);
-    
-    // Update payment status
-    // In real app, this would call payment API
-    
-    // Navigate back or to success screen
-    navigation.goBack();
+    try {
+      // Process payment using backend service
+      const paymentResult = await paymentService.processPayment(
+        lesson.price,
+        instructor?.currency || 'USD',
+        useSavedCard ? 'saved_card' : cardNumber.replace(/\s/g, '')
+      );
+
+      if (paymentResult.success) {
+        // Create booking
+        const booking = createBooking(lesson.id, params.date, params.time, lesson.price);
+        
+        // Navigate back or to success screen
+        navigation.goBack();
+      } else {
+        // Show error message
+        console.error('Payment failed:', paymentResult.error);
+        // In real app, show alert to user
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      // In real app, show alert to user
+    }
   };
 
   if (!lesson) {

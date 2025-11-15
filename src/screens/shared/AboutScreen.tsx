@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { appConfig } from '../../config/appConfig';
 import { Card } from '../../components/common/Card';
 
 export const AboutScreen: React.FC = () => {
@@ -41,7 +42,11 @@ export const AboutScreen: React.FC = () => {
         {/* App Logo/Icon - En üstte */}
         <View style={styles.logoContainer}>
           <Image
-            source={require('../../../assets/splash.png')}
+            source={
+              appConfig.brand === 'feriha'
+                ? require('../../../assets/splash-feriha.png')
+                : require('../../../assets/splash.png')
+            }
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -58,7 +63,9 @@ export const AboutScreen: React.FC = () => {
               {t('about.aboutApp')}
             </Text>
             <Text style={[styles.description, { color: palette.text.secondary }]}>
-              {t('about.description')}
+              {appConfig.brand === 'codecanyon'
+                ? t('about.descriptionCodecanyon')
+                : t('about.description')}
             </Text>
           </Card>
 
@@ -116,7 +123,9 @@ export const AboutScreen: React.FC = () => {
 
           {/* Copyright */}
           <Text style={[styles.copyright, { color: palette.text.secondary }]}>
-            {t('about.copyright')}
+            {appConfig.brand === 'codecanyon'
+              ? t('about.copyrightCodecanyon')
+              : t('about.copyright')}
           </Text>
         </View>
       </ScrollView>

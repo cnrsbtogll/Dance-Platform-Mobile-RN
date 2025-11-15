@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, getPalette } from '../utils/theme';
 import { useThemeStore } from '../store/useThemeStore';
+import { appConfig } from '../config/appConfig';
 import { StudentHomeScreen } from '../screens/student/StudentHomeScreen';
 import { MyLessonsScreen } from '../screens/student/MyLessonsScreen';
 import { ChatScreen } from '../screens/student/ChatScreen';
@@ -111,26 +112,28 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
-        name="Chat"
-        component={ChatScreen}
-        options={{
-          title: t('navigation.chat'),
-          headerShown: false, // Custom header kullanıyoruz
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={{
-              fontSize: typography.fontSize.xs,
-              fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color,
-            }}>
-              {t('navigation.chat')}
-            </Text>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      {appConfig.features.chat && (
+        <Tab.Screen
+          name="Chat"
+          component={ChatScreen}
+          options={{
+            title: t('navigation.chat'),
+            headerShown: false, // Custom header kullanıyoruz
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color,
+              }}>
+                {t('navigation.chat')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size }) => (
+              <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -198,31 +201,35 @@ export const StudentNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
-        name="ChatDetail"
-        component={ChatDetailScreen}
-        options={{ 
-          headerShown: true,
-          headerTitle: '', // Will be set dynamically in ChatDetailScreen
-          headerBackTitle: '',
-          headerTintColor: palette.text.primary,
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            color: palette.text.primary,
-          },
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="NewChat"
-        component={NewChatScreen}
-        options={{ 
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
+      {appConfig.features.chat && (
+        <>
+          <Stack.Screen
+            name="ChatDetail"
+            component={ChatDetailScreen}
+            options={{ 
+              headerShown: true,
+              headerTitle: '', // Will be set dynamically in ChatDetailScreen
+              headerBackTitle: '',
+              headerTintColor: palette.text.primary,
+              headerStyle: {
+                backgroundColor: palette.background,
+              },
+              headerTitleStyle: {
+                color: palette.text.primary,
+              },
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="NewChat"
+            component={NewChatScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="Payment"
         component={PaymentScreen}
@@ -239,23 +246,25 @@ export const StudentNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
-        name="Notification"
-        component={NotificationScreen}
-        options={{ 
-          headerShown: true,
-          headerTitle: t('notifications.title'),
-          headerBackTitle: '',
-          headerTintColor: palette.text.primary,
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            color: palette.text.primary,
-          },
-          presentation: 'card',
-        }}
-      />
+      {appConfig.features.notifications && (
+        <Stack.Screen
+          name="Notification"
+          component={NotificationScreen}
+          options={{ 
+            headerShown: true,
+            headerTitle: t('notifications.title'),
+            headerBackTitle: '',
+            headerTintColor: palette.text.primary,
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              color: palette.text.primary,
+            },
+            presentation: 'card',
+          }}
+        />
+      )}
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}

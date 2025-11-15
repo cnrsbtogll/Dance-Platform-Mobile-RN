@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { appConfig } from '../../config/appConfig';
 import { MockDataService } from '../../services/mockDataService';
 import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
@@ -68,7 +69,7 @@ export const StudentHomeScreen: React.FC = () => {
           </Text>
         </View>
       ),
-      headerRight: () => (
+      headerRight: appConfig.features.notifications ? () => (
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => {
@@ -90,7 +91,7 @@ export const StudentHomeScreen: React.FC = () => {
             )}
           </View>
         </TouchableOpacity>
-      ),
+      ) : undefined,
       headerTitle: '',
     });
   }, [navigation, user, unreadCount, isDarkMode]);

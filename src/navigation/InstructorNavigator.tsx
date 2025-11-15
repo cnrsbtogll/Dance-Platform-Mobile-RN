@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing, borderRadius, getPalette } from '../utils/theme';
 import { useThemeStore } from '../store/useThemeStore';
+import { appConfig } from '../config/appConfig';
 import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
@@ -129,26 +130,28 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
-        name="Messages"
-        component={InstructorChatScreen}
-        options={{
-          title: t('navigation.chat'),
-          headerShown: false,
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={{
-              fontSize: typography.fontSize.xs,
-              fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color,
-            }}>
-              {t('navigation.chat')}
-            </Text>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      {appConfig.features.chat && (
+        <Tab.Screen
+          name="Messages"
+          component={InstructorChatScreen}
+          options={{
+            title: t('navigation.chat'),
+            headerShown: false,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color,
+              }}>
+                {t('navigation.chat')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size }) => (
+              <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
       <Tab.Screen
         name="Profile"
         component={InstructorProfileScreen}
@@ -232,48 +235,54 @@ export const InstructorNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
-        name="ChatDetail"
-        component={ChatDetailScreen}
-        options={{ 
-          headerShown: true,
-          headerTitle: '', // Will be set dynamically in ChatDetailScreen
-          headerBackTitle: '',
-          headerTintColor: palette.text.primary,
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            color: palette.text.primary,
-          },
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="NewChat"
-        component={InstructorNewChatScreen}
-        options={{ 
-          headerShown: false,
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="Notification"
-        component={NotificationScreen}
-        options={{ 
-          headerShown: true,
-          headerTitle: t('notifications.title'),
-          headerBackTitle: '',
-          headerTintColor: palette.text.primary,
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            color: palette.text.primary,
-          },
-          presentation: 'card',
-        }}
-      />
+      {appConfig.features.chat && (
+        <>
+          <Stack.Screen
+            name="ChatDetail"
+            component={ChatDetailScreen}
+            options={{ 
+              headerShown: true,
+              headerTitle: '', // Will be set dynamically in ChatDetailScreen
+              headerBackTitle: '',
+              headerTintColor: palette.text.primary,
+              headerStyle: {
+                backgroundColor: palette.background,
+              },
+              headerTitleStyle: {
+                color: palette.text.primary,
+              },
+              presentation: 'card',
+            }}
+          />
+          <Stack.Screen
+            name="NewChat"
+            component={InstructorNewChatScreen}
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
+        </>
+      )}
+      {appConfig.features.notifications && (
+        <Stack.Screen
+          name="Notification"
+          component={NotificationScreen}
+          options={{ 
+            headerShown: true,
+            headerTitle: t('notifications.title'),
+            headerBackTitle: '',
+            headerTintColor: palette.text.primary,
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              color: palette.text.primary,
+            },
+            presentation: 'card',
+          }}
+        />
+      )}
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
