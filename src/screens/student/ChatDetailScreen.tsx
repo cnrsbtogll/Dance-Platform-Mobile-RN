@@ -9,6 +9,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 interface Message {
   id: string;
@@ -73,7 +74,7 @@ export const ChatDetailScreen: React.FC = () => {
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <Image
-            source={{ uri: partner.avatar || '' }}
+            source={getAvatarSource(partner.avatar, partner.id)}
             style={styles.headerAvatar}
           />
           <View style={styles.headerTitleText}>

@@ -8,6 +8,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 import { Currency } from '../../types';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 interface SettingItem {
   id: string;
@@ -249,20 +250,10 @@ export const InstructorProfileScreen: React.FC = () => {
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          {user?.avatar ? (
-            <Image
-              source={{ uri: user.avatar }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: palette.card }]}>
-              <MaterialIcons
-                name="person"
-                size={48}
-                color={palette.text.secondary}
-              />
-            </View>
-          )}
+          <Image
+            source={getAvatarSource(user?.avatar, user?.id)}
+            style={styles.avatar}
+          />
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || t('profile.instructor')}</Text>
             <TouchableOpacity onPress={() => {

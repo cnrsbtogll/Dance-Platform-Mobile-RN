@@ -2,8 +2,9 @@
 // Using PNG format for React Native compatibility
 // Alternative: Ready Player Me URLs can be added here for true 3D avatars
 export const AVATARS: string[] = [
-  // Animated avatars from DiceBear API (Adventurer style - animated/3D-like)
+  // Default avatar (first in array) - Alex
   'https://api.dicebear.com/7.x/adventurer/png?seed=Alex',
+  // Animated avatars from DiceBear API (Adventurer style - animated/3D-like)
   'https://api.dicebear.com/7.x/adventurer/png?seed=Jordan',
   'https://api.dicebear.com/7.x/adventurer/png?seed=Taylor',
   'https://api.dicebear.com/7.x/adventurer/png?seed=Casey',

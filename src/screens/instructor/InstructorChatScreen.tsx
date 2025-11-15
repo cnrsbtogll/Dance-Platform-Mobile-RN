@@ -9,6 +9,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 interface Conversation {
   id: string;
@@ -133,16 +134,10 @@ export const InstructorChatScreen: React.FC = () => {
                       </View>
                     ) : (
                       <>
-                        {conversation.userAvatar ? (
-                          <Image
-                            source={{ uri: conversation.userAvatar }}
-                            style={styles.avatar}
-                          />
-                        ) : (
-                          <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: palette.border }]}>
-                            <MaterialIcons name="person" size={32} color={palette.text.secondary} />
-                          </View>
-                        )}
+                        <Image
+                          source={getAvatarSource(conversation.userAvatar, conversation.userId)}
+                          style={styles.avatar}
+                        />
                         {conversation.isOnline && (
                           <View style={[styles.onlineIndicator, { borderColor: palette.card }]} />
                         )}

@@ -1,4 +1,5 @@
 import { Image } from 'react-native';
+import { AVATARS } from './avatars';
 
 // Map of image filenames to local assets
 const LESSON_IMAGES_MAP: { [key: string]: any } = {
@@ -68,5 +69,20 @@ export const getImageSource = (image: any) => {
   }
   // If it's already a require() result, return as is
   return image;
+};
+
+/**
+ * Get avatar source with default fallback
+ * If avatar is empty or null, returns the first avatar from AVATARS array
+ */
+export const getAvatarSource = (avatar?: string | null, seed?: string): { uri: string } => {
+  if (avatar && avatar.trim() !== '') {
+    return { uri: avatar };
+  }
+  
+  // Return the first avatar from AVATARS array as default
+  return { 
+    uri: AVATARS[0] || 'https://api.dicebear.com/7.x/adventurer/png?seed=default'
+  };
 };
 

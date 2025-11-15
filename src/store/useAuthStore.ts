@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User, Currency } from '../types';
 import { MockDataService } from '../services/mockDataService';
+import { AVATARS } from '../utils/avatars';
 
 interface AuthState {
   user: User | null;
@@ -25,6 +26,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (user.role === 'instructor' && !user.currency) {
         user.currency = 'USD';
       }
+      // Set default avatar if not set
+      if (!user.avatar || user.avatar.trim() === '') {
+        user.avatar = AVATARS[0] || '';
+        console.log('[AuthStore] login: Set default avatar', user.avatar);
+      }
       set({ user, isAuthenticated: true });
       return true;
     }
@@ -39,6 +45,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Set default currency for instructors if not set
     if (user && user.role === 'instructor' && !user.currency) {
       user.currency = 'USD';
+    }
+    // Set default avatar if not set
+    if (user && (!user.avatar || user.avatar.trim() === '')) {
+      user.avatar = AVATARS[0] || '';
+      console.log('[AuthStore] setUser: Set default avatar', user.avatar);
     }
     set({ user, isAuthenticated: !!user });
   },

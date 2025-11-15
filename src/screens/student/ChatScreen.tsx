@@ -9,6 +9,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatDate, formatNotificationTime } from '../../utils/helpers';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 interface Conversation {
   id: string;
@@ -137,7 +138,7 @@ export const ChatScreen: React.FC = () => {
                     ) : (
                       <>
                         <Image
-                          source={{ uri: conversation.userAvatar }}
+                          source={getAvatarSource(conversation.userAvatar, conversation.userId)}
                           style={styles.avatar}
                         />
                         {conversation.isOnline && (

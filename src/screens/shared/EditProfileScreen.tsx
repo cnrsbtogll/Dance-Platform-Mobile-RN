@@ -8,6 +8,8 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { Card } from '../../components/common/Card';
 import { AVATARS } from '../../utils/avatars';
 import { useProfileStore } from '../../store/useProfileStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { getAvatarSource } from '../../utils/imageHelper';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -32,13 +34,10 @@ export const EditProfileScreen: React.FC = () => {
         <Card style={styles.card}>
           <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('profile.profileInfo')}</Text>
           <View style={styles.avatarRow}>
-            {tempAvatar ? (
-              <Image source={{ uri: tempAvatar }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: palette.border }]}>
-                <MaterialIcons name="person" size={32} color={palette.text.secondary} />
-              </View>
-            )}
+            <Image 
+              source={getAvatarSource(tempAvatar, useAuthStore.getState().user?.id || undefined)} 
+              style={styles.avatar} 
+            />
             <TouchableOpacity style={styles.changeAvatarButton} onPress={() => setAvatarModalVisible(true)}>
               <Text style={styles.changeAvatarButtonText}>{t('profile.selectAvatar')}</Text>
             </TouchableOpacity>

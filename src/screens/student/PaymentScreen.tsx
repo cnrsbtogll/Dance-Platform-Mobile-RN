@@ -126,16 +126,10 @@ export const PaymentScreen: React.FC = () => {
         <View style={styles.section}>
           <Card style={styles.lessonCard}>
             <View style={styles.lessonCardContent}>
-              {instructor?.avatar ? (
-                <Image
-                  source={{ uri: instructor.avatar }}
-                  style={styles.instructorAvatar}
-                />
-              ) : (
-                <View style={[styles.instructorAvatar, styles.avatarPlaceholder, { backgroundColor: palette.border }]}>
-                  <MaterialIcons name="person" size={24} color={palette.text.secondary} />
-                </View>
-              )}
+              <Image
+                source={getAvatarSource(instructor?.avatar, instructor?.id)}
+                style={styles.instructorAvatar}
+              />
               <View style={styles.lessonInfo}>
                 <Text style={[styles.lessonTitle, { color: palette.text.primary }]} numberOfLines={1}>
                   {lesson.title}
