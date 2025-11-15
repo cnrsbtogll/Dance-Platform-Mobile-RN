@@ -195,7 +195,10 @@ export const InstructorHomeScreen: React.FC = () => {
                     {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings)}
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.detailsButton}>
+                <TouchableOpacity 
+                  style={styles.detailsButton}
+                  onPress={() => (navigation as any).navigate('EarningsDetails')}
+                >
                   <Text style={styles.detailsButtonText}>{t('instructorHome.viewDetails')}</Text>
                 </TouchableOpacity>
               </View>

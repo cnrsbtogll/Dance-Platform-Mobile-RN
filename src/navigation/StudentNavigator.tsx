@@ -18,6 +18,12 @@ import { LoginScreen } from '../screens/shared/LoginScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { PaymentScreen } from '../screens/student/PaymentScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
+import { AccountInformationScreen } from '../screens/shared/AccountInformationScreen';
+import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
+import { ChangePasswordScreen } from '../screens/shared/ChangePasswordScreen';
+import { HelpCenterScreen } from '../screens/shared/HelpCenterScreen';
+import { AboutScreen } from '../screens/shared/AboutScreen';
+import { PrivacyPolicyScreen } from '../screens/shared/PrivacyPolicyScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -278,6 +284,96 @@ export const StudentNavigator: React.FC = () => {
           headerTitleStyle: {
             color: palette.text.primary,
           },
+        }}
+      />
+      <Stack.Screen
+        name="AccountInformation"
+        component={AccountInformationScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.accountInfo'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="PaymentMethods"
+        component={PaymentMethodsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.paymentMethods'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.changePassword'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="HelpCenter"
+        component={HelpCenterScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.helpCenter'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.about'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.privacyPolicy'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
         }}
       />
     </Stack.Navigator>

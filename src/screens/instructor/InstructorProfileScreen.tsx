@@ -66,19 +66,19 @@ export const InstructorProfileScreen: React.FC = () => {
       id: 'account',
       icon: 'person',
       title: t('profile.accountInfo'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('AccountInformation'),
     },
     {
       id: 'payment',
       icon: 'credit-card',
       title: t('profile.paymentMethods'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('PaymentMethods'),
     },
     {
       id: 'password',
       icon: 'lock',
       title: t('profile.changePassword'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('ChangePassword'),
     },
   ];
 
@@ -134,19 +134,19 @@ export const InstructorProfileScreen: React.FC = () => {
       id: 'help',
       icon: 'help',
       title: t('profile.helpCenter'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('HelpCenter'),
     },
     {
       id: 'about',
       icon: 'info',
       title: t('profile.about'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('About'),
     },
     {
       id: 'privacy',
       icon: 'shield',
       title: t('profile.privacyPolicy'),
-      onPress: () => {},
+      onPress: () => (navigation as any).navigate('PrivacyPolicy'),
     },
     {
       id: 'logout',

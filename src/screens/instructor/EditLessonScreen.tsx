@@ -10,32 +10,33 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { MockDataService } from '../../services/mockDataService';
 
-// Predefined lesson images for each dance type
+// Predefined lesson images for each dance type (using the specified style URL format)
 const LESSON_IMAGES: { [key: string]: string[] } = {
     Salsa: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBkU2rFZjX7PZJATa4coHm9_lFLDyUo-6oSiTpbq2aBZc7XcgYfAATsAf0WnoOxaEHpasHsUItGLmRVW97fmn7hhE5C8k11e896IS4fjW0yxJ8MdQQQC1FM445cQeKaiooExB4dP7HRr4eKgRNWXvBKPM3Cg0hCejy3AfrArlXrNO5Ucped9Iz0FmtYW_U6P1wIMAtzlRP2hV28TKhXJgQ4aOUAcBBllX4D51eQ7yuwavRpcEgvseO_c8-V55u6yokMleFV-VNhAjFG',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAJhqQ4KzAehAqHju2rv6ai3E7BsTG9CW2xfnywNDMv0H4Ift9weFwl6gJAvHBNPOV41fY4poJRV942DXPLEp7Acz6mcY1MrG_tJZ_gtamBizh9HFYRhAlGaqlCM-t-ySHZ3C3NkL37c-zomlTr--Twa8Ruf0365qgPfgnUiO6XWPRZJy6LC-Thm1JcFOAgMgwBwMnc0lQdweaiFq3ifcTsnodiGnl5lUV3CcGKyY0ofaQ4nWQ7O0px-S3pvsr-K9Jaqq2QaK1EcUVJ',
+        'https://avatars.mds.yandex.net/i?id=ddbb349f1b55622d00375ab354eec9442085e0f9-4299853-images-thumbs&n=13',
+        'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQmVVBLbFat_j1m1j-hv-tIcveNi0wkO1hqyGaqSrgIXJXXrizY',
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzfCoXz4Fk0r8oJOosTGnul_uDyXYxSSJn5tj2lh5T_K0sF9Uc',
     ],
     Bachata: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuDrK6s9NaTyFHSKbR1zxuzYarzb0trW_ghQ8ZEn3wypuiJp6-SQvw7SuuvE3BCgsuZZS3B9wDOgk6B-EGaRofd1aC4yJdDqryIwmdbJhOkiKXiCgG7WGO2EBOJZw3tGVKo0ZXcAwCOuLEALPoOk15D_F9WGgINGzMFyC4jVXrdzvWk5l8_0rrKGZISOWleltB6E27Ra6DW1kWrKJsUBMDxa2GUKYmH3eY6FKnxr4Afo5ar8SW9LBf4ZKeflOCdzvuJrJ2xTXQDYOhrM',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuC3BKLybEFhgx2pywJvsbUiPuhvLQAHjNc0D7Kt6xr4eEEHhgqNt0antxjocgBY8ctVD5jf1NYwjFkYQFQMmO9sp2fWifVc_Gmie9-_Ne1LlYNT4MAKhJyLxB4YEEIbf_hsJ7fiuqiIMT1Cdmy7LB7vr3Ru1cNyn2N4yI9miw7ad-gF_lMaHXPexn3slSla9lOQ7wRBGhbFiQ9_bFFu3MvoLQwnz7yPmvRAejMCYgfo92kmlK9daeHsgCnbuRe4_muuNBOorhsPIViK',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuDc_GniRukhXbXao6NUWTknnoIGZRgiFe7iWo2sq-kugk-ZqK6Xyk0zHF75jAEZQeDTiyRuNK_cNPtKlDWVJwXNemXrLts0FermOiORgIacikUvkj1q0mDu_Hulo3fDwwvVqfZcxh8nE5Z0Oj0xwOAcKEfysfxRHYa1pr9ydFo9nh63jOnawCMZo4GMT1oT7a_hIrnoKlAe0uah1XEtv1ilwAN7l5m5tYkzwIaiirrdKUrZ_Ynrtju5uD36OkyePI-ICGVzotJcLiy1',
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr',
+        'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQfYwXEpetAF4RLyA1S10GrldHSDQn6S7kTWfQabM6t0CP1KlWv',
+        'https://kultura-volyne.cz/wp-content/uploads/2025/09/tanecni_volyne_A3_spad-scaled-e1758277008245-1024x724.jpg',
     ],
     Kizomba: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBC3nmzujhmO9XJXjveJcNSN2L5yTo4VIxlMY6WSlkiOgTUFhdpuQQi3Y1wOTJreXOjUY0RK8sK6z6hKf_P7r1j-ZifOtQ9RRci0GDT1q6EQdsBISoRjw9qn1xmKPUdqYxBrxs8aCYgjI3f5GWI9wwp41aNd9EasyZgonVCxnsUuXBqMkUgtbPMLPi4uTMFWAN1bqQ1ayCZcFlq79IuanpaGaKDYT0xquC_13QcmCLsd43naJXdXqQXMmBpkCL0u3vrEU47eEvB2NcM',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBBsId8zlGD_lhAxsHvmOFooP81liuKLtancbqIp5CNNcIWfjh39M2gAsA4l9zUk6MproU13_xcy1pTGVJY7i_Wx7R3QDV0kl9_z2YPSdIOLBp8ZPnFOKqRJqEGs0jcSUua1XhXHAOQl_u1Dwsqztb4aqcRUyVojJuZiZDlE-Hh6Y3iqO1ONCXiFT3pyPlB77RN50eur0I6KI1MEgl5wUTsQDvLx2M567QiyT79upv8SKHB-Bt4lA5Kkd7geKUHyQPi7IR41DchY4Yu',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBBX9DiROq9N1QS5nCWOBfVSt9JUKJDlBdgu9wKR8zyUM9zNoFzmrTXUmy8dyKHcuKzrJ8fGG0LnbesYB-YHkWyU6evvIFfUIlSzX9JntSwoibT022-tVnA3PTzgvFASSt6ho8y31xE_6WvB_p4ONar7xuduNmeHNmWsor6OsAguv8qXn2KyUvrH-gxr4MEnT_aUUgK0rK-6AU-WVU95M525dtRKzomoieg8bLqTQ9T-m8wkm7oKBhn8zm27ADjErqUw3fZu7a_nM5E',
+        'https://cdn.vectorstock.com/i/1000v/15/09/kizomba-dancing-couple-vector-20271509.jpg',
+        'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRrwdMdJiIf5cUsOwpt3zE9FLcyZYrfq6tl8--kX0Empz0uK7S7',
+        'https://us.123rf.com/450wm/chachar/chachar1812/chachar181200011/120120697-ballroom-dancers-couple-stylized-illustration-of-young-couples-dancing-tango-foxtrot-isolated-on.jpg',
+        'https://img.freepik.com/premium-vektor/arjantin-tangosu-dansci-cift-cizgi-film_12402-1230.jpg?semt=ais_hybrid&w=740&q=80'
     ],
     Tango: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCY1YRDTBqG0J6H_95zmqGpNadfETh0Po1YLyXvaZ8ibYlFzLEQjLEZLIpJeUehGCE_UYa3206xbGPGyofUdgq0FDziwQkB_JK0rbK6rEoxJzVNUI7oUefEavM09Syeik6AVhq3TapcGAK5EI2rZJpWcMxOZBvzVfmGnlq8ZxF-WtyoVAFt4JAMy4EpixWWpG392juXIBT5EOSGJMRgh1-THn_J3649cLQ86u9hw5_Ai4afhc4uy3CyzTySvStE6m1vxIcjn-ZtqtR3',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBBX9DiROq9N1QS5nCWOBfVSt9JUKJDlBdgu9wKR8zyUM9zNoFzmrTXUmy8dyKHcuKzrJ8fGG0LnbesYB-YHkWyU6evvIFfUIlSzX9JntSwoibT022-tVnA3PTzgvFASSt6ho8y31xE_6WvB_p4ONar7xuduNmeHNmWsor6OsAguv8qXn2KyUvrH-gxr4MEnT_aUUgK0rK-6AU-WVU95M525dtRKzomoieg8bLqTQ9T-m8wkm7oKBhn8zm27ADjErqUw3fZu7a_nM5E',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCgTmZbmoEphxMf0JNkTKEBncLLltfGS7BGfp8LG3B5bdR4wlvAJtoCe5dsUnIURI2Dr5PruB6brXR1j8XFbXzYVWWtlrgpcAbfifF2NCXtz3IWiLayviWZ7Bk9x-zsI94zM5E5Az3LEXsDohw_XMHBtzSBilbZSXROcMQnYGa6ZW6etjvWBMHCECXeN566y6SmD65vsDJBI95KtE0CtQBqLaPYSTtX_2lvcRqD34M9OGF34VWp1wyEW5B7rBiA6oBa26ojL9sTl0zN',
+        'https://www.tangoturco.com/wp-content/uploads/2018/10/fff.jpg',
+        'https://img.freepik.com/premium-vektor/uluslararasi-tango-gunu-kadin-ve-erkek-birlikte-dans-ediyor_499739-1320.jpg',
+        'https://st3.depositphotos.com/10507036/13361/v/450/depositphotos_133612658-stock-illustration-international-tango-day.jpg'
     ],
     Modern: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCgTmZbmoEphxMf0JNkTKEBncLLltfGS7BGfp8LG3B5bdR4wlvAJtoCe5dsUnIURI2Dr5PruB6brXR1j8XFbXzYVWWtlrgpcAbfifF2NCXtz3IWiLayviWZ7Bk9x-zsI94zM5E5Az3LEXsDohw_XMHBtzSBilbZSXROcMQnYGa6ZW6etjvWBMHCECXeN566y6SmD65vsDJBI95KtE0CtQBqLaPYSTtX_2lvcRqD34M9OGF34VWp1wyEW5B7rBiA6oBa26ojL9sTl0zN',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuBBsId8zlGD_lhAxsHvmOFooP81liuKLtancbqIp5CNNcIWfjh39M2gAsA4l9zUk6MproU13_xcy1pTGVJY7i_Wx7R3QDV0kl9_z2YPSdIOLBp8ZPnFOKqRJqEGs0jcSUua1XhXHAOQl_u1Dwsqztb4aqcRUyVojJuZiZDlE-Hh6Y3iqO1ONCXiFT3pyPlB77RN50eur0I6KI1MEgl5wUTsQDvLx2M567QiyT79upv8SKHB-Bt4lA5Kkd7geKUHyQPi7IR41DchY4Yu',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAJhqQ4KzAehAqHju2rv6ai3E7BsTG9CW2xfnywNDMv0H4Ift9weFwl6gJAvHBNPOV41fY4poJRV942DXPLEp7Acz6mcY1MrG_tJZ_gtamBizh9HFYRhAlGaqlCM-t-ySHZ3C3NkL37c-zomlTr--Twa8Ruf0365qgPfgnUiO6XWPRZJy6LC-Thm1JcFOAgMgwBwMnc0lQdweaiFq3ifcTsnodiGnl5lUV3CcGKyY0ofaQ4nWQ7O0px-S3pvsr-K9Jaqq2QaK1EcUVJ',
+        'https://www.shutterstock.com/image-vector/man-woman-dancing-home-living-600nw-1722758842.jpg',
+        'https://media.istockphoto.com/id/1037376044/tr/vekt%C3%B6r/g%C3%BCzel-%C3%A7ift-tango-dans-d%C3%BCz-ill%C3%BCstrasyon-vekt%C3%B6r.jpg?s=612x612&w=0&k=20&c=QhUe-Mb7P2kxQNJvnHJ3Pnhg7Wp-3haqE-VWzO_bFJ0=',
+        'https://www.citadela-litvinov.cz/data/USR_056_DEFAULT/Venecek___web.png',
     ],
 };
 
@@ -202,8 +203,8 @@ export const EditLessonScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={[]}>
-            <ScrollView 
-                style={[styles.scrollView, { backgroundColor: palette.background }]} 
+            <ScrollView
+                style={[styles.scrollView, { backgroundColor: palette.background }]}
                 contentContainerStyle={styles.scrollViewContent}
                 showsVerticalScrollIndicator={false}
             >
@@ -255,7 +256,7 @@ export const EditLessonScreen: React.FC = () => {
                                     onChangeText={setTitle}
                                 />
                             </View>
-                            
+
                             <View style={styles.inputGroup}>
                                 <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
                                 <TextInput

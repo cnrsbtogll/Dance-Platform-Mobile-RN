@@ -4,7 +4,7 @@
     "senderId": "instructor1",
     "receiverId": "user1",
     "lessonId": "lesson1",
-    "message": "Merhaba, yarınki ders için...",
+    "message": "Hello, regarding tomorrow's lesson...",
     "isRead": false,
     "createdAt": "2025-11-13T10:45:00Z"
   },
@@ -13,7 +13,7 @@
     "senderId": "instructor2",
     "receiverId": "user1",
     "lessonId": "lesson2",
-    "message": "Harika, o zaman görüşmek üzere!",
+    "message": "Great, see you then!",
     "isRead": true,
     "createdAt": "2025-11-12T14:30:00Z"
   },
@@ -22,7 +22,7 @@
     "senderId": "user1",
     "receiverId": "instructor3",
     "lessonId": "lesson3",
-    "message": "Elbette, ders programını gönderiyorum.",
+    "message": "Of course, I'm sending the lesson schedule.",
     "isRead": true,
     "createdAt": "2025-11-11T14:32:00Z"
   },
@@ -31,7 +31,7 @@
     "senderId": "user1",
     "receiverId": "instructor1",
     "lessonId": "lesson1",
-    "message": "Merhaba, ders hakkında birkaç sorum var.",
+    "message": "Hello, I have a few questions about the lesson.",
     "isRead": true,
     "createdAt": "2025-11-10T09:00:00Z"
   },
@@ -40,7 +40,7 @@
     "senderId": "instructor1",
     "receiverId": "user1",
     "lessonId": "lesson1",
-    "message": "Tabii, nasıl yardımcı olabilirim?",
+    "message": "Sure, how can I help you?",
     "isRead": true,
     "createdAt": "2025-11-10T09:15:00Z"
   },
@@ -49,7 +49,7 @@
     "senderId": "user1",
     "receiverId": "instructor1",
     "lessonId": "lesson1",
-    "message": "Ders için özel bir ekipman gerekiyor mu?",
+    "message": "Do I need any special equipment for the lesson?",
     "isRead": true,
     "createdAt": "2025-11-10T09:20:00Z"
   },
@@ -58,7 +58,7 @@
     "senderId": "instructor1",
     "receiverId": "user1",
     "lessonId": "lesson1",
-    "message": "Hayır, sadece rahat kıyafetler yeterli. Ders sırasında her şeyi sağlıyoruz.",
+    "message": "No, just comfortable clothes are enough. We provide everything during the lesson.",
     "isRead": true,
     "createdAt": "2025-11-10T09:25:00Z"
   }

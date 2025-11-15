@@ -13,10 +13,17 @@ import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessons
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
+import { EarningsDetailsScreen } from '../screens/instructor/EarningsDetailsScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
+import { AccountInformationScreen } from '../screens/shared/AccountInformationScreen';
+import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
+import { ChangePasswordScreen } from '../screens/shared/ChangePasswordScreen';
+import { HelpCenterScreen } from '../screens/shared/HelpCenterScreen';
+import { AboutScreen } from '../screens/shared/AboutScreen';
+import { PrivacyPolicyScreen } from '../screens/shared/PrivacyPolicyScreen';
 import { useNotificationStore } from '../store/useNotificationStore';
 
 const Tab = createBottomTabNavigator();
@@ -263,6 +270,111 @@ export const InstructorNavigator: React.FC = () => {
           headerTitleStyle: {
             color: palette.text.primary,
           },
+        }}
+      />
+      <Stack.Screen
+        name="EarningsDetails"
+        component={EarningsDetailsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('instructorHome.earningsDetails'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="AccountInformation"
+        component={AccountInformationScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.accountInfo'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="PaymentMethods"
+        component={PaymentMethodsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.paymentMethods'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.changePassword'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="HelpCenter"
+        component={HelpCenterScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.helpCenter'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.about'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('profile.privacyPolicy'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+          presentation: 'card',
         }}
       />
     </Stack.Navigator>

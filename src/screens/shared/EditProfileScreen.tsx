@@ -76,10 +76,24 @@ export const EditProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
               </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={styles.avatarGrid}>
-              {AVATARS.map((url) => (
-                <TouchableOpacity key={url} style={styles.avatarItem} onPress={() => { setTempAvatar(url); setAvatarModalVisible(false); }}>
-                  <Image source={{ uri: url }} style={styles.avatarImage} />
+            <ScrollView 
+              contentContainerStyle={styles.avatarGrid}
+              showsVerticalScrollIndicator={false}
+            >
+              {AVATARS.map((url, index) => (
+                <TouchableOpacity 
+                  key={`${url}-${index}`} 
+                  style={styles.avatarItem} 
+                  onPress={() => { 
+                    setTempAvatar(url); 
+                    setAvatarModalVisible(false); 
+                  }}
+                >
+                  <Image 
+                    source={{ uri: url }} 
+                    style={styles.avatarImage} 
+                    resizeMode="cover"
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -197,17 +211,21 @@ const styles = StyleSheet.create({
   avatarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'center',
+    gap: spacing.md,
+    justifyContent: 'flex-start',
+    padding: spacing.sm,
   },
   avatarItem: {
-    width: 72,
-    height: 72,
+    width: 80,
+    height: 80,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
+    backgroundColor: colors.light.border,
+    ...shadows.sm,
   },
   avatarImage: {
     width: '100%',
     height: '100%',
+    backgroundColor: 'transparent',
   },
 });

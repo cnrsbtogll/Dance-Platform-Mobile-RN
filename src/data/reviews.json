@@ -4,7 +4,7 @@
     "lessonId": "lesson1",
     "studentId": "user1",
     "rating": 5,
-    "comment": "Harika bir ders! Ayşe hoca çok profesyonel ve sabırlı. Kesinlikle tavsiye ederim.",
+    "comment": "Great lesson! Sarah is very professional and patient. I definitely recommend it.",
     "createdAt": "2024-01-20T15:00:00Z"
   },
   {
@@ -12,7 +12,7 @@
     "lessonId": "lesson1",
     "studentId": "student2",
     "rating": 4,
-    "comment": "Güzel bir deneyimdi. Biraz daha pratik yapmak isterdim ama genel olarak memnun kaldım.",
+    "comment": "It was a nice experience. I would have liked to practice a bit more, but overall I'm satisfied.",
     "createdAt": "2024-01-21T10:00:00Z"
   },
   {
@@ -20,7 +20,7 @@
     "lessonId": "lesson2",
     "studentId": "user1",
     "rating": 5,
-    "comment": "Can hoca bachata'yı çok güzel anlatıyor. Dersler çok eğlenceli geçiyor.",
+    "comment": "Michael explains bachata very well. The lessons are very fun.",
     "createdAt": "2024-01-18T16:00:00Z"
   },
   {
@@ -28,7 +28,7 @@
     "lessonId": "lesson3",
     "studentId": "student2",
     "rating": 4,
-    "comment": "Kizomba öğrenmek istiyordum ve Elif hoca çok yardımcı oldu. Teşekkürler!",
+    "comment": "I wanted to learn kizomba and Emily was very helpful. Thanks!",
     "createdAt": "2024-01-19T12:00:00Z"
   }
 ]
