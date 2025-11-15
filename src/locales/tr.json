@@ -209,6 +209,26 @@
     "unread": "Okunmamış",
     "earlier": "Daha Önce"
   },
+  "chat": {
+    "title": "Sohbetler",
+    "noChats": "Henüz sohbet yok",
+    "noChatsDescription": "İlk dersinizi planlamak için bir eğitmenle iletişime geçin.",
+    "noMessagesInstructor": "Henüz mesaj yok",
+    "noMessagesInstructorDescription": "Öğrencilerinizle iletişime geçmek için mesajlarınızı buradan takip edebilirsiniz.",
+    "findInstructor": "Eğitmen Bul",
+    "online": "Çevrimiçi",
+    "instructor": "Eğitmen",
+    "student": "Öğrenci",
+    "user": "Kullanıcı",
+    "userNotFound": "Kullanıcı bulunamadı",
+    "goBack": "Geri Dön",
+    "noMessages": "Henüz mesaj yok. İlk mesajınızı gönderin!",
+    "typeMessage": "Mesaj yazın...",
+    "now": "Şimdi",
+    "minutesAgo": "{{count}} dk önce",
+    "hoursAgo": "{{count}} saat önce",
+    "instructorSuffix": "Eğitmeni"
+  },
   "payment": {
     "title": "Ödeme Ekranı",
     "lessonNotFound": "Ders bulunamadı",

@@ -209,6 +209,26 @@
     "unread": "Unread",
     "earlier": "Earlier"
   },
+  "chat": {
+    "title": "Chats",
+    "noChats": "No chats yet",
+    "noChatsDescription": "Contact an instructor to plan your first lesson.",
+    "noMessagesInstructor": "No messages yet",
+    "noMessagesInstructorDescription": "You can track your messages here to communicate with your students.",
+    "findInstructor": "Find Instructor",
+    "online": "Online",
+    "instructor": "Instructor",
+    "student": "Student",
+    "user": "User",
+    "userNotFound": "User not found",
+    "goBack": "Go Back",
+    "noMessages": "No messages yet. Send your first message!",
+    "typeMessage": "Type a message...",
+    "now": "Now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} hours ago",
+    "instructorSuffix": "Instructor"
+  },
   "payment": {
     "title": "Payment Screen",
     "lessonNotFound": "Lesson not found",

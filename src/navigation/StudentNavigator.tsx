@@ -110,12 +110,11 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Chat"
         component={ChatScreen}
         options={{
-          title: 'Sohbet',
+          title: t('navigation.chat'),
           headerShown: false, // Custom header kullanıyoruz
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
@@ -123,14 +122,14 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Sohbet
+              {t('navigation.chat')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
           ),
         }}
-      /> */}
+      />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
@@ -198,20 +197,22 @@ export const StudentNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
-      {/* <Stack.Screen
+      <Stack.Screen
         name="ChatDetail"
         component={ChatDetailScreen}
         options={{ 
           headerShown: true,
           headerBackTitle: '',
-          headerTintColor: colors.student.text.primaryLight,
+          headerTintColor: palette.text.primary,
           headerStyle: {
-            backgroundColor: colors.student.background.light,
+            backgroundColor: palette.background,
+          },
+          headerTitleStyle: {
+            color: palette.text.primary,
           },
           presentation: 'card',
         }}
-      /> */}
+      />
       <Stack.Screen
         name="Payment"
         component={PaymentScreen}

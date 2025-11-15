@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { useTranslation } from 'react-i18next';
+import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
-import { formatDate } from '../../utils/helpers';
+import { formatDate, formatNotificationTime } from '../../utils/helpers';
 
 interface Conversation {
   id: string;
@@ -23,7 +25,10 @@ interface Conversation {
 
 export const ChatScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
 
   // Get conversations for current user
   const conversations = useMemo(() => {
@@ -46,8 +51,8 @@ export const ChatScreen: React.FC = () => {
           id: conversationId,
           userId: partnerId,
           userName: partner.role === 'instructor' 
-            ? `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || 'Eğitmen'} Eğitmeni`
-            : `Öğrenci - ${partner.name}`,
+            ? `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || t('chat.instructor')} ${t('chat.instructorSuffix')}`
+            : `${t('chat.student')} - ${partner.name}`,
           userAvatar: partner.avatar || '',
           lastMessage: message.message,
           lastMessageTime: message.createdAt,
@@ -74,55 +79,39 @@ export const ChatScreen: React.FC = () => {
     return Array.from(conversationMap.values()).sort((a, b) => {
       return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
     });
-  }, [user]);
+  }, [user, t]);
 
   const formatMessageTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
-    } else if (diffDays === 1) {
-      return 'Dün';
-    } else if (diffDays < 7) {
-      const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-      return days[date.getDay()];
-    } else {
-      return formatDate(dateString);
-    }
+    return formatNotificationTime(dateString);
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
       {/* Custom Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
         <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="search" size={24} color={colors.student.text.primaryLight} />
+          <MaterialIcons name="search" size={24} color={palette.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Sohbetler</Text>
+        <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
         <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="add-comment" size={24} color={colors.student.text.primaryLight} />
+          <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {conversations.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons 
               name="chat-bubble-outline" 
               size={64} 
-              color={colors.student.text.secondaryLight + '80'} 
+              color={palette.text.secondary + '80'} 
             />
-            <Text style={styles.emptyStateTitle}>Henüz sohbet yok</Text>
-            <Text style={styles.emptyStateText}>
-              İlk dersinizi planlamak için bir eğitmenle iletişime geçin.
+            <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('chat.noChats')}</Text>
+            <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
+              {t('chat.noChatsDescription')}
             </Text>
             <TouchableOpacity style={styles.emptyStateButton}>
-              <Text style={styles.emptyStateButtonText}>Eğitmen Bul</Text>
+              <Text style={styles.emptyStateButtonText}>{t('chat.findInstructor')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -130,7 +119,7 @@ export const ChatScreen: React.FC = () => {
             {conversations.map((conversation) => (
               <TouchableOpacity
                 key={conversation.id}
-                style={styles.conversationItem}
+                style={[styles.conversationItem, { backgroundColor: palette.card }]}
                 activeOpacity={0.7}
                 onPress={() => {
                   (navigation as any).getParent()?.navigate('ChatDetail', {
@@ -152,21 +141,21 @@ export const ChatScreen: React.FC = () => {
                           style={styles.avatar}
                         />
                         {conversation.isOnline && (
-                          <View style={styles.onlineIndicator} />
+                          <View style={[styles.onlineIndicator, { borderColor: palette.card }]} />
                         )}
                       </>
                     )}
                   </View>
                   <View style={styles.messageInfo}>
-                    <Text style={styles.userName} numberOfLines={1}>
+                    <Text style={[styles.userName, { color: palette.text.primary }]} numberOfLines={1}>
                       {conversation.userName}
                     </Text>
-                    <Text style={styles.lastMessage} numberOfLines={1}>
+                    <Text style={[styles.lastMessage, { color: palette.text.secondary }]} numberOfLines={1}>
                       {conversation.lastMessage}
                     </Text>
                   </View>
                   <View style={styles.timeContainer}>
-                    <Text style={styles.timeText}>
+                    <Text style={[styles.timeText, { color: palette.text.secondary }]}>
                       {formatMessageTime(conversation.lastMessageTime)}
                     </Text>
                     {conversation.unreadCount > 0 && (
@@ -190,7 +179,6 @@ export const ChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   header: {
     flexDirection: 'row',
@@ -199,9 +187,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
     paddingTop: spacing.xs,
-    backgroundColor: colors.student.background.light,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   headerButton: {
     width: 48,
@@ -214,7 +200,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
     textAlign: 'center',
     letterSpacing: -0.015,
   },
@@ -226,11 +211,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   conversationItem: {
-    backgroundColor: colors.student.card.light,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     minHeight: 72,
-    ...shadows.sm,
   },
   conversationContent: {
     flexDirection: 'row',
@@ -248,7 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   groupAvatar: {
-    backgroundColor: colors.student.primary,
+    backgroundColor: '#1ABC9C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -261,7 +244,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#1ABC9C',
     borderWidth: 2,
-    borderColor: colors.student.card.light,
   },
   messageInfo: {
     flex: 1,
@@ -271,12 +253,10 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: typography.fontSize.base,
     fontWeight: '600',
-    color: colors.student.text.primaryLight,
   },
   lastMessage: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   timeContainer: {
     alignItems: 'flex-end',
@@ -285,7 +265,6 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   unreadBadge: {
     minWidth: 24,
@@ -311,12 +290,10 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: typography.fontSize.lg,
     fontWeight: '600',
-    color: colors.student.text.primaryLight,
     marginTop: spacing.md,
   },
   emptyStateText: {
     fontSize: typography.fontSize.sm,
-    color: colors.student.text.secondaryLight,
     marginTop: spacing.xs,
     textAlign: 'center',
     maxWidth: 300,

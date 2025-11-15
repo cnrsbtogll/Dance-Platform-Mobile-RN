@@ -128,12 +128,11 @@ const MainTabs: React.FC = () => {
           ),
         }}
       />
-      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Messages"
         component={InstructorChatScreen}
         options={{
-          title: 'Mesajlar',
+          title: t('navigation.chat'),
           headerShown: false,
           tabBarLabel: ({ focused, color }) => (
             <Text style={{
@@ -141,14 +140,14 @@ const MainTabs: React.FC = () => {
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
               color,
             }}>
-              Mesajlar
+              {t('navigation.chat')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
           ),
         }}
-      /> */}
+      />
       <Tab.Screen
         name="Profile"
         component={InstructorProfileScreen}
@@ -232,15 +231,23 @@ export const InstructorNavigator: React.FC = () => {
           presentation: 'card',
         }}
       />
-      {/* TODO: İlerideki geliştirmelerde tekrar eklenecek */}
-      {/* <Stack.Screen
+      <Stack.Screen
         name="ChatDetail"
         component={ChatDetailScreen}
         options={{ 
-          headerShown: false,
+          headerShown: true,
+          headerTitle: t('navigation.chat'),
+          headerBackTitle: '',
+          headerTintColor: palette.text.primary,
+          headerStyle: {
+            backgroundColor: palette.background,
+          },
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
           presentation: 'card',
         }}
-      /> */}
+      />
       <Stack.Screen
         name="Notification"
         component={NotificationScreen}

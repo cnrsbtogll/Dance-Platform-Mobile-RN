@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../utils/theme';
+import { useTranslation } from 'react-i18next';
+import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
+import { formatNotificationTime } from '../../utils/helpers';
 
 interface Message {
   id: string;
@@ -20,8 +23,11 @@ interface Message {
 export const ChatDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { t } = useTranslation();
   const params = route.params as { conversationId?: string; userId?: string } | undefined;
   const { user } = useAuthStore();
+  const { isDarkMode } = useThemeStore();
+  const palette = getPalette('student', isDarkMode);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
   
@@ -58,7 +64,10 @@ export const ChatDetailScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerBackTitle: '',
-      headerTintColor: colors.student.text.primaryLight,
+      headerTintColor: palette.text.primary,
+      headerStyle: {
+        backgroundColor: palette.background,
+      },
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <Image
@@ -66,11 +75,11 @@ export const ChatDetailScreen: React.FC = () => {
             style={styles.headerAvatar}
           />
           <View style={styles.headerTitleText}>
-            <Text style={styles.headerName} numberOfLines={1}>
-              {partner?.name || 'Kullanıcı'}
+            <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
+              {partner?.name || t('chat.user')}
             </Text>
-            <Text style={styles.headerStatus} numberOfLines={1}>
-              {partner?.role === 'instructor' ? 'Eğitmen' : 'Çevrimiçi'}
+            <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
+              {partner?.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
             </Text>
           </View>
         </View>
@@ -83,12 +92,12 @@ export const ChatDetailScreen: React.FC = () => {
           <MaterialIcons
             name="more-vert"
             size={24}
-            color={colors.student.text.primaryLight}
+            color={palette.text.primary}
           />
         </TouchableOpacity>
       ),
     });
-  }, [navigation, partner]);
+  }, [navigation, partner, palette, t]);
 
   const formatMessageTime = (dateString: string): string => {
     const date = new Date(dateString);
@@ -99,16 +108,24 @@ export const ChatDetailScreen: React.FC = () => {
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
     if (diffMinutes < 1) {
-      return 'Şimdi';
+      return t('chat.now');
     } else if (diffMinutes < 60) {
-      return `${diffMinutes} dk önce`;
+      return t('chat.minutesAgo', { count: diffMinutes });
     } else if (diffHours < 24) {
-      return `${diffHours} saat önce`;
+      return t('chat.hoursAgo', { count: diffHours });
     } else if (diffDays === 1) {
-      return 'Dün';
+      return t('common.yesterday');
     } else if (diffDays < 7) {
-      const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-      return days[date.getDay()];
+      const dayNames = [
+        t('common.days.sunday'),
+        t('common.days.monday'),
+        t('common.days.tuesday'),
+        t('common.days.wednesday'),
+        t('common.days.thursday'),
+        t('common.days.friday'),
+        t('common.days.saturday'),
+      ];
+      return dayNames[date.getDay()];
     } else {
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -122,12 +139,20 @@ export const ChatDetailScreen: React.FC = () => {
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return 'Bugün';
+      return t('common.today');
     } else if (diffDays === 1) {
-      return 'Dün';
+      return t('common.yesterday');
     } else {
-      const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-      const dayName = days[date.getDay()];
+      const dayNames = [
+        t('common.days.sunday'),
+        t('common.days.monday'),
+        t('common.days.tuesday'),
+        t('common.days.wednesday'),
+        t('common.days.thursday'),
+        t('common.days.friday'),
+        t('common.days.saturday'),
+      ];
+      const dayName = dayNames[date.getDay()];
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       return `${dayName}, ${day}.${month}`;
@@ -166,11 +191,11 @@ export const ChatDetailScreen: React.FC = () => {
 
   if (!partner) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Kullanıcı bulunamadı</Text>
+          <Text style={[styles.errorText, { color: palette.text.primary }]}>{t('chat.userNotFound')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>Geri Dön</Text>
+            <Text style={[styles.backButton, { color: palette.primary }]}>{t('chat.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -178,7 +203,7 @@ export const ChatDetailScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -186,7 +211,7 @@ export const ChatDetailScreen: React.FC = () => {
       >
         <ScrollView
           ref={scrollViewRef}
-          style={styles.messagesContainer}
+          style={[styles.messagesContainer, { backgroundColor: palette.background }]}
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
         >
@@ -195,10 +220,10 @@ export const ChatDetailScreen: React.FC = () => {
             <MaterialIcons
               name="chat-bubble-outline"
               size={64}
-              color={colors.student.text.secondaryLight + '80'}
+              color={palette.text.secondary + '80'}
             />
-            <Text style={styles.emptyStateText}>
-              Henüz mesaj yok. İlk mesajınızı gönderin!
+            <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
+              {t('chat.noMessages')}
             </Text>
           </View>
         ) : (
@@ -211,7 +236,7 @@ export const ChatDetailScreen: React.FC = () => {
               <React.Fragment key={message.id}>
                 {showDateSeparator && (
                   <View style={styles.dateSeparator}>
-                    <Text style={styles.dateSeparatorText}>
+                    <Text style={[styles.dateSeparatorText, { color: palette.text.secondary, backgroundColor: palette.background }]}>
                       {formatMessageDate(message.createdAt)}
                     </Text>
                   </View>
@@ -225,13 +250,13 @@ export const ChatDetailScreen: React.FC = () => {
                   <View
                     style={[
                       styles.messageBubble,
-                      isSent ? styles.messageBubbleSent : styles.messageBubbleReceived,
+                      isSent ? { backgroundColor: palette.primary } : { backgroundColor: palette.card },
                     ]}
                   >
                     <Text
                       style={[
                         styles.messageText,
-                        isSent ? styles.messageTextSent : styles.messageTextReceived,
+                        isSent ? styles.messageTextSent : { color: palette.text.primary },
                       ]}
                     >
                       {message.message}
@@ -239,7 +264,7 @@ export const ChatDetailScreen: React.FC = () => {
                     <Text
                       style={[
                         styles.messageTime,
-                        isSent ? styles.messageTimeSent : styles.messageTimeReceived,
+                        isSent ? styles.messageTimeSent : { color: palette.text.secondary },
                       ]}
                     >
                       {formatMessageTime(message.createdAt)}
@@ -253,19 +278,19 @@ export const ChatDetailScreen: React.FC = () => {
         </ScrollView>
 
         {/* Input Area */}
-        <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
+        <SafeAreaView edges={['bottom']} style={[styles.inputSafeArea, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
             <TouchableOpacity style={styles.attachButton}>
               <MaterialIcons
                 name="attach-file"
                 size={24}
-                color={colors.student.text.secondaryLight}
+                color={palette.text.secondary}
               />
             </TouchableOpacity>
             <TextInput
-              style={styles.input}
-              placeholder="Mesaj yazın..."
-              placeholderTextColor={colors.student.text.secondaryLight}
+              style={[styles.input, { backgroundColor: palette.card, color: palette.text.primary }]}
+              placeholder={t('chat.typeMessage')}
+              placeholderTextColor={palette.text.secondary}
               value={inputText}
               onChangeText={setInputText}
               multiline
@@ -274,7 +299,7 @@ export const ChatDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                !inputText.trim() && styles.sendButtonDisabled,
+                { backgroundColor: inputText.trim() ? palette.primary : palette.card },
               ]}
               onPress={handleSend}
               disabled={!inputText.trim()}
@@ -282,7 +307,7 @@ export const ChatDetailScreen: React.FC = () => {
               <MaterialIcons
                 name="send"
                 size={24}
-                color={inputText.trim() ? '#ffffff' : colors.student.text.secondaryLight}
+                color={inputText.trim() ? '#ffffff' : palette.text.secondary}
               />
             </TouchableOpacity>
           </View>
@@ -295,7 +320,6 @@ export const ChatDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.student.background.light,
   },
   keyboardView: {
     flex: 1,
@@ -317,12 +341,10 @@ const styles = StyleSheet.create({
   headerName: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    color: colors.student.text.primaryLight,
   },
   headerStatus: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.normal,
-    color: colors.student.text.secondaryLight,
   },
   headerButton: {
     width: 40,
@@ -345,8 +367,6 @@ const styles = StyleSheet.create({
   dateSeparatorText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
-    color: colors.student.text.secondaryLight,
-    backgroundColor: colors.student.background.light,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.md,
@@ -365,15 +385,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.xl,
-    ...shadows.sm,
-  },
-  messageBubbleSent: {
-    backgroundColor: colors.student.primary,
-    borderBottomRightRadius: borderRadius.sm,
-  },
-  messageBubbleReceived: {
-    backgroundColor: colors.student.card.light,
-    borderBottomLeftRadius: borderRadius.sm,
   },
   messageText: {
     fontSize: typography.fontSize.base,
@@ -382,9 +393,6 @@ const styles = StyleSheet.create({
   messageTextSent: {
     color: '#ffffff',
   },
-  messageTextReceived: {
-    color: colors.student.text.primaryLight,
-  },
   messageTime: {
     fontSize: typography.fontSize.xs,
     marginTop: spacing.xs,
@@ -392,13 +400,8 @@ const styles = StyleSheet.create({
   messageTimeSent: {
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  messageTimeReceived: {
-    color: colors.student.text.secondaryLight,
-  },
   inputSafeArea: {
-    backgroundColor: colors.student.background.light,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -418,25 +421,18 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: colors.student.card.light,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
-    color: colors.student.text.primaryLight,
-    ...shadows.sm,
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.student.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,
-  },
-  sendButtonDisabled: {
-    backgroundColor: colors.student.card.light,
   },
   emptyState: {
     flex: 1,
@@ -447,7 +443,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.fontSize.base,
-    color: colors.student.text.secondaryLight,
     marginTop: spacing.md,
     textAlign: 'center',
   },
@@ -459,12 +454,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: typography.fontSize.lg,
-    color: colors.student.text.primaryLight,
     marginBottom: spacing.md,
   },
   backButton: {
     fontSize: typography.fontSize.base,
-    color: colors.student.primary,
     fontWeight: typography.fontWeight.medium,
   },
 });
