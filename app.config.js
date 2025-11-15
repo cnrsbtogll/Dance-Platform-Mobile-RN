@@ -6,7 +6,7 @@
  * - Codecanyon: APP_BRAND=codecanyon expo start
  * - Feriha: APP_BRAND=feriha expo start
  * 
- * Default: codecanyon (for codecanyon-template branch) (for main branch)
+ * Default: codecanyon (for codecanyon-template branch)
  */
 
 const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'codecanyon';
