@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { appConfig } from '../../config/appConfig';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -13,7 +14,7 @@ export const LoginScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -73,7 +74,11 @@ export const LoginScreen: React.FC = () => {
         {/* Illustration */}
         <View style={styles.illustrationContainer}>
           <Image
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr' }}
+            source={
+              appConfig.brand === 'feriha'
+                ? require('../../../assets/splash-feriha.png')
+                : require('../../../assets/splash.png')
+            }
             style={styles.illustration}
             resizeMode="contain"
           />
