@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons , AntDesign} from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -199,10 +199,8 @@ export const LoginScreen: React.FC = () => {
 
           <View style={styles.socialButtons}>
             <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
-              <Image
-                source={{ uri: 'https://www.google.com/favicon.ico' }}
-                style={styles.socialIcon}
-              />
+              <AntDesign name="google" size={24} color={palette.text.primary} />
+              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
               <MaterialIcons name="apple" size={24} color={palette.text.primary} />
