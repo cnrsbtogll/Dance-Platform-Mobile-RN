@@ -585,11 +585,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     fontSize: typography.fontSize.base,
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
   ratingChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,

@@ -13,7 +13,7 @@ export const colors = {
       primaryLight: '#343A40',
       primaryDark: '#E9ECEF',
       secondaryLight: '#617589',
-      secondaryDark: '#C8D0D8',
+      secondaryDark: '#adb5bd',
     },
     card: {
       light: '#ffffff',
@@ -37,7 +37,6 @@ export const colors = {
       lightPrimary: '#34495E',
       lightSecondary: '#617589',
       dark: '#E0E0E0',
-      darkSecondary: '#B8C5D1',
     },
     card: {
       light: '#FFFFFF',
@@ -162,11 +161,11 @@ export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
   const text = role === 'student'
     ? {
         primary: dark ? colors.student.text.primaryDark : colors.student.text.primaryLight,
-        secondary: dark ? colors.student.text.secondaryDark : colors.student.text.secondaryLight,
+        secondary: dark ? '#CBD5E1' : colors.student.text.secondaryLight,
       }
     : {
         primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
-        secondary: dark ? colors.instructor.text.darkSecondary : colors.instructor.text.lightSecondary,
+        secondary: dark ? '#CBD5E1' : colors.instructor.text.lightSecondary,
       };
   return {
     primary: base.primary,
@@ -177,4 +176,3 @@ export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
     text,
   };
 };
-
