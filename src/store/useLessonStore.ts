@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Lesson, Review } from '../types';
 import { MockDataService } from '../services/mockDataService';
+import { dataService } from '../services/backendService';
 
 interface LessonState {
   lessons: Lesson[];
@@ -15,15 +16,18 @@ interface LessonState {
   setSelectedCategory: (category: string | null) => void;
   getFilteredLessons: () => Lesson[];
   getLessonReviews: (lessonId: string) => Review[];
-  refreshLessons: () => void;
+  refreshLessons: () => Promise<void>;
 }
 
 export const useLessonStore = create<LessonState>((set, get) => {
   // Store'u başlatırken dersleri yükle
-  const initialLessons = MockDataService.getActiveLessons();
+  // Async initialization
+  dataService.getLessons().then((lessons) => {
+    set({ lessons });
+  });
   
   return {
-    lessons: initialLessons,
+    lessons: [], // Initial state empty until loaded
     selectedLesson: null,
     favoriteLessons: [],
     searchQuery: '',
@@ -54,8 +58,11 @@ export const useLessonStore = create<LessonState>((set, get) => {
     }
     
     if (searchQuery) {
-      filtered = MockDataService.searchLessons(searchQuery).filter(lesson =>
-        filtered.some(l => l.id === lesson.id)
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(lesson => 
+        lesson.title.toLowerCase().includes(lowerQuery) ||
+        lesson.description.toLowerCase().includes(lowerQuery) ||
+        lesson.category.toLowerCase().includes(lowerQuery)
       );
     }
     
@@ -66,8 +73,9 @@ export const useLessonStore = create<LessonState>((set, get) => {
     return MockDataService.getReviewsByLesson(lessonId);
   },
   
-  refreshLessons: () => {
-    set({ lessons: MockDataService.getActiveLessons() });
+  refreshLessons: async () => {
+    const lessons = await dataService.getLessons();
+    set({ lessons });
   },
   };
 });

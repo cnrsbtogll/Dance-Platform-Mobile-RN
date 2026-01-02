@@ -1,44 +1,176 @@
-/**
- * Firestore Service Plan
- * 
- * This file contains the planned structure for Firestore database integration.
- * Currently using mock data via MockDataService.
- * 
- * Planned Collections:
- * - users/{userId} - User profiles
- * - lessons/{lessonId} - Lessons
- * - bookings/{bookingId} - Bookings
- * - reviews/{reviewId} - Reviews
- * - messages/{messageId} - Messages
- * - notifications/{notificationId} - Notifications
- * - favorites/{userId}/lessons/{lessonId} - Favorite lessons
- * 
- * Planned Features:
- * - Real-time data synchronization
- * - Query optimization with indexes
- * - Offline persistence
- * - Batch operations
- * - Transaction support
- */
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  Timestamp,
+  DocumentData
+} from 'firebase/firestore';
+import { db } from './config';
+import { User, Lesson, Instructor, Booking, Review, Message, Notification } from '../../types';
 
-// Example structure (not implemented yet):
-/*
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, getDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
-
-const db = getFirestore();
-
-export const getLesson = async (lessonId: string) => {
-  const lessonRef = doc(db, 'lessons', lessonId);
-  const lessonSnap = await getDoc(lessonRef);
-  return lessonSnap.data();
+// Collection names
+const COLLECTIONS = {
+  USERS: 'users',
+  COURSES: 'courses', // Mapped to lessons
+  INSTRUCTORS: 'instructors',
+  ATTENDANCE: 'attendance',
+  TICKETS: 'tickets',
+  MESSAGES: 'messages',
+  REVIEWS: 'reviews', // Not verified if exists yet
+  NOTIFICATIONS: 'notifications' // Not verified if exists yet
 };
 
-export const getLessons = async () => {
-  const lessonsRef = collection(db, 'lessons');
-  const q = query(lessonsRef, where('isActive', '==', true));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+// Helper to convert Firestore doc to typed object
+const convertDoc = <T>(doc: any): T => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    // Convert timestamps to ISO strings if needed
+    createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+    date: data.date?.toDate?.()?.toISOString() || data.date,
+  } as T;
 };
-*/
 
+export class FirestoreService {
+  // Users
+  static async getUserById(id: string): Promise<User | null> {
+    try {
+      const docRef = doc(db, COLLECTIONS.USERS, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          name: data.displayName || '',
+          displayName: data.displayName || '',
+          email: data.email || '',
+          role: data.role || 'student',
+          avatar: data.photoURL,
+          photoURL: data.photoURL,
+          phoneNumber: data.phoneNumber,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+          ...data
+        } as User;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  }
+
+  static async updateUser(id: string, data: Partial<User>): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.USERS, id);
+      await updateDoc(docRef, data as DocumentData);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  // Lessons (Courses)
+  static async getLessons(): Promise<Lesson[]> {
+    try {
+      const q = query(collection(db, COLLECTIONS.COURSES), where('status', '==', 'active'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.name || '',
+          name: data.name || '',
+          description: data.description || '',
+          category: data.danceStyle || 'Other',
+          danceStyle: data.danceStyle || 'Other',
+          instructorId: data.instructorId || '',
+          price: data.price || 0,
+          currency: data.currency,
+          duration: data.duration || 60,
+          imageUrl: data.imageUrl,
+          // Map other fields
+          isActive: data.status === 'active',
+          status: data.status,
+          rating: 0, // Default as not in course
+          reviewCount: 0,
+          favoriteCount: 0,
+          createdAt: data.createdAt?.toString(),
+          ...data
+        } as Lesson;
+      });
+    } catch (error) {
+      console.error('Error getting lessons:', error);
+      return [];
+    }
+  }
+
+  static async getLessonById(id: string): Promise<Lesson | null> {
+    try {
+      const docRef = doc(db, COLLECTIONS.COURSES, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          title: data.name || '',
+          name: data.name || '',
+          description: data.description || '',
+          category: data.danceStyle || 'Other',
+          danceStyle: data.danceStyle || 'Other',
+          instructorId: data.instructorId || '',
+          price: data.price || 0,
+          currency: data.currency,
+          duration: data.duration || 60,
+          imageUrl: data.imageUrl,
+          isActive: data.status === 'active',
+          status: data.status,
+          rating: 0,
+          reviewCount: 0,
+          favoriteCount: 0,
+          createdAt: data.createdAt?.toString(),
+          ...data
+        } as Lesson;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting lesson:', error);
+      return null;
+    }
+  }
+
+  // Instructors
+  static async getInstructors(): Promise<Instructor[]> {
+    try {
+      const q = query(collection(db, COLLECTIONS.INSTRUCTORS));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc<Instructor>(doc));
+    } catch (error) {
+      console.error('Error getting instructors:', error);
+      return [];
+    }
+  }
+
+  static async getInstructorById(id: string): Promise<Instructor | null> {
+    try {
+      const docRef = doc(db, COLLECTIONS.INSTRUCTORS, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return convertDoc<Instructor>(docSnap);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting instructor:', error);
+      return null;
+    }
+  }
+}

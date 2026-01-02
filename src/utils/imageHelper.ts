@@ -28,26 +28,70 @@ const LESSON_IMAGES_MAP: { [key: string]: any } = {
   'moderndance-2.jpeg': require('../../assets/lessons/moderndance/moderndance-2.jpeg'),
   'moderndance-3.jpeg': require('../../assets/lessons/moderndance/moderndance-3.jpeg'),
   'moderndance-4.jpeg': require('../../assets/lessons/moderndance/moderndance-4.jpeg'),
+  
+  // Mappings for Firebase paths
+  'kurs1.jpg': require('../../assets/lessons/salsa/salsa-1.jpeg'),
+  'kurs3.jpg': require('../../assets/lessons/bachata/bachata-3.jpeg'),
+  'kurs5.jpg': require('../../assets/lessons/kizomba/kizomba-1.jpeg'),
+  'kurs6.jpg': require('../../assets/lessons/bachata/bachata-2.jpeg'),
+  'kurs7.jpg': require('../../assets/lessons/salsa/salsa-3.jpeg'),
+  'kurs8.jpg': require('../../assets/lessons/salsa/salsa-4.jpeg'),
+  'kurs9.jpg': require('../../assets/lessons/tango/tango-1.jpeg'),
+  
+  // Full paths mapping for Firebase
+  '/assets/images/dance/kurs1.jpg': require('../../assets/lessons/salsa/salsa-1.jpeg'),
+  '/assets/images/dance/kurs3.jpg': require('../../assets/lessons/bachata/bachata-3.jpeg'),
+  '/assets/images/dance/kurs5.jpg': require('../../assets/lessons/kizomba/kizomba-1.jpeg'),
+  '/assets/images/dance/kurs6.jpg': require('../../assets/lessons/bachata/bachata-2.jpeg'),
+  '/assets/images/dance/kurs7.jpg': require('../../assets/lessons/salsa/salsa-3.jpeg'),
+  '/assets/images/dance/kurs8.jpg': require('../../assets/lessons/salsa/salsa-4.jpeg'),
+  '/assets/images/dance/kurs9.jpg': require('../../assets/lessons/tango/tango-1.jpeg'),
+  '/assets/placeholders/default-course-image.png': require('../../assets/lessons/salsa/salsa-1.jpeg'),
 };
 
 /**
  * Get image source for lesson images
  * Supports both local assets (by filename) and URLs
+ * Falls back to category-based default image if specific image not found
  */
-export const getLessonImageSource = (imageUrl: string) => {
+export const getLessonImageSource = (imageUrl: string, category: string = 'salsa') => {
   // If it's a URL (starts with http), return as URI
-  if (imageUrl.startsWith('http')) {
+  if (imageUrl && imageUrl.startsWith('http')) {
     return { uri: imageUrl };
   }
   
-  // If it's a local asset filename, get from map
-  const image = LESSON_IMAGES_MAP[imageUrl];
-  if (image) {
-    return image;
+  // Clean up input
+  const cleanUrl = imageUrl ? imageUrl.trim() : '';
+  
+  // Check exact map first
+  if (LESSON_IMAGES_MAP[cleanUrl]) {
+    return LESSON_IMAGES_MAP[cleanUrl];
+  }
+
+  // Handle Firebase paths like /assets/images/dance/filename.jpg
+  if (cleanUrl.includes('/')) {
+    const filename = cleanUrl.split('/').pop();
+    if (filename && LESSON_IMAGES_MAP[filename]) {
+      return LESSON_IMAGES_MAP[filename];
+    }
   }
   
-  // Fallback: return as URI (for backward compatibility)
-  return { uri: imageUrl };
+  // Fallback by category
+  const lowerCategory = (category || '').toLowerCase();
+  if (lowerCategory.includes('bachata')) {
+    return LESSON_IMAGES_MAP['bachata-1.jpeg'];
+  } else if (lowerCategory.includes('tango')) {
+    return LESSON_IMAGES_MAP['tango-1.jpeg'];
+  } else if (lowerCategory.includes('kizomba')) {
+    return LESSON_IMAGES_MAP['kizomba-1.jpeg'];
+  } else if (lowerCategory.includes('modern')) {
+    return LESSON_IMAGES_MAP['moderndance-1.jpeg'];
+  } else if (lowerCategory.includes('vals')) {
+    return LESSON_IMAGES_MAP['moderndance-2.jpeg']; // Vals için modern dans görseli
+  }
+  
+  // Default fallback (Salsa)
+  return LESSON_IMAGES_MAP['salsa-1.jpeg'];
 };
 
 /**
@@ -76,7 +120,7 @@ export const getImageSource = (image: any) => {
  * If avatar is empty or null, returns the first avatar from AVATARS array
  */
 export const getAvatarSource = (avatar?: string | null, seed?: string): { uri: string } => {
-  if (avatar && avatar.trim() !== '') {
+  if (avatar && avatar.trim() !== '' && !avatar.startsWith('/')) {
     return { uri: avatar };
   }
   

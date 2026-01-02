@@ -1,4 +1,5 @@
 export * from './user';
+export * from './instructor';
 export * from './lesson';
 export * from './review';
 export * from './booking';

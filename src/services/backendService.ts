@@ -6,47 +6,28 @@
 
 import { appConfig } from '../config/appConfig';
 import { MockDataService } from './mockDataService';
+import { FirestoreService } from './firebase/firestore';
+import { auth } from './firebase/config';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 // Conditional Firebase import
-let firebaseAuth: any = null;
-let firestore: any = null;
-let firebaseStorage: any = null;
-
-if (appConfig.integrations.firebase) {
-  try {
-    // Firebase will be imported here when implemented
-    // import { auth } from './firebase/auth';
-    // import { db } from './firebase/firestore';
-    // import { storage } from './firebase/storage';
-    console.log('[BackendService] Firebase integration enabled');
-  } catch (error) {
-    console.warn('[BackendService] Firebase not available:', error);
-  }
-}
-
-// Conditional Stripe import
-let stripeModule: any = null;
-
-if (appConfig.integrations.stripe) {
-  try {
-    // Stripe will be imported here when implemented
-    // stripeModule = require('@stripe/stripe-react-native');
-    console.log('[BackendService] Stripe integration enabled');
-  } catch (error) {
-    console.warn('[BackendService] Stripe not available:', error);
-  }
-}
+// We use the imported services directly since we have installed firebase
+const firebaseEnabled = appConfig.integrations.firebase;
 
 /**
  * Authentication Service
  */
 export const authService = {
   login: async (email: string, password: string): Promise<boolean> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase authentication
-      // return await firebaseAuth.signInWithEmailAndPassword(email, password);
-      console.log('[AuthService] Using Firebase auth');
-      return false; // Placeholder
+    if (firebaseEnabled) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        console.log('[AuthService] Firebase login success');
+        return true;
+      } catch (error) {
+        console.error('[AuthService] Firebase login error:', error);
+        return false;
+      }
     } else {
       // Use mock authentication
       return MockDataService.authenticateUser(email, password);
@@ -54,11 +35,25 @@ export const authService = {
   },
 
   register: async (email: string, password: string, name: string): Promise<boolean> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase registration
-      // return await firebaseAuth.createUserWithEmailAndPassword(email, password);
-      console.log('[AuthService] Using Firebase registration');
-      return false; // Placeholder
+    if (firebaseEnabled) {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // Also create user profile in Firestore
+        if (cred.user) {
+          await FirestoreService.updateUser(cred.user.uid, {
+            id: cred.user.uid,
+            name: name,
+            displayName: name,
+            email: email,
+            role: 'student', // Default role
+            createdAt: new Date().toISOString()
+          });
+        }
+        return true;
+      } catch (error) {
+        console.error('[AuthService] Firebase register error:', error);
+        return false;
+      }
     } else {
       // Use mock registration
       return MockDataService.createUser(email, password, name);
@@ -66,10 +61,9 @@ export const authService = {
   },
 
   logout: async (): Promise<void> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase logout
-      // await firebaseAuth.signOut();
-      console.log('[AuthService] Using Firebase logout');
+    if (firebaseEnabled) {
+      await signOut(auth);
+      console.log('[AuthService] Firebase logout');
     } else {
       // Mock logout (no-op)
       console.log('[AuthService] Mock logout');
@@ -81,30 +75,25 @@ export const authService = {
  * Data Service
  */
 export const dataService = {
-  getLessons: () => {
-    if (appConfig.integrations.firebase && firestore) {
-      // Use Firestore
-      // return firestore.collection('lessons').get();
-      console.log('[DataService] Using Firestore');
-      return [];
+  getLessons: async () => {
+    if (firebaseEnabled) {
+      return await FirestoreService.getLessons();
     } else {
-      // Use mock data
       return MockDataService.getLessons();
     }
   },
 
-  getUsers: () => {
-    if (appConfig.integrations.firebase && firestore) {
-      // Use Firestore
-      // return firestore.collection('users').get();
-      console.log('[DataService] Using Firestore');
-      return [];
+  getUsers: async () => {
+    if (firebaseEnabled) {
+      // Not implemented in FirestoreService yet, adding TODO
+      // return await FirestoreService.getUsers(); 
+      return []; 
     } else {
-      // Use mock data
       return MockDataService.getUsers();
     }
   },
 };
+
 
 /**
  * Payment Service

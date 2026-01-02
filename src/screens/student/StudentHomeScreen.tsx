@@ -146,7 +146,7 @@ export const StudentHomeScreen: React.FC = () => {
         {/* Lessons List */}
         <View style={styles.lessonsContainer}>
           {filteredLessons.map((lesson) => {
-            const instructor = MockDataService.getInstructorForLesson(lesson.id);
+            const instructorName = lesson.instructorName || MockDataService.getInstructorForLesson(lesson.id)?.name;
             const isFavorite = favoriteLessons.includes(lesson.id);
             
             return (
@@ -182,7 +182,7 @@ export const StudentHomeScreen: React.FC = () => {
                 </View>
                 <View style={styles.lessonContent}>
                   <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
-                    {t('studentHome.instructorLabel')}: {instructor?.name || t('studentHome.unknown')}
+                    {t('studentHome.instructorLabel')}: {instructorName || t('studentHome.unknown')}
                   </Text>
                   <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                   <View style={styles.lessonFooter}>
@@ -194,9 +194,8 @@ export const StudentHomeScreen: React.FC = () => {
                     </View>
                     <Text style={[styles.price, { color: palette.text.primary }]}>
                       {(() => {
-                        const instructor = MockDataService.getInstructorForLesson(lesson.id);
-                        const currency = instructor?.currency || 'USD';
-                        return formatPrice(lesson.price, currency);
+                        const currency = lesson.currency || MockDataService.getInstructorForLesson(lesson.id)?.currency || 'USD';
+                        return formatPrice(lesson.price, currency as any);
                       })()}
                       <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                     </Text>
