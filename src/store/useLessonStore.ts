@@ -22,9 +22,14 @@ interface LessonState {
 export const useLessonStore = create<LessonState>((set, get) => {
   // Store'u başlatırken dersleri yükle
   // Async initialization
-  dataService.getLessons().then((lessons) => {
-    set({ lessons });
-  });
+  dataService.getLessons()
+    .then((lessons) => {
+      set({ lessons });
+    })
+    .catch((error) => {
+      console.error('[useLessonStore] Error fetching lessons during init:', error);
+      set({ lessons: [] });
+    });
   
   return {
     lessons: [], // Initial state empty until loaded
@@ -74,8 +79,12 @@ export const useLessonStore = create<LessonState>((set, get) => {
   },
   
   refreshLessons: async () => {
-    const lessons = await dataService.getLessons();
-    set({ lessons });
+    try {
+      const lessons = await dataService.getLessons();
+      set({ lessons });
+    } catch (error) {
+      console.error('[useLessonStore] Error refreshing lessons:', error);
+    }
   },
   };
 });

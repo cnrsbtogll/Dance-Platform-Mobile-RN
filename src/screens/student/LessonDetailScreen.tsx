@@ -25,15 +25,16 @@ export const LessonDetailScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
-  
-  const { toggleFavorite, favoriteLessons } = useLessonStore();
+
+  const { toggleFavorite, favoriteLessons, lessons } = useLessonStore();
   const { createBooking } = useBookingStore();
   const { user, isAuthenticated } = useAuthStore();
-  
-  const lesson = MockDataService.getLessonById(lessonId || '');
+
+  // Get lesson from store instead of MockDataService
+  const lesson = lessons.find(l => l.id === lessonId);
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
   const booking = bookingId ? MockDataService.getBookingById(bookingId) : null;
-  
+
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
   const [isRegistered, setIsRegistered] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState(false);
@@ -72,7 +73,7 @@ export const LessonDetailScreen: React.FC = () => {
       // Already registered
       return;
     }
-    
+
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       // Set pending registration flag and navigate to login screen
@@ -80,7 +81,7 @@ export const LessonDetailScreen: React.FC = () => {
       (navigation as any).navigate('Login');
       return;
     }
-    
+
     // Navigate to payment screen
     (navigation as any).navigate('Payment', {
       lessonId: lesson.id,
@@ -109,7 +110,7 @@ export const LessonDetailScreen: React.FC = () => {
             colors={['transparent', 'rgba(0,0,0,0.6)']}
             style={styles.gradientOverlay}
           />
-          
+
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity
@@ -224,32 +225,32 @@ export const LessonDetailScreen: React.FC = () => {
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
-            <Text style={[styles.priceValue, { color: colors.student.primary }]}>
-              {(() => {
-                const instructor = MockDataService.getInstructorForLesson(lesson.id);
-                const currency = instructor?.currency || 'USD';
-                return formatPrice(lesson.price, currency);
-              })()}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={isRegistered || !!booking}
-          >
-            <LinearGradient
-              colors={['#4A90E2', '#5BA3F5']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.registerButtonGradient}
-            >
-              <Text style={styles.registerButtonText}>
-                {booking || isRegistered ? t('lessons.registered') : t('lessons.register')}
+            <View style={styles.priceContainer}>
+              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
+              <Text style={[styles.priceValue, { color: colors.student.primary }]}>
+                {(() => {
+                  const instructor = MockDataService.getInstructorForLesson(lesson.id);
+                  const currency = instructor?.currency || 'USD';
+                  return formatPrice(lesson.price, currency);
+                })()}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+              disabled={isRegistered || !!booking}
+            >
+              <LinearGradient
+                colors={['#4A90E2', '#5BA3F5']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.registerButtonGradient}
+              >
+                <Text style={styles.registerButtonText}>
+                  {booking || isRegistered ? t('lessons.registered') : t('lessons.register')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       )}

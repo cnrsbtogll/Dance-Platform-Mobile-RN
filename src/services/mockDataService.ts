@@ -28,6 +28,28 @@ export class MockDataService {
     return users.filter(user => user.role === role);
   }
 
+  static authenticateUser(email: string, password: string): boolean {
+    const user = users.find(u => u.email === email);
+    // Simple mock check
+    return !!user && password === 'password123';
+  }
+
+  static createUser(email: string, password: string, name: string): boolean {
+    const exists = users.some(u => u.email === email);
+    if (exists) return false;
+    
+    const newUser: User = {
+      id: `user_${Date.now()}`,
+      email,
+      name,
+      displayName: name,
+      role: 'student',
+      createdAt: new Date().toISOString()
+    };
+    users.push(newUser);
+    return true;
+  }
+
   // Lessons
   static getLessons(): Lesson[] {
     return lessons;

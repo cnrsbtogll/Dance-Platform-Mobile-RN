@@ -7,11 +7,11 @@
 import { appConfig } from '../config/appConfig';
 import { MockDataService } from './mockDataService';
 import { FirestoreService } from './firebase/firestore';
-import { auth } from './firebase/config';
+import { auth, storage as firebaseStorage } from './firebase/config';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
-// Conditional Firebase import
-// We use the imported services directly since we have installed firebase
+// Define stripeModule as null for now since it's not yet integrated
+const stripeModule: any = null;
 const firebaseEnabled = appConfig.integrations.firebase;
 
 /**
