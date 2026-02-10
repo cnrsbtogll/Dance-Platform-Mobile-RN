@@ -192,12 +192,25 @@
     "description": "Teach dance, meet your students and earn money.",
     "step1": "Create Account",
     "step1Description": "You need to create an account first to become an instructor.",
+    "step1Completed": "✓ You are registered as a user",
+    "step2Title": "Submit Instructor Request",
+    "step2Description": "Submit your application to open lessons as an instructor.",
+    "step2NeedLogin": "Complete step 1 first (Create an account)",
     "step2": "Contact via WhatsApp",
     "step2DescriptionAuthenticated": "Contact us to open lessons as an instructor and meet with students.",
     "step2DescriptionNotAuthenticated": "After creating your account, you can contact us via WhatsApp.",
+    "step3": "Contact via WhatsApp",
+    "step3DescriptionActive": "Your application has been received! You can now contact us via WhatsApp.",
+    "step3DescriptionInactive": "Please complete the steps above first.",
     "createAccount": "Create Account",
+    "submitRequest": "Submit Instructor Request",
     "contactWhatsApp": "Contact via WhatsApp",
     "mustCreateAccount": "You must create an account first",
+    "mustSubmitRequest": "You must submit an instructor request first",
+    "mustLogin": "Please log in first",
+    "requestSubmitted": "Your instructor request has been submitted successfully!",
+    "requestError": "An error occurred while submitting the request. Please try again.",
+    "requestAlreadySubmitted": "Your instructor request has already been submitted",
     "whatsappMessage": "Hello, I would like to register as an instructor on your dance platform app"
   },
   "notifications": {
@@ -403,4 +416,3 @@
     "contactContent": "If you have questions about our privacy policy, please contact us at support@danceplatform.com."
   }
 }
-

@@ -40,7 +40,7 @@ export const authService = {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         // Also create user profile in Firestore
         if (cred.user) {
-          await FirestoreService.updateUser(cred.user.uid, {
+          await FirestoreService.createUser(cred.user.uid, {
             id: cred.user.uid,
             name: name,
             displayName: name,

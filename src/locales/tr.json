@@ -192,12 +192,25 @@
     "description": "Dans eğitimi verin, öğrencilerinizle buluşun ve kazanç sağlayın.",
     "step1": "Hesap Oluşturun",
     "step1Description": "Eğitmen olmak için önce hesabınızı oluşturmanız gerekmektedir.",
+    "step1Completed": "✓ Sisteme kullanıcı olarak kayıtlısınız",
+    "step2Title": "Eğitmen Olma İsteği Gönderin",
+    "step2Description": "Eğitmen olarak ders açmak için başvurunuzu gönderin.",
+    "step2NeedLogin": "Önce 1. adımı tamamlayın (Hesap oluşturun)",
     "step2": "WhatsApp ile İletişime Geçin",
     "step2DescriptionAuthenticated": "Eğitmen olarak ders açmak ve öğrencilerle buluşmak için bizimle iletişime geçin.",
     "step2DescriptionNotAuthenticated": "Hesabınızı oluşturduktan sonra WhatsApp üzerinden bizimle iletişime geçebilirsiniz.",
+    "step3": "WhatsApp ile İletişime Geçin",
+    "step3DescriptionActive": "Başvurunuz alındı! Şimdi WhatsApp üzerinden bizimle iletişime geçebilirsiniz.",
+    "step3DescriptionInactive": "Önce yukarıdaki adımları tamamlayın.",
     "createAccount": "Hesap Oluştur",
+    "submitRequest": "Eğitmen Olma İsteği Gönder",
     "contactWhatsApp": "WhatsApp ile İletişime Geç",
     "mustCreateAccount": "Önce hesap oluşturmalısınız",
+    "mustSubmitRequest": "Önce eğitmen olma isteği göndermelisiniz",
+    "mustLogin": "Lütfen önce giriş yapın",
+    "requestSubmitted": "Eğitmen olma isteğiniz başarıyla gönderildi!",
+    "requestError": "İstek gönderilirken bir hata oluştu. Lütfen tekrar deneyin.",
+    "requestAlreadySubmitted": "Eğitmen olma isteğiniz zaten gönderilmiş",
     "whatsappMessage": "Merhaba dance platform uygulamanıza eğitmen olarak kayıt yaptırmak istiyorum"
   },
   "notifications": {
@@ -403,4 +416,3 @@
     "contactContent": "Gizlilik politikamız hakkında sorularınız varsa, lütfen bizimle support@danceplatform.com adresinden iletişime geçin."
   }
 }
-

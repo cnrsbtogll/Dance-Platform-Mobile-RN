@@ -9,6 +9,7 @@ import {
   limit, 
   addDoc, 
   updateDoc, 
+  setDoc,
   deleteDoc,
   Timestamp,
   DocumentData
@@ -66,6 +67,20 @@ export class FirestoreService {
     } catch (error) {
       console.error('Error getting user:', error);
       return null;
+    }
+  }
+
+  static async createUser(id: string, data: Partial<User>): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.USERS, id);
+      await setDoc(docRef, {
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
     }
   }
 

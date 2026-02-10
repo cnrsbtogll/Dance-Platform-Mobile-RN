@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons , AntDesign} from '@expo/vector-icons';
+import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { appConfig } from '../../config/appConfig';
+import { authService } from '../../services/backendService';
+import { Alert } from 'react-native';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -31,30 +33,30 @@ export const LoginScreen: React.FC = () => {
   const handleCreateAccount = async () => {
     // Validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      // Show error message - in real app use Alert or Toast
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
-    
+
     if (password !== confirmPassword) {
-      // Show error message - passwords don't match
+      Alert.alert(t('common.error'), t('auth.passwordsDoNotMatch'));
       return;
     }
-    
-    // Mock: Create account and auto-login
-    // In real app, this would call Firebase Auth
-    const mockUser = {
-      id: `user_${Date.now()}`,
-      name: `${firstName} ${lastName}`,
-      email: email,
-      role: 'student' as const,
-      avatar: '',
-      bio: '',
-      rating: 0,
-      totalLessons: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setUser(mockUser);
-    navigation.goBack();
+
+    try {
+      const name = `${firstName} ${lastName}`;
+      const success = await authService.register(email, password, name);
+
+      if (success) {
+        // After successful registration, the store's initialize() 
+        // will handle the onAuthStateChanged and set the user.
+        navigation.goBack();
+      } else {
+        Alert.alert(t('common.error'), t('auth.registrationFailed'));
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Registration error:', error);
+      Alert.alert(t('common.error'), error.message || t('auth.registrationError'));
+    }
   };
 
   const handleLogin = async () => {
@@ -65,7 +67,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.container, { backgroundColor: palette.background }]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
