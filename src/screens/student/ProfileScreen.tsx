@@ -159,8 +159,8 @@ export const ProfileScreen: React.FC = () => {
                 backgroundColor: item.isDanger
                   ? '#e53e3e20'
                   : item.iconColor
-                  ? `${item.iconColor}20`
-                  : '#48C9B020',
+                    ? `${item.iconColor}20`
+                    : '#48C9B020',
               },
             ]}
           >
@@ -226,8 +226,8 @@ export const ProfileScreen: React.FC = () => {
 
         {/* Switch to Instructor Mode Button - if user is instructor */}
         {isAuthenticated && user?.role === 'instructor' && (
-          <TouchableOpacity 
-            style={styles.switchModeButton} 
+          <TouchableOpacity
+            style={styles.switchModeButton}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleSwitchToInstructorMode}
@@ -236,10 +236,24 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
+        {/* Login / Sign Up Button - if user is NOT logged in */}
+        {!isAuthenticated && (
+          <TouchableOpacity
+            style={styles.loginButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              (navigation as any).navigate('Login');
+            }}
+          >
+            <MaterialIcons name="login" size={24} color="#ffffff" />
+            <Text style={styles.loginButtonText}>{t('auth.login')}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Become Instructor Button - if user is student or not logged in */}
         {(!isAuthenticated || user?.role === 'student') && (
-          <TouchableOpacity 
-            style={styles.switchModeButton} 
+          <TouchableOpacity
+            style={styles.switchModeButton}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => {
@@ -250,14 +264,14 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* Account Settings */}
-        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
+        {/* Account Settings - Only show if authenticated */}
+        {isAuthenticated && renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
         {renderSettingsCard(t('profile.appSettings'), appSettings)}
 
-        {/* Support & Legal */}
-        {renderSettingsCard('', supportSettings)}
+        {/* Support & Legal - Filter out logout if not authenticated */}
+        {renderSettingsCard('', isAuthenticated ? supportSettings : supportSettings.filter(item => item.id !== 'logout'))}
 
         {/* Bottom spacing */}
         <View style={{ height: spacing.xl }} />
@@ -275,7 +289,7 @@ export const ProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setLanguageModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -287,7 +301,7 @@ export const ProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={[
                 styles.languageOption,
@@ -369,6 +383,24 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
     color: '#48C9B0',
+  },
+  loginButton: {
+    height: 56,
+    backgroundColor: colors.student.primary,
+    borderRadius: borderRadius.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    ...shadows.sm,
+  },
+  loginButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: '#ffffff',
+    letterSpacing: 0.015,
   },
   switchModeButton: {
     height: 56,
