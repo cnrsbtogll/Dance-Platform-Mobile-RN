@@ -71,6 +71,21 @@ module.exports = {
     web: {
       favicon: currentBrand.favicon,
     },
+    extra: {
+      eas: {
+        projectId: "4cd51a3f-fc74-4cfb-b923-8ce29df8b37d"
+      }
+    },
+    plugins: [
+      "@react-native-community/datetimepicker",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": `merchant.${currentBrand.bundleIdentifier}`,
+          "enableGooglePay": true
+        }
+      ]
+    ],
   },
 };
 
