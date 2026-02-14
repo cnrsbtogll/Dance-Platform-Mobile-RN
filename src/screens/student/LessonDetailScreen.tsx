@@ -13,6 +13,8 @@ import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { getLessonImageSource } from '../../utils/imageHelper';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../services/firebase/config';
 
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -33,7 +35,42 @@ export const LessonDetailScreen: React.FC = () => {
   // Get lesson from store instead of MockDataService
   const lesson = lessons.find(l => l.id === lessonId);
 
-  const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
+  const [instructor, setInstructor] = useState<any>(null);
+  const [school, setSchool] = useState<any>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (lesson) {
+        setIsLoadingDetails(true);
+        try {
+          // Fetch Instructor
+          if (lesson.instructorId) {
+            const instructorDoc = await getDoc(doc(db, 'instructors', lesson.instructorId));
+            if (instructorDoc.exists()) {
+              setInstructor({ id: instructorDoc.id, ...instructorDoc.data() });
+            }
+          }
+
+          // Fetch School
+          if (lesson.schoolId) {
+            const schoolDoc = await getDoc(doc(db, 'schools', lesson.schoolId));
+            if (schoolDoc.exists()) {
+              setSchool({ id: schoolDoc.id, ...schoolDoc.data() });
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching details:", error);
+        } finally {
+          setIsLoadingDetails(false);
+        }
+      }
+    };
+
+    fetchDetails();
+  }, [lesson]);
+
+
   const booking = bookingId ? MockDataService.getBookingById(bookingId) : null;
 
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
@@ -139,9 +176,9 @@ export const LessonDetailScreen: React.FC = () => {
 
           {/* Title Overlay */}
           <View style={styles.titleOverlay}>
-            <Text style={styles.heroTitle}>{lesson.title}</Text>
+            <Text style={styles.heroTitle}>{lesson.title || lesson.name}</Text>
             <Text style={styles.heroInstructor}>
-              {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
+              {t('lessons.instructor')}: {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
             </Text>
           </View>
         </View>
@@ -183,9 +220,9 @@ export const LessonDetailScreen: React.FC = () => {
             <View style={styles.locationContainer}>
               <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
               <View style={styles.locationTextContainer}>
-                <Text style={[styles.locationName, { color: palette.text.primary }]}>Dans Stüdyosu A</Text>
+                <Text style={[styles.locationName, { color: palette.text.primary }]}>{school?.ad || school?.name || t('common.loading')}</Text>
                 <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
-                  Merkez Mah. Sanat Sk. No:12, Beşiktaş/İstanbul
+                  {school?.iletisim || school?.description || t('lessons.addressNotAvailable')}
                 </Text>
               </View>
             </View>

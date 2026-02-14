@@ -26,29 +26,70 @@ export const StudentHomeScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
-  const filteredLessons = lessons.filter(lesson => {
-    if (selectedCategory && lesson.category !== selectedCategory) return false;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      if (!lesson.title.toLowerCase().includes(query) &&
-        !lesson.description.toLowerCase().includes(query) &&
-        !lesson.category.toLowerCase().includes(query)) return false;
-    }
-    if (minPrice !== null && lesson.price < minPrice) return false;
-    if (maxPrice !== null && lesson.price > maxPrice) return false;
-    if (lesson.rating < minRating) return false;
-    if (maxDuration !== null && lesson.duration > maxDuration) return false;
-    return true;
-  });
 
   const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Modern'];
 
-  // Filter state
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  // Active Filter States (Listeyi etkileyenler)
+  const [activeMinPrice, setActiveMinPrice] = useState<number | null>(null);
+  const [activeMaxPrice, setActiveMaxPrice] = useState<number | null>(null);
+  const [activeMinRating, setActiveMinRating] = useState<number>(0);
+  const [activeMaxDuration, setActiveMaxDuration] = useState<number | null>(null);
+
+  // Modal Filter States (Modal içindeki geçici değerler)
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minRating, setMinRating] = useState<number>(0);
   const [maxDuration, setMaxDuration] = useState<number | null>(null);
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Filtreleme Mantığı
+  const filteredLessons = lessons.filter(lesson => {
+    // Kategori (Case-insensitive)
+    if (selectedCategory && (lesson.category || '').toLowerCase() !== selectedCategory.toLowerCase()) {
+      return false;
+    }
+
+    // Arama
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (!(lesson.title || '').toLowerCase().includes(query) &&
+        !(lesson.description || '').toLowerCase().includes(query) &&
+        !(lesson.category || '').toLowerCase().includes(query)) return false;
+    }
+
+    // Aktif Filtreler
+    if (activeMinPrice !== null && lesson.price < activeMinPrice) return false;
+    if (activeMaxPrice !== null && lesson.price > activeMaxPrice) return false;
+    if ((lesson.rating || 0) < activeMinRating) return false;
+    if (activeMaxDuration !== null && (lesson.duration || 0) > activeMaxDuration) return false;
+
+    return true;
+  });
+
+  // Handlers
+  const openFilterModal = () => {
+    setMinPrice(activeMinPrice);
+    setMaxPrice(activeMaxPrice);
+    setMinRating(activeMinRating);
+    setMaxDuration(activeMaxDuration);
+    setShowFilterModal(true);
+  };
+
+  const applyFilters = () => {
+    setActiveMinPrice(minPrice);
+    setActiveMaxPrice(maxPrice);
+    setActiveMinRating(minRating);
+    setActiveMaxDuration(maxDuration);
+    setShowFilterModal(false);
+  };
+
+  const resetFilters = () => {
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinRating(0);
+    setMaxDuration(null);
+  };
 
   useEffect(() => {
     if (user) {
@@ -111,7 +152,7 @@ export const StudentHomeScreen: React.FC = () => {
           </View>
           <TouchableOpacity
             style={[styles.filterButton, { backgroundColor: palette.primary }]}
-            onPress={() => setShowFilterModal(true)}
+            onPress={openFilterModal}
           >
             <MaterialIcons name="tune" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -326,12 +367,7 @@ export const StudentHomeScreen: React.FC = () => {
             ]}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.resetButton, { backgroundColor: palette.background }]}
-                onPress={() => {
-                  setMinPrice(null);
-                  setMaxPrice(null);
-                  setMinRating(0);
-                  setMaxDuration(null);
-                }}
+                onPress={resetFilters}
               >
                 <Text style={[styles.modalButtonText, { color: palette.text.primary }]}>
                   {t('studentHome.reset')}
@@ -339,7 +375,7 @@ export const StudentHomeScreen: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.applyButton, { backgroundColor: palette.primary }]}
-                onPress={() => setShowFilterModal(false)}
+                onPress={applyFilters}
               >
                 <Text style={styles.modalButtonTextWhite}>
                   {t('studentHome.apply')}

@@ -76,9 +76,18 @@ export const authService = {
  */
 export const dataService = {
   getLessons: async () => {
+    console.log('[BackendService] getLessons called. Firebase enabled:', firebaseEnabled);
     if (firebaseEnabled) {
-      return await FirestoreService.getLessons();
+      try {
+        const lessons = await FirestoreService.getLessons();
+        console.log('[BackendService] Firestore returned lessons count:', lessons.length);
+        return lessons;
+      } catch (error) {
+        console.error('[BackendService] Error fetching from Firestore, falling back to empty array:', error);
+        return [];
+      }
     } else {
+      console.log('[BackendService] Returning Mock Data');
       return MockDataService.getLessons();
     }
   },
