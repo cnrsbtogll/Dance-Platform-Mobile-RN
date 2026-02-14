@@ -260,11 +260,48 @@ export const InstructorHomeScreen: React.FC = () => {
               contentContainerStyle={styles.upcomingContent}
             >
               {upcomingBookings.map((booking: any) => {
-                // TODO: Implement Firestore service for lessons and users
-                // const lesson = FirestoreService.getLessonById(booking.lessonId);
-                // const student = FirestoreService.getUserById(booking.studentId);
-                // if (!lesson) return null;
-                return null; // Temporarily disabled until Firestore bookings are implemented
+                const lesson = instructorLessons.find(l => l.id === booking.lessonId);
+                if (!lesson) return null;
+
+                return (
+                  <TouchableOpacity
+                    key={booking.id}
+                    style={[styles.upcomingCard, { backgroundColor: palette.card }]}
+                    onPress={() => {
+                      (navigation as any).navigate('LessonDetail', {
+                        lessonId: lesson.id,
+                        bookingId: booking.id,
+                        isInstructor: true
+                      });
+                    }}
+                  >
+                    {lesson.imageUrl && (
+                      <Image
+                        source={getLessonImageSource(lesson.imageUrl)}
+                        style={styles.upcomingImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <View style={styles.upcomingInfo}>
+                      <Text style={[styles.upcomingTitle, { color: palette.text.primary }]} numberOfLines={1}>
+                        {lesson.title}
+                      </Text>
+                      <Text style={[styles.upcomingStudent, { color: palette.text.secondary }]} numberOfLines={1}>
+                        {booking.studentName || t('instructorHome.student')}
+                      </Text>
+                      <View style={styles.upcomingDateTime}>
+                        <MaterialIcons name="event" size={14} color={palette.text.secondary} />
+                        <Text style={[styles.upcomingDateText, { color: palette.text.secondary }]}>
+                          {formatDate(booking.date)}
+                        </Text>
+                        <MaterialIcons name="access-time" size={14} color={palette.text.secondary} style={{ marginLeft: 8 }} />
+                        <Text style={[styles.upcomingTimeText, { color: palette.text.secondary }]}>
+                          {formatTime(booking.time)}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
               })}
             </ScrollView>
           )}
@@ -494,6 +531,24 @@ const styles = StyleSheet.create({
   upcomingDetails: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
+  },
+  upcomingStudent: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  upcomingDateTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  upcomingDateText: {
+    fontSize: typography.fontSize.xs,
+    marginLeft: 4,
+  },
+  upcomingTimeText: {
+    fontSize: typography.fontSize.xs,
+    marginLeft: 4,
   },
   activeLessonsList: {
     gap: spacing.sm,
