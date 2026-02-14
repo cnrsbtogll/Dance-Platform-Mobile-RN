@@ -239,7 +239,14 @@ export const InstructorNavigator: React.FC = () => {
         name="CreateLesson"
         component={CreateLessonScreen}
         options={{
-          headerShown: false,
+          headerShown: true,
+          headerTitle: t('lessons.createLesson'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
           presentation: 'card',
         }}
       />
@@ -247,7 +254,14 @@ export const InstructorNavigator: React.FC = () => {
         name="EditLesson"
         component={EditLessonScreen}
         options={{
-          headerShown: false,
+          headerShown: true,
+          headerTitle: t('lessons.editLesson'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
           presentation: 'card',
         }}
       />

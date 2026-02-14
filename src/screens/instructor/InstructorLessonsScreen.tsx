@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -26,28 +26,31 @@ export const InstructorLessonsScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch lessons from Firestore
-  useEffect(() => {
-    const fetchLessons = async () => {
-      if (!user || user.role !== 'instructor') {
-        setInstructorLessons([]);
-        setLoading(false);
-        return;
-      }
+  // Fetch lessons from Firestore when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLessons = async () => {
+        if (!user || user.role !== 'instructor') {
+          setInstructorLessons([]);
+          setLoading(false);
+          return;
+        }
 
-      try {
-        setLoading(true);
-        const lessons = await FirestoreService.getLessonsByInstructor(user.id);
-        setInstructorLessons(lessons);
-      } catch (error) {
-        console.error('Error fetching instructor lessons:', error);
-        setInstructorLessons([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+        try {
+          setLoading(true);
+          const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+          setInstructorLessons(lessons);
+        } catch (error) {
+          console.error('Error fetching instructor lessons:', error);
+          setInstructorLessons([]);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchLessons();
-  }, [user]);
+      fetchLessons();
+    }, [user])
+  );
 
   // Lessons with stats (stats currently mocked/simplified until Firestore bookings/reviews are implemented)
   const lessonsWithStats = useMemo(() => {
