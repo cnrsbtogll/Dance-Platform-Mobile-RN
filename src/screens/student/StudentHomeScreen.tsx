@@ -210,7 +210,7 @@ export const StudentHomeScreen: React.FC = () => {
                         resizeMode="cover"
                       />
                     )}
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.favoriteButton}
                       onPress={() => toggleFavorite(lesson.id)}
                     >
@@ -219,7 +219,7 @@ export const StudentHomeScreen: React.FC = () => {
                         size={24}
                         color="#ffffff"
                       />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                   <View style={styles.lessonContent}>
                     <Text style={[styles.instructorName, { color: palette.text.secondary }]}>

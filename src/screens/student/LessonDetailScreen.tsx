@@ -13,7 +13,7 @@ import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { FirestoreService } from '../../services/firebase/firestore';
-import { getLessonImageSource } from '../../utils/imageHelper';
+import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
 
@@ -241,6 +241,38 @@ export const LessonDetailScreen: React.FC = () => {
                 )}
               </View>
             </View>
+          </View>
+
+          {/* Instructor Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructor')}</Text>
+            <TouchableOpacity
+              style={[styles.instructorCard, { backgroundColor: palette.card }]}
+              onPress={() => {
+                // Navigate to instructor profile if needed
+                // (navigation as any).navigate('InstructorProfile', { instructorId: instructor?.id });
+              }}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={getAvatarSource(instructor?.photoURL, instructor?.displayName)}
+                style={styles.instructorAvatar}
+              />
+              <View style={styles.instructorInfo}>
+                <Text style={[styles.instructorName, { color: palette.text.primary }]}>
+                  {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
+                </Text>
+                <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
+                  {t('profile.instructor')}
+                </Text>
+              </View>
+              <View style={styles.ratingContainer}>
+                <MaterialIcons name="star" size={20} color="#FFB800" />
+                <Text style={[styles.ratingText, { color: palette.text.primary }]}>
+                  {instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Bottom spacing for fixed bar */}
@@ -507,8 +539,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+
   navTitle: {
     fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+  },
+  instructorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    ...shadows.sm,
+  },
+  instructorAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: spacing.md,
+  },
+  instructorInfo: {
+    flex: 1,
+  },
+  instructorName: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+  },
+  instructorRole: {
+    fontSize: typography.fontSize.sm,
+    marginTop: 2,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 184, 0, 0.1)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.lg,
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
   },
 });

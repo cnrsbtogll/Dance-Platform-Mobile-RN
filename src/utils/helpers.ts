@@ -143,15 +143,57 @@ export const calculateAge = (birthDate: string): number => {
 export const getBookingStatus = (booking: Booking): 'upcoming' | 'completed' | 'cancelled' => {
   if (booking.status === 'cancelled') return 'cancelled';
   
-  const bookingDate = new Date(booking.date);
+  const bookingDate = new Date(`${booking.date}T${booking.time}`);
   const now = new Date();
   
   if (bookingDate > now) return 'upcoming';
   return 'completed';
 };
 
+export const getUpcomingBookings = (bookings: Booking[]): Booking[] => {
+  const now = new Date();
+  return bookings.filter(booking => {
+    if (booking.status === 'cancelled') return false;
+    
+    // Handle potential missing time
+    const timeStr = booking.time || '00:00';
+    // Ensure date format is correct (YYYY-MM-DD)
+    const dateStr = booking.date.includes('T') ? booking.date.split('T')[0] : booking.date;
+    
+    const bookingDateTime = new Date(`${dateStr}T${timeStr}`);
+    
+    // Check if date is valid
+    if (isNaN(bookingDateTime.getTime())) return false;
+    
+    return bookingDateTime > now;
+  }).sort((a, b) => {
+    const dateA = new Date(`${a.date.split('T')[0]}T${a.time || '00:00'}`).getTime();
+    const dateB = new Date(`${b.date.split('T')[0]}T${b.time || '00:00'}`).getTime();
+    return dateA - dateB;
+  });
+};
+
+export const getPastBookings = (bookings: Booking[]): Booking[] => {
+  const now = new Date();
+  return bookings.filter(booking => {
+    const timeStr = booking.time || '00:00';
+    const dateStr = booking.date.includes('T') ? booking.date.split('T')[0] : booking.date;
+    const bookingDateTime = new Date(`${dateStr}T${timeStr}`);
+    
+    if (isNaN(bookingDateTime.getTime())) return false;
+    
+    return bookingDateTime <= now || booking.status === 'completed' || booking.status === 'cancelled';
+  }).sort((a, b) => {
+    const dateA = new Date(`${a.date.split('T')[0]}T${a.time || '00:00'}`).getTime();
+    const dateB = new Date(`${b.date.split('T')[0]}T${b.time || '00:00'}`).getTime();
+    return dateB - dateA; // Descending order
+  });
+};
+
 export const sortLessonsByDate = (lessons: Lesson[]): Lesson[] => {
   return [...lessons].sort((a, b) => {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     return dateA.getTime() - dateB.getTime();
@@ -168,7 +210,7 @@ export const searchLessons = (lessons: Lesson[], query: string): Lesson[] => {
   return lessons.filter(
     lesson =>
       lesson.title.toLowerCase().includes(lowerQuery) ||
-      lesson.instructorName.toLowerCase().includes(lowerQuery) ||
+      (lesson.instructorName || '').toLowerCase().includes(lowerQuery) ||
       lesson.category.toLowerCase().includes(lowerQuery)
   );
 };
