@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Switch, TextInput, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ export const StudentHomeScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
   const insets = useSafeAreaInsets();
-  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
+  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons, refreshLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
 
   const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Modern'];
@@ -97,6 +97,12 @@ export const StudentHomeScreen: React.FC = () => {
     }
   }, [user, loadNotifications]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshLessons();
+    }, [])
+  );
+
   useEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
@@ -108,7 +114,7 @@ export const StudentHomeScreen: React.FC = () => {
           <Text style={[styles.headerTitle, { color: palette.text.primary }]}>
             {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || t('common.guest') })}
           </Text>
-        </View>
+        </View >
       ),
       headerRight: appConfig.features.notifications ? () => (
         <TouchableOpacity

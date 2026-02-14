@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -25,39 +25,40 @@ export const InstructorHomeScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
   const insets = useSafeAreaInsets();
+  const { getUserBookings, fetchUserBookings } = useBookingStore();
+  const instructorBookings = getUserBookings();
 
   const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   // Fetch instructor's lessons from Firestore
-  useEffect(() => {
-    const fetchLessons = async () => {
-      if (!user || user.role !== 'instructor') {
-        setInstructorLessons([]);
-        setLoading(false);
-        return;
-      }
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchLessons = async () => {
+        if (!user || user.role !== 'instructor') {
+          setInstructorLessons([]);
+          setLoading(false);
+          return;
+        }
 
-      try {
-        setLoading(true);
-        const lessons = await FirestoreService.getLessonsByInstructor(user.id);
-        setInstructorLessons(lessons);
-      } catch (error) {
-        console.error('Error fetching instructor lessons:', error);
-        setInstructorLessons([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+        try {
+          setLoading(true);
+          const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+          setInstructorLessons(lessons);
+        } catch (error) {
+          console.error('Error fetching instructor lessons:', error);
+          setInstructorLessons([]);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchLessons();
-  }, [user]);
+      fetchLessons();
+      fetchUserBookings();
+    }, [user])
+  );
 
-  // Get instructor's bookings (TODO: Implement Firestore bookings service)
-  const instructorBookings = useMemo<Booking[]>(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return [];
-  }, [user]);
+
 
   // Calculate stats
   const stats = useMemo(() => {

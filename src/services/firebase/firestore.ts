@@ -27,7 +27,8 @@ const COLLECTIONS = {
   MESSAGES: 'messages',
   REVIEWS: 'reviews', // Not verified if exists yet
   NOTIFICATIONS: 'notifications', // Not verified if exists yet
-  DANCE_SCHOOLS: 'schools'
+  DANCE_SCHOOLS: 'schools',
+  BOOKINGS: 'bookings',
 };
 
 // Helper to convert Firestore doc to typed object
@@ -342,6 +343,97 @@ export class FirestoreService {
     } catch (error) {
       console.error('Error getting dance school:', error);
       return null;
+    }
+
+  }
+
+  // Bookings
+  static async createBooking(bookingData: Partial<Booking>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, COLLECTIONS.BOOKINGS), {
+        ...bookingData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: bookingData.status || 'pending'
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      throw error;
+    }
+  }
+
+  static async getBookingById(bookingId: string): Promise<Booking | null> {
+    try {
+      const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return convertDoc<Booking>(docSnap);
+      }
+      return null;
+    } catch (error) {
+       console.error('Error getting booking by id:', error);
+       return null;
+    }
+  }
+
+  static async getUserBookingForLesson(userId: string, lessonId: string): Promise<Booking | null> {
+      try {
+          const q = query(
+              collection(db, COLLECTIONS.BOOKINGS),
+              where('studentId', '==', userId),
+              where('lessonId', '==', lessonId),
+              limit(1)
+          );
+          const querySnapshot = await getDocs(q);
+          if (querySnapshot.empty) return null;
+          return convertDoc<Booking>(querySnapshot.docs[0]);
+      } catch (error) {
+          console.error('Error checking user booking:', error);
+          return null;
+      }
+  }
+
+  static async getBookingsByStudent(studentId: string): Promise<Booking[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.BOOKINGS),
+        where('studentId', '==', studentId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc<Booking>(doc));
+    } catch (error) {
+      console.error('Error getting student bookings:', error);
+      return [];
+    }
+  }
+
+  static async getBookingsByInstructor(instructorId: string): Promise<Booking[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.BOOKINGS),
+        where('instructorId', '==', instructorId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc<Booking>(doc));
+    } catch (error) {
+      console.error('Error getting instructor bookings:', error);
+      return [];
+    }
+  }
+
+  static async updateBookingStatus(bookingId: string, status: Booking['status']): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);
+      await updateDoc(docRef, { 
+        status, 
+        updatedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      throw error;
     }
   }
 }

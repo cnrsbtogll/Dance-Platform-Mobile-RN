@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -11,17 +11,60 @@ import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getUpcomingBookings, getPastBookings } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { getLessonImageSource } from '../../utils/imageHelper';
+import { Lesson } from '../../types';
+import { FirestoreService } from '../../services/firebase/firestore';
 
 type TabType = 'active' | 'past';
+
 
 export const MyLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { getUserBookings } = useBookingStore();
+  const { getUserBookings, fetchUserBookings } = useBookingStore();
   const bookings = getUserBookings();
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
+
+  const [lessonsMap, setLessonsMap] = useState<Record<string, Lesson>>({});
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserBookings();
+    }, [])
+  );
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      const newLessonsMap: Record<string, Lesson> = { ...lessonsMap };
+      let hasChanges = false;
+
+      for (const booking of bookings) {
+        if (!newLessonsMap[booking.lessonId]) {
+          // Check store first? No, direct fetch is safer for consistent details here or check LessonStore
+          let lesson = await FirestoreService.getLessonById(booking.lessonId);
+
+          // Fallback to mock for compatibility
+          if (!lesson) {
+            lesson = MockDataService.getLessonById(booking.lessonId) || null;
+          }
+
+          if (lesson) {
+            newLessonsMap[booking.lessonId] = lesson;
+            hasChanges = true;
+          }
+        }
+      }
+
+      if (hasChanges) {
+        setLessonsMap(newLessonsMap);
+      }
+    };
+
+    if (bookings.length > 0) {
+      fetchLessons();
+    }
+  }, [bookings]);
 
   const upcomingBookings = getUpcomingBookings(bookings);
   const pastBookings = getPastBookings(bookings);
@@ -48,15 +91,6 @@ export const MyLessonsScreen: React.FC = () => {
     const diffDays = Math.ceil((bookingDateTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return diffDays <= 3 && diffDays > 0;
   };
-
-  // Debug: Log bookings to see what's happening
-  useEffect(() => {
-    const user = useAuthStore.getState().user;
-    console.log('User:', user);
-    console.log('All bookings:', bookings);
-    console.log('Upcoming bookings:', upcomingBookings);
-    console.log('Past bookings:', pastBookings);
-  }, [bookings, upcomingBookings, pastBookings]);
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
@@ -115,8 +149,9 @@ export const MyLessonsScreen: React.FC = () => {
             </View>
           ) : (
             displayBookings.map((booking) => {
-              const lesson = MockDataService.getLessonById(booking.lessonId);
-              const instructor = MockDataService.getInstructorForLesson(booking.lessonId);
+              const lesson = lessonsMap[booking.lessonId];
+              // const instructor = MockDataService.getInstructorForLesson(booking.lessonId); // Instructor fetch also needed if not in lesson
+              const instructorName = lesson?.instructorName || t('studentHome.unknown'); // Use lesson's instructorName
               const dayName = getDayName(booking.date);
               const isUpcomingSoon = isUpcoming(booking.date, booking.time);
 
@@ -147,7 +182,7 @@ export const MyLessonsScreen: React.FC = () => {
                         <View style={styles.lessonInfo}>
                           <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                           <Text style={[styles.lessonInstructor, { color: palette.text.secondary }]}>
-                            {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
+                            {t('lessons.instructor')}: {instructorName}
                           </Text>
                           <Text style={[styles.lessonDateTime, { color: palette.text.secondary }]}>
                             {formatDate(booking.date)}, {dayName} - {formatTime(booking.time)}

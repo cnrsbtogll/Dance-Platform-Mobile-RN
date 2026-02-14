@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
-import { MockDataService } from '../../services/mockDataService';
+
 import { formatDate, formatTime, getDurationText, formatPrice, normalizeDaysOfWeek } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
@@ -16,6 +16,7 @@ import { FirestoreService } from '../../services/firebase/firestore';
 import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
+import { Booking } from '../../types';
 
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -33,8 +34,37 @@ export const LessonDetailScreen: React.FC = () => {
   const { createBooking } = useBookingStore();
   const { user, isAuthenticated } = useAuthStore();
 
-  // Get lesson from store instead of MockDataService
-  const lesson = lessons.find(l => l.id === lessonId);
+  const [lesson, setLesson] = useState<any>(lessons.find(l => l.id === lessonId) || null);
+  const [loadingLesson, setLoadingLesson] = useState(!lesson);
+
+  useEffect(() => {
+    const fetchLessonData = async () => {
+      // First try to find in store
+      const storeLesson = lessons.find(l => l.id === lessonId);
+      if (storeLesson) {
+        setLesson(storeLesson);
+        setLoadingLesson(false);
+        return;
+      }
+
+      // If not in store, fetch from Firestore
+      if (lessonId) {
+        try {
+          setLoadingLesson(true);
+          const fetchedLesson = await FirestoreService.getLessonById(lessonId);
+          if (fetchedLesson) {
+            setLesson(fetchedLesson);
+          }
+        } catch (error) {
+          console.error("Error fetching lesson:", error);
+        } finally {
+          setLoadingLesson(false);
+        }
+      }
+    };
+
+    fetchLessonData();
+  }, [lessonId, lessons]);
 
   const [instructor, setInstructor] = useState<any>(null);
   const [school, setSchool] = useState<any>(null);
@@ -76,10 +106,32 @@ export const LessonDetailScreen: React.FC = () => {
   }, [lesson]);
 
 
-  const booking = bookingId ? MockDataService.getBookingById(bookingId) : null;
+
 
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
   const [isRegistered, setIsRegistered] = useState(false);
+
+  const [booking, setBooking] = useState<Booking | null>(null);
+
+  useEffect(() => {
+    const checkBooking = async () => {
+      if (!user || user.role === 'instructor') return;
+
+      let foundBooking: Booking | null = null;
+      if (bookingId) {
+        foundBooking = await FirestoreService.getBookingById(bookingId);
+      } else if (lessonId) {
+        foundBooking = await FirestoreService.getUserBookingForLesson(user.id, lessonId);
+      }
+
+      if (foundBooking) {
+        setBooking(foundBooking);
+        setIsRegistered(true);
+      }
+    };
+    checkBooking();
+  }, [user, bookingId, lessonId]);
+
   const [pendingRegistration, setPendingRegistration] = useState(false);
   const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
 
@@ -97,6 +149,14 @@ export const LessonDetailScreen: React.FC = () => {
       }
     }, [isAuthenticated, user, pendingRegistration, lesson, navigation])
   );
+
+  if (loadingLesson) {
+    return (
+      <View style={[styles.container, { backgroundColor: palette.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={palette.primary} />
+      </View>
+    );
+  }
 
   if (!lesson) {
     return (
