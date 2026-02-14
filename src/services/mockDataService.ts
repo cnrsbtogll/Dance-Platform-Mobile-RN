@@ -17,6 +17,7 @@ const notifications = notificationsData as Notification[];
 export class MockDataService {
   // Users
   static getUsers(): User[] {
+    console.log('[MockDataService] getUsers called');
     return users;
   }
 
@@ -29,6 +30,7 @@ export class MockDataService {
   }
 
   static authenticateUser(email: string, password: string): boolean {
+    console.log(`[MockDataService] authenticateUser called for ${email}`);
     const user = users.find(u => u.email === email);
     // Simple mock check
     return !!user && password === 'password123';

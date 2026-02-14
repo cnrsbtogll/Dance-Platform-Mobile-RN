@@ -21,33 +21,10 @@ export const RootNavigator: React.FC = () => {
 
     if (navigationRef.current) {
       // 1. Instructor Login
-      if (user?.role === 'instructor' && prevUser?.role !== 'instructor') {
+      if (user?.role === 'instructor' && (!prevUser || prevUser.role !== 'instructor')) {
         navigationRef.current.reset({
           index: 0,
           routes: [{ name: 'Instructor' }],
-        });
-      }
-      // 2. Instructor Logout -> Go to Login
-      else if (!user && prevUser?.role === 'instructor') {
-        navigationRef.current.reset({
-          index: 0,
-          routes: [{
-            name: 'Student',
-            state: {
-              routes: [
-                { name: 'MainTabs' },
-                { name: 'Login', params: { mode: 'login' } }
-              ],
-              index: 1,
-            }
-          }],
-        });
-      }
-      // 3. Student Logout (or other logout) -> Student Home
-      else if (!user && prevUser) {
-        navigationRef.current.reset({
-          index: 0,
-          routes: [{ name: 'Student' }],
         });
       }
     }

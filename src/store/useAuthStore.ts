@@ -23,8 +23,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   initialize: () => {
     // Listen for auth state changes
+    console.log('[AuthStore] Initialize called');
     if (auth) {
       onAuthStateChanged(auth, async (firebaseUser) => {
+        console.log('[AuthStore] AuthStateChanged:', firebaseUser ? `User ${firebaseUser.uid}` : 'No User');
         if (firebaseUser) {
           // User is signed in, fetch profile
           const userProfile = await FirestoreService.getUserById(firebaseUser.uid);
@@ -69,11 +71,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   logout: async () => {
-    await authService.logout();
-    set({ user: null, isAuthenticated: false });
+    console.log('[AuthStore] Logout called');
+    try {
+      await authService.logout();
+      console.log('[AuthStore] Logout successful');
+    } catch (error) {
+      console.error('[AuthStore] Logout error:', error);
+    } finally {
+      console.log('[AuthStore] Clearing auth state');
+      set({ user: null, isAuthenticated: false });
+    }
   },
   
   setUser: (user: User | null) => {
+    console.log('[AuthStore] setUser called with:', user ? `${user.name} (${user.role})` : 'null');
     // Set default currency for instructors if not set
     if (user && user.role === 'instructor' && !user.currency) {
       user.currency = 'USD';

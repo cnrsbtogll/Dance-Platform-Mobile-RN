@@ -30,7 +30,7 @@ export const InstructorLessonsScreen: React.FC = () => {
     return instructorLessons.map(lesson => {
       const bookings = MockDataService.getBookingsByLesson(lesson.id);
       const reviews = MockDataService.getReviewsByLesson(lesson.id);
-      
+
       const studentCount = new Set(bookings.map(b => b.studentId)).size;
       const averageRating = reviews.length > 0
         ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
@@ -101,6 +101,8 @@ export const InstructorLessonsScreen: React.FC = () => {
     });
   }, [navigation, isDarkMode, t]);
 
+
+
   const handleEdit = (lesson: Lesson) => {
     (navigation as any).navigate('EditLesson', {
       lessonId: lesson.id,
@@ -159,7 +161,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }] }>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity

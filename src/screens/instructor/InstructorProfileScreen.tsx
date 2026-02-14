@@ -69,7 +69,7 @@ export const InstructorProfileScreen: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
-    // Navigation will be handled by RootNavigator when user state changes
+    // Stay on profile page after logout
   };
 
   const accountSettings: SettingItem[] = [
@@ -177,14 +177,15 @@ export const InstructorProfileScreen: React.FC = () => {
       title: t('profile.privacyPolicy'),
       onPress: () => (navigation as any).navigate('PrivacyPolicy'),
     },
-    {
+    // Only show logout if user is authenticated
+    ...(user ? [{
       id: 'logout',
       icon: 'logout',
       title: t('profile.logout'),
       isDanger: true,
       iconColor: '#e53e3e',
       onPress: handleLogout,
-    },
+    }] : []),
   ];
 
   const renderSettingItem = (item: SettingItem, isLast: boolean = false) => (
@@ -256,13 +257,43 @@ export const InstructorProfileScreen: React.FC = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || t('profile.instructor')}</Text>
-            <TouchableOpacity onPress={() => {
-              (navigation as any).getParent()?.navigate('EditProfile');
-            }}>
-              <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
-            </TouchableOpacity>
+            {user && (
+              <TouchableOpacity onPress={() => {
+                (navigation as any).getParent()?.navigate('EditProfile');
+              }}>
+                <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
+
+        {/* Login Button - Only show when not authenticated */}
+        {!user && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.instructor.primary, marginBottom: spacing.md }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              // Navigate to Login screen in Student stack
+              const rootNavigation = (navigation as any).getParent()?.getParent();
+              if (rootNavigation) {
+                rootNavigation.navigate('Student', {
+                  screen: 'Login',
+                  params: { mode: 'login' }
+                });
+              } else {
+                // Fallback if hierarchy is shallower
+                (navigation as any).navigate('Student', {
+                  screen: 'Login',
+                  params: { mode: 'login' }
+                });
+              }
+            }}
+          >
+            <MaterialIcons name="login" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
+            <Text style={styles.switchModeButtonText}>{t('auth.login')}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Switch to Student Mode Button */}
         <TouchableOpacity
@@ -286,8 +317,8 @@ export const InstructorProfileScreen: React.FC = () => {
           <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
         </TouchableOpacity>
 
-        {/* Account Settings */}
-        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
+        {/* Account Settings - Only show when authenticated */}
+        {user && renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
         {renderSettingsCard(t('profile.appSettings'), appSettings)}
@@ -463,6 +494,7 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: colors.instructor.primary,
     borderRadius: borderRadius.lg,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: spacing.md,

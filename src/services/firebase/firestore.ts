@@ -134,6 +134,49 @@ export class FirestoreService {
     }
   }
 
+  static async getLessonsByInstructor(instructorId: string): Promise<Lesson[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.COURSES), 
+        where('instructorId', '==', instructorId)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      const lessons = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          title: data.name || data.title || '',
+          name: data.name || '',
+          description: data.description || '',
+          category: data.danceStyle || 'Other',
+          danceStyle: data.danceStyle || 'Other',
+          instructorId: data.instructorId || '',
+          price: data.price || 0,
+          currency: data.currency,
+          duration: data.duration || 60,
+          imageUrl: data.imageUrl,
+          level: data.level || 'Beginner',
+          maxStudents: data.maxStudents || 10,
+          schedule: data.schedule || [],
+          location: data.location || '',
+          isActive: data.status === 'active',
+          rating: data.rating || 0,
+          totalReviews: data.totalReviews || 0,
+          reviewCount: data.reviewCount || 0,
+          favoriteCount: data.favoriteCount || 0,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+        } as Lesson;
+      });
+      
+      return lessons;
+    } catch (error) {
+      console.error('Error fetching instructor lessons:', error);
+      return [];
+    }
+  }
+
   static async getLessonById(id: string): Promise<Lesson | null> {
     try {
       const docRef = doc(db, COLLECTIONS.COURSES, id);

@@ -28,10 +28,8 @@ export const authService = {
         console.error('[AuthService] Firebase login error:', error);
         return false;
       }
-    } else {
-      // Use mock authentication
-      return MockDataService.authenticateUser(email, password);
     }
+    return false;
   },
 
   register: async (email: string, password: string, name: string): Promise<boolean> => {
@@ -54,10 +52,8 @@ export const authService = {
         console.error('[AuthService] Firebase register error:', error);
         return false;
       }
-    } else {
-      // Use mock registration
-      return MockDataService.createUser(email, password, name);
     }
+    return false;
   },
 
   logout: async (): Promise<void> => {
@@ -86,17 +82,15 @@ export const dataService = {
         console.error('[BackendService] Error fetching from Firestore, falling back to empty array:', error);
         return [];
       }
-    } else {
-      console.log('[BackendService] Returning Mock Data');
-      return MockDataService.getLessons();
     }
+    return [];
   },
 
   getUsers: async () => {
     if (firebaseEnabled) {
       // Not implemented in FirestoreService yet, adding TODO
-      // return await FirestoreService.getUsers(); 
-      return []; 
+      // return await FirestoreService.getUsers();
+      return [];
     } else {
       return MockDataService.getUsers();
     }

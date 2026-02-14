@@ -27,6 +27,7 @@ import { HelpCenterScreen } from '../screens/shared/HelpCenterScreen';
 import { AboutScreen } from '../screens/shared/AboutScreen';
 import { PrivacyPolicyScreen } from '../screens/shared/PrivacyPolicyScreen';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -37,7 +38,8 @@ const MainTabs: React.FC = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
-  
+  const { user } = useAuthStore();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -62,6 +64,13 @@ const MainTabs: React.FC = () => {
       <Tab.Screen
         name="Home"
         component={InstructorHomeScreen}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+            }
+          },
+        })}
         options={{
           title: t('navigation.home'),
           headerShown: true,
@@ -102,10 +111,10 @@ const MainTabs: React.FC = () => {
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons 
-              name={focused ? "home" : "home"} 
-              size={size} 
-              color={color} 
+            <MaterialIcons
+              name={focused ? "home" : "home"}
+              size={size}
+              color={color}
             />
           ),
         }}
@@ -113,6 +122,13 @@ const MainTabs: React.FC = () => {
       <Tab.Screen
         name="Lessons"
         component={InstructorLessonsScreen}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+            }
+          },
+        })}
         options={{
           title: t('instructor.lessons'),
           headerShown: false,
@@ -178,10 +194,10 @@ const MainTabs: React.FC = () => {
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons 
-              name={focused ? "person" : "person-outline"} 
-              size={size} 
-              color={color} 
+            <MaterialIcons
+              name={focused ? "person" : "person-outline"}
+              size={size}
+              color={color}
             />
           ),
         }}
@@ -195,10 +211,10 @@ export const InstructorNavigator: React.FC = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
-  
+
   return (
-    <Stack.Navigator 
-      screenOptions={{ 
+    <Stack.Navigator
+      screenOptions={{
         headerShown: false,
         headerTintColor: palette.text.primary,
         headerStyle: {
@@ -206,15 +222,15 @@ export const InstructorNavigator: React.FC = () => {
         },
       }}
     >
-      <Stack.Screen 
-        name="MainTabs" 
+      <Stack.Screen
+        name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="LessonDetail"
         component={LessonDetailScreen}
-        options={{ 
+        options={{
           headerShown: false,
           presentation: 'card',
         }}
@@ -222,7 +238,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="CreateLesson"
         component={CreateLessonScreen}
-        options={{ 
+        options={{
           headerShown: false,
           presentation: 'card',
         }}
@@ -230,7 +246,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="EditLesson"
         component={EditLessonScreen}
-        options={{ 
+        options={{
           headerShown: false,
           presentation: 'card',
         }}
@@ -240,7 +256,7 @@ export const InstructorNavigator: React.FC = () => {
           <Stack.Screen
             name="ChatDetail"
             component={ChatDetailScreen}
-            options={{ 
+            options={{
               headerShown: true,
               headerTitle: '', // Will be set dynamically in ChatDetailScreen
               headerBackTitle: '',
@@ -257,7 +273,7 @@ export const InstructorNavigator: React.FC = () => {
           <Stack.Screen
             name="NewChat"
             component={InstructorNewChatScreen}
-            options={{ 
+            options={{
               headerShown: false,
               presentation: 'card',
             }}
@@ -268,7 +284,7 @@ export const InstructorNavigator: React.FC = () => {
         <Stack.Screen
           name="Notification"
           component={NotificationScreen}
-          options={{ 
+          options={{
             headerShown: true,
             headerTitle: t('notifications.title'),
             headerBackTitle: '',
