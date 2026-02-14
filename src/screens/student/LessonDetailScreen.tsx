@@ -229,11 +229,7 @@ export const LessonDetailScreen: React.FC = () => {
             <View style={styles.priceContainer}>
               <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
               <Text style={[styles.priceValue, { color: colors.student.primary }]}>
-                {(() => {
-                  const instructor = MockDataService.getInstructorForLesson(lesson.id);
-                  const currency = instructor?.currency || 'USD';
-                  return formatPrice(lesson.price, currency);
-                })()}
+                {formatPrice(lesson.price)}
               </Text>
             </View>
             <TouchableOpacity

@@ -30,9 +30,9 @@ export const StudentHomeScreen: React.FC = () => {
     if (selectedCategory && lesson.category !== selectedCategory) return false;
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      if (!lesson.title.toLowerCase().includes(query) && 
-          !lesson.description.toLowerCase().includes(query) &&
-          !lesson.category.toLowerCase().includes(query)) return false;
+      if (!lesson.title.toLowerCase().includes(query) &&
+        !lesson.description.toLowerCase().includes(query) &&
+        !lesson.category.toLowerCase().includes(query)) return false;
     }
     if (minPrice !== null && lesson.price < minPrice) return false;
     if (maxPrice !== null && lesson.price > maxPrice) return false;
@@ -42,7 +42,7 @@ export const StudentHomeScreen: React.FC = () => {
   });
 
   const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Modern'];
-  
+
   // Filter state
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [minPrice, setMinPrice] = useState<number | null>(null);
@@ -64,7 +64,7 @@ export const StudentHomeScreen: React.FC = () => {
             source={getAvatarSource(user?.avatar, user?.id)}
             style={styles.avatar}
           />
-          <Text style={[styles.headerTitle, { color: palette.text.primary }] }>
+          <Text style={[styles.headerTitle, { color: palette.text.primary }]}>
             {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || 'Ahmet' })}
           </Text>
         </View>
@@ -97,7 +97,7 @@ export const StudentHomeScreen: React.FC = () => {
   }, [navigation, user, unreadCount, isDarkMode]);
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}> 
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Search Bar & Filter */}
@@ -109,7 +109,7 @@ export const StudentHomeScreen: React.FC = () => {
               placeholder={t('studentHome.searchPlaceholder')}
             />
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.filterButton, { backgroundColor: palette.primary }]}
             onPress={() => setShowFilterModal(true)}
           >
@@ -118,8 +118,8 @@ export const StudentHomeScreen: React.FC = () => {
         </View>
 
         {/* Category Chips */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.chipsContainer}
           contentContainerStyle={styles.chipsContent}
@@ -127,7 +127,7 @@ export const StudentHomeScreen: React.FC = () => {
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
-                style={[
+              style={[
                 styles.chip,
                 { backgroundColor: (selectedCategory === category || (category === t('studentHome.categoryAll') && !selectedCategory)) ? palette.primary : palette.card }
               ]}
@@ -148,7 +148,7 @@ export const StudentHomeScreen: React.FC = () => {
           {filteredLessons.map((lesson) => {
             const instructorName = lesson.instructorName || MockDataService.getInstructorForLesson(lesson.id)?.name;
             const isFavorite = favoriteLessons.includes(lesson.id);
-            
+
             return (
               <TouchableOpacity
                 key={lesson.id}
@@ -160,48 +160,45 @@ export const StudentHomeScreen: React.FC = () => {
                   });
                 }}
               >
-              <Card style={styles.lessonCard}>
-                <View style={styles.lessonImageContainer}>
-                  {lesson.imageUrl && (
-                    <Image
-                      source={getLessonImageSource(lesson.imageUrl)}
-                      style={styles.lessonImage}
-                      resizeMode="cover"
-                    />
-                  )}
-                  <TouchableOpacity
-                    style={styles.favoriteButton}
-                    onPress={() => toggleFavorite(lesson.id)}
-                  >
-                    <MaterialIcons 
-                      name={isFavorite ? "favorite" : "favorite-border"} 
-                      size={24} 
-                      color="#ffffff" 
-                    />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.lessonContent}>
-                  <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
-                    {t('studentHome.instructorLabel')}: {instructorName || t('studentHome.unknown')}
-                  </Text>
-                  <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
-                  <View style={styles.lessonFooter}>
-                    <View style={styles.ratingContainer}>
-                      <AntDesign name="star" size={20} color={colors.student.secondary} />
-                      <Text style={[styles.rating, { color: palette.text.primary }] }>
-                        {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
+                <Card style={styles.lessonCard}>
+                  <View style={styles.lessonImageContainer}>
+                    {lesson.imageUrl && (
+                      <Image
+                        source={getLessonImageSource(lesson.imageUrl)}
+                        style={styles.lessonImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <TouchableOpacity
+                      style={styles.favoriteButton}
+                      onPress={() => toggleFavorite(lesson.id)}
+                    >
+                      <MaterialIcons
+                        name={isFavorite ? "favorite" : "favorite-border"}
+                        size={24}
+                        color="#ffffff"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.lessonContent}>
+                    <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
+                      {t('studentHome.instructorLabel')}: {instructorName || t('studentHome.unknown')}
+                    </Text>
+                    <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+                    <View style={styles.lessonFooter}>
+                      <View style={styles.ratingContainer}>
+                        <AntDesign name="star" size={20} color={colors.student.secondary} />
+                        <Text style={[styles.rating, { color: palette.text.primary }]}>
+                          {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
+                        </Text>
+                      </View>
+                      <Text style={[styles.price, { color: palette.text.primary }]}>
+                        {formatPrice(lesson.price)}
+                        <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                       </Text>
                     </View>
-                    <Text style={[styles.price, { color: palette.text.primary }]}>
-                      {(() => {
-                        const currency = lesson.currency || MockDataService.getInstructorForLesson(lesson.id)?.currency || 'USD';
-                        return formatPrice(lesson.price, currency as any);
-                      })()}
-                      <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
-                    </Text>
                   </View>
-                </View>
-              </Card>
+                </Card>
               </TouchableOpacity>
             );
           })}
@@ -223,7 +220,7 @@ export const StudentHomeScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Price Range */}
               <View style={styles.filterSection}>
@@ -271,7 +268,7 @@ export const StudentHomeScreen: React.FC = () => {
                       key={rating}
                       style={[
                         styles.ratingChip,
-                        { 
+                        {
                           backgroundColor: minRating === rating ? palette.primary : palette.background,
                           borderColor: palette.border,
                         }
@@ -300,7 +297,7 @@ export const StudentHomeScreen: React.FC = () => {
                       key={duration || 'all'}
                       style={[
                         styles.durationChip,
-                        { 
+                        {
                           backgroundColor: maxDuration === duration ? palette.primary : palette.background,
                           borderColor: palette.border,
                         }
@@ -321,8 +318,8 @@ export const StudentHomeScreen: React.FC = () => {
             </ScrollView>
 
             <View style={[
-              styles.modalFooter, 
-              { 
+              styles.modalFooter,
+              {
                 borderTopColor: palette.border,
                 paddingBottom: Math.max(insets.bottom, spacing.md),
               }

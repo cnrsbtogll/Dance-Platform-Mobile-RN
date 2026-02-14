@@ -169,11 +169,11 @@ export const PaymentScreen: React.FC = () => {
           <Card style={styles.paymentDetailsCard}>
             <View style={[styles.paymentRow, { borderBottomColor: palette.border }]}>
               <Text style={[styles.paymentLabel, { color: palette.text.secondary }]}>{t('payment.lessonFee')}</Text>
-              <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price, instructor?.currency || 'USD')}</Text>
+              <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price)}</Text>
             </View>
             <View style={[styles.paymentRow, styles.paymentRowTotal]}>
               <Text style={[styles.paymentLabelTotal, { color: palette.text.primary }]}>{t('payment.totalAmount')}</Text>
-              <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount, instructor?.currency || 'USD')}</Text>
+              <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount)}</Text>
             </View>
           </Card>
         </View>
@@ -296,7 +296,7 @@ export const PaymentScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={styles.payButtonText}>
-            {formatPrice(totalAmount, instructor?.currency || 'USD')} {t('payment.pay')}
+            {formatPrice(totalAmount)} {t('payment.pay')}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
