@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -16,12 +16,21 @@ export const LoginScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
-  const [isSignUp, setIsSignUp] = useState(true);
+  const route = useRoute<any>();
+  const [isSignUp, setIsSignUp] = useState(route.params?.mode !== 'login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Update mode when params change
+  useEffect(() => {
+    if (route.params?.mode) {
+      setIsSignUp(route.params.mode !== 'login');
+    }
+  }, [route.params?.mode]);
+
 
   // Update header title when switching between login/signup
   useEffect(() => {
@@ -62,7 +71,19 @@ export const LoginScreen: React.FC = () => {
   const handleLogin = async () => {
     const success = await login(email, password);
     if (success) {
-      navigation.goBack();
+      const currentUser = useAuthStore.getState().user;
+
+      if (currentUser?.role === 'instructor') {
+        // Reset navigation to Instructor stack
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Instructor' }],
+          })
+        );
+      } else {
+        navigation.goBack();
+      }
     }
   };
 

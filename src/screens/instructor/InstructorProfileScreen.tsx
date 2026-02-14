@@ -29,9 +29,9 @@ export const InstructorProfileScreen: React.FC = () => {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const palette = getPalette('instructor', isDarkMode);
-  
+
   const currentCurrency: Currency = user?.currency || 'USD';
-  
+
   const currencies: { code: Currency; symbol: string; name: string }[] = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -67,9 +67,9 @@ export const InstructorProfileScreen: React.FC = () => {
     });
   }, [navigation, isDarkMode, palette, t]);
 
-  const handleLogout = () => {
-    logout();
-    // Navigate to login screen if needed
+  const handleLogout = async () => {
+    await logout();
+    // Navigation will be handled by RootNavigator when user state changes
   };
 
   const accountSettings: SettingItem[] = [
@@ -203,8 +203,8 @@ export const InstructorProfileScreen: React.FC = () => {
                 backgroundColor: item.isDanger
                   ? '#e53e3e20'
                   : item.iconColor
-                  ? `${item.iconColor}20`
-                  : `${colors.instructor.secondary}20`,
+                    ? `${item.iconColor}20`
+                    : `${colors.instructor.secondary}20`,
               },
             ]}
           >
@@ -265,8 +265,8 @@ export const InstructorProfileScreen: React.FC = () => {
         </View>
 
         {/* Switch to Student Mode Button */}
-        <TouchableOpacity 
-          style={styles.switchModeButton} 
+        <TouchableOpacity
+          style={styles.switchModeButton}
           activeOpacity={0.8}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => {
@@ -311,7 +311,7 @@ export const InstructorProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setLanguageModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -323,7 +323,7 @@ export const InstructorProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={[
                 styles.languageOption,
@@ -375,7 +375,7 @@ export const InstructorProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setCurrencyModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -387,7 +387,7 @@ export const InstructorProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             {currencies.map((currency) => (
               <TouchableOpacity
                 key={currency.code}

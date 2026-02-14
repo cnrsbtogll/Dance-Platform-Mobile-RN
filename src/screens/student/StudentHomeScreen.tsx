@@ -106,7 +106,7 @@ export const StudentHomeScreen: React.FC = () => {
             style={styles.avatar}
           />
           <Text style={[styles.headerTitle, { color: palette.text.primary }]}>
-            {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || 'Ahmet' })}
+            {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || t('common.guest') })}
           </Text>
         </View>
       ),

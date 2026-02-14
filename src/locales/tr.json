@@ -27,7 +27,8 @@
       "saturday": "Cumartesi"
     },
     "minutes": "dakika",
-    "hours": "saat"
+    "hours": "saat",
+    "guest": "Dansçı"
   },
   "auth": {
     "login": "Giriş Yap",

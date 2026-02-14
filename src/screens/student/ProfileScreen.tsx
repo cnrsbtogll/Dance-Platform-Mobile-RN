@@ -242,7 +242,7 @@ export const ProfileScreen: React.FC = () => {
             style={styles.loginButton}
             activeOpacity={0.8}
             onPress={() => {
-              (navigation as any).navigate('Login');
+              (navigation as any).navigate('Login', { mode: 'login' });
             }}
           >
             <MaterialIcons name="login" size={24} color="#ffffff" />

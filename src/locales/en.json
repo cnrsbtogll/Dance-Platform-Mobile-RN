@@ -27,7 +27,8 @@
       "saturday": "Saturday"
     },
     "minutes": "minutes",
-    "hours": "hours"
+    "hours": "hours",
+    "guest": "Dancer"
   },
   "auth": {
     "login": "Sign In",
