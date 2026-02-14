@@ -56,7 +56,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   const lessonsWithStats = useMemo(() => {
     return instructorLessons.map(lesson => {
       // TODO: Implement Firestore service for bookings and reviews
-      const studentCount = 0; // Placeholder
+      const studentCount = lesson.currentParticipants || lesson.participantStats?.total || 0;
       const averageRating = lesson.rating || 0;
 
       return {

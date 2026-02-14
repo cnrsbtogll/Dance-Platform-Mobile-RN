@@ -385,7 +385,7 @@ export const LessonDetailScreen: React.FC = () => {
           </View>
 
           {/* Participant Stats */}
-          {(lesson.participantStats && lesson.participantStats.total > 0) && (
+          {(lesson.participantStats) && (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.participants') || 'Participants'}</Text>
               <TouchableOpacity

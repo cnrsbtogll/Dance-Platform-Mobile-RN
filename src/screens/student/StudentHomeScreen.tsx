@@ -246,7 +246,7 @@ export const StudentHomeScreen: React.FC = () => {
                     </View>
 
                     {/* Participant Stats */}
-                    {(lesson.participantStats && lesson.participantStats.total > 0) && (
+                    {(lesson.participantStats) && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                         <MaterialIcons name="people" size={14} color={palette.text.secondary} />
                         <Text style={{ fontSize: 12, color: palette.text.secondary, marginLeft: 4 }}>
