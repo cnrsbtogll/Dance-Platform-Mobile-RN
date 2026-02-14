@@ -106,7 +106,7 @@ export const PaymentScreen: React.FC = () => {
 
       if (paymentResult.success) {
         // Create booking
-        const booking = createBooking(lesson.id, params.date, params.time, lesson.price);
+        const booking = await createBooking(lesson.id, params.date, params.time, lesson.price);
 
         // Navigate back or to success screen
         navigation.goBack();

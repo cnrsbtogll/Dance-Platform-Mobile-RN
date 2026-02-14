@@ -113,24 +113,55 @@ export const LessonDetailScreen: React.FC = () => {
 
   const [booking, setBooking] = useState<Booking | null>(null);
 
-  useEffect(() => {
-    const checkBooking = async () => {
-      if (!user || user.role === 'instructor') return;
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
 
-      let foundBooking: Booking | null = null;
-      if (bookingId) {
-        foundBooking = await FirestoreService.getBookingById(bookingId);
-      } else if (lessonId) {
-        foundBooking = await FirestoreService.getUserBookingForLesson(user.id, lessonId);
-      }
+      const refreshData = async () => {
+        // 1. Refresh Lesson Data (to update participant counts)
+        if (lessonId) {
+          try {
+            const fetchedLesson = await FirestoreService.getLessonById(lessonId);
+            if (isMounted && fetchedLesson) {
+              setLesson(fetchedLesson);
+            }
+          } catch (error) {
+            console.error("Error refreshing lesson:", error);
+          }
+        }
 
-      if (foundBooking) {
-        setBooking(foundBooking);
-        setIsRegistered(true);
-      }
-    };
-    checkBooking();
-  }, [user, bookingId, lessonId]);
+        // 2. Check Booking Status
+        if (user && user.role !== 'instructor') {
+          try {
+            let foundBooking: Booking | null = null;
+            if (bookingId) {
+              foundBooking = await FirestoreService.getBookingById(bookingId);
+            } else if (lessonId) {
+              foundBooking = await FirestoreService.getUserBookingForLesson(user.id, lessonId);
+            }
+
+            if (isMounted) {
+              if (foundBooking) {
+                setBooking(foundBooking);
+                setIsRegistered(true);
+              } else {
+                setBooking(null);
+                setIsRegistered(false);
+              }
+            }
+          } catch (error) {
+            console.error("Error checking booking:", error);
+          }
+        }
+      };
+
+      refreshData();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [user, bookingId, lessonId])
+  );
 
 
   // Instructor için ders sahibi kontrolü

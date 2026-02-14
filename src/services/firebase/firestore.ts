@@ -190,7 +190,6 @@ export class FirestoreService {
       if (docSnap.exists()) {
         const data = docSnap.data();
         return {
-          id: docSnap.id,
           title: data.name || '',
           name: data.name || '',
           description: data.description || '',
@@ -209,7 +208,8 @@ export class FirestoreService {
           reviewCount: 0,
           favoriteCount: 0,
           createdAt: data.createdAt?.toString(),
-          ...data
+          ...data,
+          id: docSnap.id // Ensure ID comes from document ID, overriding any empty ID in data
         } as Lesson;
       }
       return null;
