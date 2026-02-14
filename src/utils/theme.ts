@@ -27,8 +27,8 @@ export const colors = {
   
   // Instructor Home Page
   instructor: {
-    primary: '#6366f1',
-    secondary: '#a855f7',
+    primary: '#a855f7',
+    secondary: '#6366f1',
     background: {
       light: '#F8F9FA',
       dark: '#101922',
