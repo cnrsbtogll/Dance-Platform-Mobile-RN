@@ -271,7 +271,7 @@ export const InstructorProfileScreen: React.FC = () => {
         {/* Login Button - Only show when not authenticated */}
         {!user && (
           <TouchableOpacity
-            style={[styles.switchModeButton, { backgroundColor: colors.instructor.primary, marginBottom: spacing.md }]}
+            style={[styles.switchModeButton, { backgroundColor: colors.instructor.secondary, marginBottom: spacing.md }]}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => {
@@ -298,7 +298,7 @@ export const InstructorProfileScreen: React.FC = () => {
 
         {/* Switch to Student Mode Button */}
         <TouchableOpacity
-          style={styles.switchModeButton}
+          style={[styles.switchModeButton, { backgroundColor: colors.instructor.secondary }]}
           activeOpacity={0.8}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => {
@@ -493,7 +493,6 @@ const styles = StyleSheet.create({
   },
   switchModeButton: {
     height: 56,
-    backgroundColor: colors.instructor.primary,
     borderRadius: borderRadius.lg,
     flexDirection: 'row',
     alignItems: 'center',
