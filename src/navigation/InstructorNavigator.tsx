@@ -105,7 +105,7 @@ const MainTabs: React.FC = () => {
             <Text style={{
               fontSize: typography.fontSize.xs,
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color,
+              color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
             }}>
               {t('navigation.home')}
             </Text>
@@ -114,7 +114,7 @@ const MainTabs: React.FC = () => {
             <MaterialIcons
               name={focused ? "home" : "home"}
               size={size}
-              color={color}
+              color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
             />
           ),
         }}
@@ -136,13 +136,13 @@ const MainTabs: React.FC = () => {
             <Text style={{
               fontSize: typography.fontSize.xs,
               fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color,
+              color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
             }}>
               {t('instructor.lessons')}
             </Text>
           ),
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="school" size={size} color={color} />
+            <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
           ),
         }}
       />
