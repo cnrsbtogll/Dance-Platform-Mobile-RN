@@ -1,20 +1,47 @@
 import { Lesson, Booking, Currency } from '../types';
 import i18n from './i18n';
 
+import * as Localization from 'expo-localization';
+
 export const CURRENCY_SYMBOLS: { [key in Currency]: string } = {
   USD: '$',
   EUR: '€',
   TRY: '₺',
 };
 
-export const formatPrice = (price: number, currency?: Currency): string => {
-  // Eğer dil Türkçe ise ve currency belirtilmemişse, TRY kullan
-  const currentLanguage = i18n.language;
-  const effectiveCurrency = currentLanguage === 'tr' ? 'TRY' : (currency || 'USD');
+export const getDefaultCurrency = (): Currency => {
+  const locales = Localization.getLocales();
+  const regionCode = locales?.[0]?.regionCode;
   
-  const symbol = CURRENCY_SYMBOLS[effectiveCurrency];
-  const locale = effectiveCurrency === 'TRY' ? 'tr-TR' : effectiveCurrency === 'EUR' ? 'de-DE' : 'en-US';
-  return `${symbol}${price.toLocaleString(locale)}`;
+  if (regionCode === 'TR') return 'TRY';
+  // Simple check for some major Eurozone countries, can be expanded
+  const euroZone = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'IE', 'FI', 'PT', 'GR'];
+  if (regionCode && euroZone.includes(regionCode)) return 'EUR';
+  
+  return 'USD';
+};
+
+export const formatPrice = (price: number, currency?: Currency): string => {
+  const effectiveCurrency = currency || getDefaultCurrency();
+  
+  const symbol = CURRENCY_SYMBOLS[effectiveCurrency] || '$';
+  
+  // Format based on currency
+  let locale = 'en-US';
+  if (effectiveCurrency === 'TRY') {
+    locale = 'tr-TR';
+  } else if (effectiveCurrency === 'EUR') {
+    locale = 'de-DE'; // Use German locale for Euro formatting (1.234,56 €)
+  }
+  
+  // For TRY, symbol usually goes after in some contexts, but standard is often before or handled by Intl.NumberFormat
+  // Here we stick to the simple symbol prefix/suffix logic or just prefix as per mockup
+  
+  if (effectiveCurrency === 'TRY') {
+     return `${price.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${symbol}`;
+  }
+  
+  return `${symbol}${price.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export const formatDate = (dateString: string): string => {

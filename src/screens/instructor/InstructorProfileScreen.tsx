@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 import { Currency } from '../../types';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { getDefaultCurrency } from '../../utils/helpers';
 
 interface SettingItem {
   id: string;
@@ -30,7 +31,7 @@ export const InstructorProfileScreen: React.FC = () => {
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const palette = getPalette('instructor', isDarkMode);
 
-  const currentCurrency: Currency = user?.currency || 'USD';
+  const currentCurrency: Currency = user?.currency || getDefaultCurrency();
 
   const currencies: { code: Currency; symbol: string; name: string }[] = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
