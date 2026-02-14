@@ -133,22 +133,54 @@ export const LessonDetailScreen: React.FC = () => {
   }, [user, bookingId, lessonId]);
 
   const [pendingRegistration, setPendingRegistration] = useState(false);
-  const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
+  // Instructor için ders sahibi kontrolü
+  const isOwnLesson = isInstructor && lesson?.instructorId === user?.id;
 
-  // Registered Students Logic (For Instructor)
+  // Registered Students
   const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
   const [showStudentsModal, setShowStudentsModal] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
+  // Fetch enrolled students if instructor viewing own lesson
   useEffect(() => {
-    if (isOwnLesson && lessonId) {
+    let isMounted = true;
+    if (isOwnLesson && lesson?.id) {
       const fetchStudents = async () => {
         setLoadingStudents(true);
         try {
-          const bookings = await FirestoreService.getBookingsByLesson(lessonId);
-          // Filter out cancelled bookings
-          const activeBookings = bookings.filter(b => b.status !== 'cancelled');
-          setEnrolledStudents(activeBookings);
+          const bookings = await FirestoreService.getBookingsByLesson(lesson.id);
+          if (isMounted) {
+            setEnrolledStudents(bookings);
+            setLoadingStudents(false);
+
+            // AUTO-SYNC: Check if stats need update (Self-Healing for old data)
+            const currentTotal = lesson.participantStats?.total || 0;
+            const realTotal = bookings.length;
+
+            // Eğer sayı tutmuyorsa veya stats hiç yoksa güncelle
+            if (currentTotal !== realTotal || !lesson.participantStats) {
+              console.log('Syncing participant stats...');
+              let male = 0, female = 0, other = 0;
+
+              bookings.forEach(b => {
+                // Booking'de gender yoksa (eski kayıt), 'other' varsayalım
+                // (veya ilerde student profilinden çekilebilir ama maliyetli)
+                const g = b.studentGender || 'other';
+                if (g === 'male') male++;
+                else if (g === 'female') female++;
+                else other++;
+              });
+
+              const newStats = { male, female, other, total: realTotal };
+
+              // Background update
+              FirestoreService.updateLesson(lesson.id, {
+                participantStats: newStats,
+                currentParticipants: realTotal,
+                updatedAt: new Date().toISOString()
+              }).catch(err => console.error('Stats sync error:', err));
+            }
+          }
         } catch (error) {
           console.error('Error fetching enrolled students:', error);
         } finally {
@@ -294,6 +326,32 @@ export const LessonDetailScreen: React.FC = () => {
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>{getDurationText(lesson.duration)}</Text>
             </View>
           </View>
+
+          {/* Participant Stats */}
+          {(lesson.participantStats && lesson.participantStats.total > 0) && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.participants') || 'Participants'}</Text>
+              <View style={[styles.participantsCard, { backgroundColor: palette.card }]}>
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="group" size={24} color={colors.student.primary} />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.total}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.total') || 'Total'}</Text>
+                </View>
+                <View style={[styles.divider, { backgroundColor: palette.border }]} />
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="female" size={24} color="#E91E63" />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.female}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.female') || 'Female'}</Text>
+                </View>
+                <View style={[styles.divider, { backgroundColor: palette.border }]} />
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="male" size={24} color="#2196F3" />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.male}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.male') || 'Male'}</Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* Description Section */}
           <View style={styles.section}>
@@ -800,6 +858,32 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: spacing.md,
     fontSize: typography.fontSize.base,
+  },
+  participantsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderRadius: 12,
+    marginTop: spacing.xs,
+  },
+  participantStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  divider: {
+    width: 1,
+    height: 40,
+    marginHorizontal: spacing.sm,
   },
 });
 

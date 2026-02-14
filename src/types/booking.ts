@@ -15,5 +15,6 @@ export interface Booking {
   updatedAt?: string;
   studentName?: string;
   lessonTitle?: string;
+  studentGender?: 'male' | 'female' | 'other';
 }
 

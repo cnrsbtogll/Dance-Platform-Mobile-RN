@@ -14,6 +14,7 @@ export interface User {
   totalLessons?: number;
   currency?: Currency; // For instructors only
   phoneNumber?: string;
+  gender?: 'male' | 'female' | 'other';
   createdAt: string;
   updatedAt?: string;
 }

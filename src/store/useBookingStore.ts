@@ -79,20 +79,44 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         throw new Error('You are already enrolled in this lesson');
       }
       
+      // Create Booking
+      const studentGender = user.gender || 'other';
+
       const bookingData: Partial<Booking> = {
         lessonId,
         studentId: user.id,
         instructorId: lesson.instructorId,
-        studentName: user.name || user.displayName || 'Student', // Store student name for easy display
+        studentName: user.name || user.displayName || 'Student',
+        studentGender, // Add gender to booking
         date,
         time,
         price,
-        status: 'confirmed', // Auto-confirm since it's a group class (or keep pending if approval needed)
+        status: 'confirmed', 
         paymentStatus: 'pending',
         createdAt: new Date().toISOString(),
       };
       
       const bookingId = await FirestoreService.createBooking(bookingData);
+      
+      // Update Lesson Participant Stats
+      try {
+        const currentStats = lesson.participantStats || { male: 0, female: 0, other: 0, total: 0 };
+        const newStats = {
+          male: currentStats.male + (studentGender === 'male' ? 1 : 0),
+          female: currentStats.female + (studentGender === 'female' ? 1 : 0),
+          other: currentStats.other + (studentGender === 'other' ? 1 : 0),
+          total: (currentStats.total || 0) + 1
+        };
+        
+        await FirestoreService.updateLesson(lessonId, {
+          participantStats: newStats,
+          currentParticipants: (lesson.currentParticipants || 0) + 1,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (updateError) {
+        console.error('Error updating lesson stats:', updateError);
+        // Don't fail the booking if stats update fails, but log it
+      }
       
       const newBooking = { 
         id: bookingId, 

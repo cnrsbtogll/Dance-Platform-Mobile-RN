@@ -39,10 +39,17 @@ service cloud.firestore {
                       isInstructor() && 
                       request.resource.data.instructorId == request.auth.uid;
       
-      // Instructor sadece kendi kursunu güncelleyebilir/silebilir
-      allow update, delete: if isAuthenticated() && 
-                              isInstructor() && 
-                              resource.data.instructorId == request.auth.uid;
+      // Instructor kendi kursunu güncelleyebilir, öğrenci sadece istatistikleri güncelleyebilir
+      allow update: if isAuthenticated() && 
+                      (
+                        (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantStats', 'updatedAt', 'currentParticipants']))
+                      );
+
+      // Instructor sadece kendi kursunu silebilir
+      allow delete: if isAuthenticated() && 
+                      isInstructor() && 
+                      resource.data.instructorId == request.auth.uid;
     }
     
     // ==========================================

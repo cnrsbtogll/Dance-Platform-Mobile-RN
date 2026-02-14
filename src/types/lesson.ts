@@ -20,6 +20,12 @@ export interface Lesson {
   recurring?: boolean;
   maxParticipants?: number;
   currentParticipants?: number;
+  participantStats?: {
+    male: number;
+    female: number;
+    other: number;
+    total: number;
+  };
   rating: number;
   reviewCount: number;
   favoriteCount: number;

@@ -244,6 +244,16 @@ export const StudentHomeScreen: React.FC = () => {
                         <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                       </Text>
                     </View>
+
+                    {/* Participant Stats */}
+                    {(lesson.participantStats && lesson.participantStats.total > 0) && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <MaterialIcons name="people" size={14} color={palette.text.secondary} />
+                        <Text style={{ fontSize: 12, color: palette.text.secondary, marginLeft: 4 }}>
+                          {lesson.participantStats.female} {t('lessons.female')}, {lesson.participantStats.male} {t('lessons.male')}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </Card>
               </TouchableOpacity>
