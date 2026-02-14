@@ -116,6 +116,8 @@ export class FirestoreService {
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
+          time: data.time,
+          daysOfWeek: data.daysOfWeek || [],
           imageUrl: data.imageUrl,
           // Map other fields
           isActive: data.status === 'active',
@@ -156,6 +158,8 @@ export class FirestoreService {
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
+          time: data.time,
+          daysOfWeek: data.daysOfWeek || [],
           imageUrl: data.imageUrl,
           level: data.level || 'Beginner',
           maxStudents: data.maxStudents || 10,
@@ -194,6 +198,8 @@ export class FirestoreService {
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
+          time: data.time,
+          daysOfWeek: data.daysOfWeek || [],
           imageUrl: data.imageUrl,
           isActive: data.status === 'active',
           status: data.status,
@@ -208,6 +214,21 @@ export class FirestoreService {
     } catch (error) {
       console.error('Error getting lesson:', error);
       return null;
+    }
+  }
+
+  static async createLesson(lessonData: Partial<Lesson>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), {
+        ...lessonData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: 'active'
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      throw error;
     }
   }
 

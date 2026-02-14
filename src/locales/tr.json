@@ -28,6 +28,8 @@
     },
     "minutes": "dakika",
     "hours": "saat",
+    "hourShort": "sa",
+    "minuteShort": "dk",
     "guest": "Dansçı"
   },
   "auth": {
@@ -153,6 +155,7 @@
     "selectDanceTypeTitle": "Dans Türü Seç",
     "selectLessonImage": "Ders Görseli Seç",
     "selectImageFirst": "Önce dans türü seçin",
+    "schedule": "Program",
     "days": {
       "monday": "Pazartesi",
       "tuesday": "Salı",
@@ -197,7 +200,17 @@
     "lessonDeleted": "Ders başarıyla silindi",
     "deleteLesson": "Dersi Sil",
     "deleteLessonConfirm": "Bu dersi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-    "delete": "Sil"
+    "delete": "Sil",
+    "details": "Ders Detay",
+    "durationSuffix": "süren dersler",
+    "levelSuffix": "seviyeye uygun",
+    "instructorSuffix": "Deneyimli eğitmenler eşliğinde",
+    "levels": {
+      "beginner": "Başlangıç",
+      "intermediate": "Orta",
+      "advanced": "İleri",
+      "professional": "Profesyonel"
+    }
   },
   "instructor": {
     "home": "Eğitmen Anasayfa",

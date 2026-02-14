@@ -11,8 +11,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { MockDataService } from '../../services/mockDataService';
 import { FirestoreService } from '../../services/firebase/firestore';
+import { useLessonStore } from '../../store/useLessonStore';
 import { Lesson } from '../../types';
-import { CURRENCY_SYMBOLS } from '../../utils/helpers';
+import { CURRENCY_SYMBOLS, normalizeDaysOfWeek } from '../../utils/helpers';
 import { getImageSource } from '../../utils/imageHelper';
 
 // Predefined lesson images for each dance type
@@ -65,6 +66,7 @@ export const EditLessonScreen: React.FC = () => {
     const lessonId = params?.lessonId;
     const { isDarkMode } = useThemeStore();
     const { user } = useAuthStore();
+    const { updateLesson } = useLessonStore();
     const palette = getPalette('instructor', isDarkMode);
 
     const currency = user?.currency || 'USD';
@@ -103,7 +105,9 @@ export const EditLessonScreen: React.FC = () => {
                         setDuration(data.duration || 60);
 
                         if (data.daysOfWeek && Array.isArray(data.daysOfWeek)) {
-                            setSelectedDays(data.daysOfWeek);
+                            // Normalize days to ensure they are in English keys
+                            const normalizedDays = normalizeDaysOfWeek(data.daysOfWeek);
+                            setSelectedDays(normalizedDays);
                         }
 
                         if (data.time) {
@@ -114,21 +118,29 @@ export const EditLessonScreen: React.FC = () => {
                         }
 
                         // Handle image
-                        if (data.imageUrl && data.category) {
-                            // Logic to match image from constants if possible, or use url
-                            // For now, use the first image of category if string match fails or just pass it
-                            // If imageUrl is a local require number (mock data), we can set it directly
-                            // If it is a string (firestore), we might need to handle it differently 
-                            // But our picker uses local assets. Let's try to match.
-                            const availableImages = LESSON_IMAGES[data.category] || [];
-                            // Simplified logic: set selectedImage to what we got if it matches structure
-                            // For this demo, let's just pick the first one if type matches to avoid complex logic
-                            // or if it was a number (local asset)
-                            if (typeof data.imageUrl === 'number') {
-                                setSelectedImage(data.imageUrl);
+                        console.log('Loading image for category:', data.category, 'imageUrl:', data.imageUrl);
+                        if (data.category || data.danceStyle) {
+                            const category = data.category || data.danceStyle;
+                            // Capitalize first letter to match LESSON_IMAGES keys
+                            const categoryKey = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+                            const availableImages = LESSON_IMAGES[categoryKey] || [];
+                            console.log('Available images for', categoryKey, ':', availableImages.length);
+
+                            if (data.imageUrl) {
+                                if (typeof data.imageUrl === 'number') {
+                                    console.log('Setting image from number:', data.imageUrl);
+                                    setSelectedImage(data.imageUrl);
+                                } else {
+                                    // Fallback to first image of category
+                                    const fallbackImage = availableImages[0];
+                                    console.log('Setting fallback image:', fallbackImage);
+                                    setSelectedImage(fallbackImage);
+                                }
                             } else {
-                                // Fallback to first image of category
-                                setSelectedImage(availableImages[0]);
+                                // No imageUrl, use first available image
+                                const fallbackImage = availableImages[0];
+                                console.log('No imageUrl, using first available:', fallbackImage);
+                                setSelectedImage(fallbackImage);
                             }
                         }
                     }
@@ -141,7 +153,9 @@ export const EditLessonScreen: React.FC = () => {
         fetchLesson();
     }, [lessonId]);
 
-    const availableImages = danceType ? LESSON_IMAGES[danceType] || [] : [];
+    const availableImages = danceType
+        ? LESSON_IMAGES[danceType.charAt(0).toUpperCase() + danceType.slice(1).toLowerCase()] || []
+        : [];
 
 
 
@@ -160,7 +174,7 @@ export const EditLessonScreen: React.FC = () => {
 
         try {
             if (lessonId) {
-                await FirestoreService.updateLesson(lessonId, {
+                const updateData: any = {
                     title,
                     name: title,
                     description,
@@ -169,11 +183,34 @@ export const EditLessonScreen: React.FC = () => {
                     price: parseFloat(price),
                     duration,
                     daysOfWeek: selectedDays,
-                    time: selectedTime ? formatTime(selectedTime) : undefined,
-                    // Note: In a real app, you'd upload the image and get a URL. 
-                    // For now keeping existing logic or selectedImage
-                    imageUrl: selectedImage
-                });
+                };
+
+                // Regenerate tags and highlights to keep them in sync
+                const level = lessonData?.level || 'beginner';
+                updateData.tags = [
+                    danceType.toLowerCase(),
+                    level.toLowerCase(),
+                    `${duration} ${t('common.minutes').toLowerCase()}`
+                ];
+
+                updateData.highlights = [
+                    `${duration} ${t('common.minutes')} ${t('lessons.durationSuffix') || ''}`,
+                    `${t(`lessons.levels.${level}`) || level} ${t('lessons.levelSuffix') || ''}`,
+                    t('lessons.instructorSuffix') || 'With experienced instructors'
+                ];
+
+                // Only add time if it's defined
+                if (selectedTime) {
+                    updateData.time = formatTime(selectedTime);
+                }
+
+                // Only add imageUrl if it's defined
+                if (selectedImage) {
+                    updateData.imageUrl = selectedImage;
+                }
+
+                await FirestoreService.updateLesson(lessonId, updateData);
+                updateLesson(lessonId, updateData);
                 Alert.alert(t('common.success'), t('lessons.lessonUpdated'), [
                     { text: t('common.ok'), onPress: () => navigation.goBack() }
                 ]);
@@ -190,6 +227,10 @@ export const EditLessonScreen: React.FC = () => {
         try {
             const newStatus = !lessonData.isActive;
             await FirestoreService.updateLesson(lessonId, { isActive: newStatus });
+            updateLesson(lessonId, {
+                isActive: newStatus,
+                status: newStatus ? 'active' : 'inactive'
+            });
 
             setLessonData({ ...lessonData, isActive: newStatus });
 
@@ -434,20 +475,20 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Action Buttons */}
                 <View style={styles.section}>
                     <TouchableOpacity
-                        style={[styles.saveButton, { backgroundColor: lessonData?.isActive ? colors.general.warning : colors.general.success, marginBottom: spacing.md }]}
+                        style={[styles.saveButton, { backgroundColor: palette.secondary }]}
+                        onPress={handleSave}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.saveButtonText}>{t('lessons.saveChanges')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.saveButton, { backgroundColor: lessonData?.isActive ? colors.general.warning : colors.general.success }]}
                         onPress={handleToggleActive}
                         activeOpacity={0.8}
                     >
                         <Text style={styles.saveButtonText}>
                             {lessonData?.isActive ? t('lessons.deactivateLesson') : t('lessons.activateLesson')}
                         </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={handleSave}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.saveButtonText}>{t('lessons.saveChanges')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.deleteButton}

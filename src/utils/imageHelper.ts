@@ -54,9 +54,14 @@ const LESSON_IMAGES_MAP: { [key: string]: any } = {
  * Supports both local assets (by filename) and URLs
  * Falls back to category-based default image if specific image not found
  */
-export const getLessonImageSource = (imageUrl: string, category: string = 'salsa') => {
+export const getLessonImageSource = (imageUrl: string | number | undefined | null, category: string = 'salsa') => {
+  // If it's a number (local asset via require), return it directly
+  if (typeof imageUrl === 'number') {
+    return imageUrl;
+  }
+
   // If it's a URL (starts with http), return as URI
-  if (imageUrl && imageUrl.startsWith('http')) {
+  if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
     return { uri: imageUrl };
   }
   

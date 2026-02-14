@@ -17,6 +17,7 @@ interface LessonState {
   getFilteredLessons: () => Lesson[];
   getLessonReviews: (lessonId: string) => Review[];
   refreshLessons: () => Promise<void>;
+  updateLesson: (lessonId: string, updates: Partial<Lesson>) => void;
 }
 
 export const useLessonStore = create<LessonState>((set, get) => {
@@ -86,6 +87,17 @@ export const useLessonStore = create<LessonState>((set, get) => {
       console.error('[useLessonStore] Error refreshing lessons:', error);
     }
   },
+
+  updateLesson: (lessonId: string, updates: Partial<Lesson>) =>
+    set((state) => ({
+      lessons: state.lessons.map((lesson) =>
+        lesson.id === lessonId ? { ...lesson, ...updates } : lesson
+      ),
+      selectedLesson:
+        state.selectedLesson?.id === lessonId
+          ? { ...state.selectedLesson, ...updates }
+          : state.selectedLesson,
+    })),
   };
 });
 

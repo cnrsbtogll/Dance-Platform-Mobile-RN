@@ -28,6 +28,8 @@
     },
     "minutes": "minutes",
     "hours": "hours",
+    "hourShort": "h",
+    "minuteShort": "m",
     "guest": "Dancer"
   },
   "auth": {
@@ -152,6 +154,7 @@
     "selectDanceType": "Select dance type",
     "selectDanceTypeTitle": "Select Dance Type",
     "selectLessonImage": "Select Lesson Image",
+    "schedule": "Schedule",
     "days": {
       "monday": "Monday",
       "tuesday": "Tuesday",
@@ -197,7 +200,17 @@
     "lessonDeleted": "Lesson deleted successfully",
     "deleteLesson": "Delete Lesson",
     "deleteLessonConfirm": "Are you sure you want to delete this lesson? This action cannot be undone.",
-    "delete": "Delete"
+    "delete": "Delete",
+    "details": "Lesson Details",
+    "durationSuffix": "duration",
+    "levelSuffix": "level suitable",
+    "instructorSuffix": "With experienced instructors",
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "professional": "Professional"
+    }
   },
   "instructor": {
     "home": "Instructor Home",

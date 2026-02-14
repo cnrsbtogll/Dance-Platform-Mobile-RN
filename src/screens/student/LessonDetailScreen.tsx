@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
-import { formatDate, formatTime, getDurationText, formatPrice } from '../../utils/helpers';
+import { formatDate, formatTime, getDurationText, formatPrice, normalizeDaysOfWeek } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -134,6 +134,16 @@ export const LessonDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
+      <View style={[styles.navbar, { borderBottomColor: palette.border, backgroundColor: palette.background }]}>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back-ios-new" size={20} color={palette.text.primary} />
+        </TouchableOpacity>
+        <Text style={[styles.navTitle, { color: palette.text.primary }]}>{t('lessons.details') || 'Lesson Details'}</Text>
+        <View style={styles.navButton} />
+      </View>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Hero Image Section */}
         <View style={styles.heroContainer}>
@@ -149,30 +159,7 @@ export const LessonDetailScreen: React.FC = () => {
             style={styles.gradientOverlay}
           />
 
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              <MaterialIcons name="arrow-back-ios-new" size={20} color="#ffffff" />
-            </TouchableOpacity>
-            <View style={styles.headerRight}>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => lesson && toggleFavorite(lesson.id)}
-              >
-                <MaterialIcons
-                  name={isFavorite ? "favorite" : "favorite-border"}
-                  size={20}
-                  color="#ffffff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.headerButton, styles.headerButtonMargin]}>
-                <MaterialIcons name="share" size={20} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
-          </View>
+
 
           {/* Title Overlay */}
           <View style={styles.titleOverlay}>
@@ -189,12 +176,20 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.infoCards}>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
               <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
-              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.date')}</Text>
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.schedule')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? formatDate(booking.date) :
-                  (Array.isArray(lesson.daysOfWeek) && lesson.daysOfWeek.length > 0) ? lesson.daysOfWeek.join(', ') :
-                    lesson.date ? formatDate(lesson.date) :
-                      (typeof lesson.daysOfWeek === 'string' ? lesson.daysOfWeek : t('lessons.notSpecified'))}
+                {(() => {
+                  if (booking) return formatDate(booking.date);
+                  if (Array.isArray(lesson.daysOfWeek) && lesson.daysOfWeek.length > 0) {
+                    // Normalize days (convert Turkish to English keys if needed)
+                    const normalizedDays = normalizeDaysOfWeek(lesson.daysOfWeek);
+                    const translated = normalizedDays.map(day => t(`lessons.shortDays.${day}`)).join(', ');
+                    return translated;
+                  }
+                  if (lesson.date) return formatDate(lesson.date);
+                  if (typeof lesson.daysOfWeek === 'string') return lesson.daysOfWeek;
+                  return t('lessons.notSpecified');
+                })()}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
@@ -475,6 +470,24 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.student.primary,
     fontWeight: typography.fontWeight.medium,
+  },
+  navbar: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 1,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
   },
 });
 

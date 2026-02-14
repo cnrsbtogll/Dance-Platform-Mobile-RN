@@ -13,10 +13,10 @@ export interface Lesson {
   price: number;
   currency?: string;
   duration: number; // minutes
-  imageUrl?: string;
+  imageUrl?: string | number;
   date?: string; // ISO date (YYYY-MM-DD)
   time?: string; // HH:mm format
-  daysOfWeek?: string; // JSON string or array
+  daysOfWeek?: string[]; // Array of strings
   recurring?: boolean;
   maxParticipants?: number;
   currentParticipants?: number;
@@ -25,8 +25,8 @@ export interface Lesson {
   favoriteCount: number;
   isActive: boolean; // Mapped from status === 'active'
   status?: string; // Firebase field
-  tags?: string; // JSON string
-  highlights?: string; // JSON string
+  tags?: string[]; // Array of strings
+  highlights?: string[]; // Array of strings
   location?: any;
   schoolId?: string;
   schoolName?: string;
