@@ -436,7 +436,19 @@
     "findAnswers": "Find answers to your questions here",
     "stillNeedHelp": "Still need help?",
     "contactSupport": "Contact our support team",
-    "contactUs": "Contact Us"
+    "contactUs": "Contact Us",
+    "faqs": {
+      "q1": "How do I book a lesson?",
+      "a1": "Browse available lessons on the home screen, view details and tap \"Register\" to book.",
+      "q2": "How do I become an instructor?",
+      "a2": "Go to Profile > \"Become an Instructor\" and follow the steps to submit your application.",
+      "q3": "How do I cancel a booking?",
+      "a3": "Go to \"My Lessons\", find the lesson and tap cancel. Please check cancellation policies.",
+      "q4": "How do I change my password?",
+      "a4": "Go to Profile > \"Account Settings\" > \"Change Password\".",
+      "q5": "How do I contact support?",
+      "a5": "You can contact us via WhatsApp or email using the contact info provided in the app."
+    }
   },
   "about": {
     "appName": "Feriha Dance Platform",

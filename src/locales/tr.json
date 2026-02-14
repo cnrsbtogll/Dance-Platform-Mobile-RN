@@ -435,7 +435,19 @@
     "findAnswers": "Sorularınızın cevaplarını burada bulabilirsiniz",
     "stillNeedHelp": "Hala yardıma mı ihtiyacınız var?",
     "contactSupport": "Destek ekibimizle iletişime geçin",
-    "contactUs": "Bize Ulaşın"
+    "contactUs": "Bize Ulaşın",
+    "faqs": {
+      "q1": "Derse nasıl kayıt olabilirim?",
+      "a1": "Ana sayfada mevcut dersleri inceleyebilir, detaylarını görüp \"Derse Kaydol\" butonuna tıklayarak kaydınızı oluşturabilirsiniz.",
+      "q2": "Eğitmen nasıl olabilirim?",
+      "a2": "Profil sayfanızdan \"Eğitmen Ol\" seçeneğine tıklayın. Gerekli adımları takip ederek başvurunuzu tamamlayabilir ve bizimle iletişime geçebilirsiniz.",
+      "q3": "Rezervasyonumu nasıl iptal ederim?",
+      "a3": "\"Derslerim\" sayfasından ilgili dersi bulup iptal seçeneğini kullanabilirsiniz. İptal politikalarına dikkat ediniz.",
+      "q4": "Şifremi nasıl değiştiririm?",
+      "a4": "Profil sayfasından \"Hesap Ayarları\" > \"Şifre Değiştir\" adımlarını izleyerek şifrenizi güncelleyebilirsiniz.",
+      "q5": "Destek ekibiyle nasıl iletişim kurarım?",
+      "a5": "Uygulama içindeki iletişim bilgilerini kullanarak WhatsApp veya e-posta yoluyla bize ulaşabilirsiniz."
+    }
   },
   "about": {
     "appName": "Feriha Dance Platform",

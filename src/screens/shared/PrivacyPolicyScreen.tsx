@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, typography, getPalette } from '../../utils/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { spacing, typography, borderRadius, getPalette, shadows } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { Card } from '../../components/common/Card';
 
 export const PrivacyPolicyScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -26,82 +28,76 @@ export const PrivacyPolicyScreen: React.FC = () => {
         fontWeight: typography.fontWeight.bold,
         color: palette.text.primary,
       },
+      headerShadowVisible: false,
     });
-  }, [navigation, isDarkMode, palette, t, user?.role]);
+  }, [navigation, isDarkMode, palette, t]);
+
+  const sections = [
+    { id: '1', icon: 'info-outline', title: t('privacyPolicy.section1Title'), content: t('privacyPolicy.section1Content') },
+    { id: '2', icon: 'settings-suggest', title: t('privacyPolicy.section2Title'), content: t('privacyPolicy.section2Content') },
+    { id: '3', icon: 'share', title: t('privacyPolicy.section3Title'), content: t('privacyPolicy.section3Content') },
+    { id: '4', icon: 'security', title: t('privacyPolicy.section4Title'), content: t('privacyPolicy.section4Content') },
+    { id: '5', icon: 'cookie', title: t('privacyPolicy.section5Title'), content: t('privacyPolicy.section5Content') },
+    { id: '6', icon: 'how-to-reg', title: t('privacyPolicy.section6Title'), content: t('privacyPolicy.section6Content') },
+    { id: '7', icon: 'history', title: t('privacyPolicy.section7Title'), content: t('privacyPolicy.section7Content') },
+  ];
+
+  const lastUpdatedDate = new Date().toLocaleDateString();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <ScrollView
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.section}>
-          <Text style={[styles.title, { color: palette.text.primary }]}>
-            {t('privacyPolicy.title')}
-          </Text>
+        <View style={styles.header}>
+          <View style={[styles.iconCircle, { backgroundColor: palette.primary + '15' }]}>
+            <MaterialIcons name="privacy-tip" size={32} color={palette.primary} />
+          </View>
+          <Text style={[styles.title, { color: palette.text.primary }]}>{t('privacyPolicy.title')}</Text>
           <Text style={[styles.lastUpdated, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.lastUpdated')} {new Date().toLocaleDateString()}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section1Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section1Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section2Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section2Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section3Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section3Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section4Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section4Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section5Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section5Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section6Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section6Content')}
-          </Text>
-
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.section7Title')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.section7Content')}
-          </Text>
-
-          <Text style={[styles.contactTitle, { color: palette.text.primary }]}>
-            {t('privacyPolicy.contactTitle')}
-          </Text>
-          <Text style={[styles.content, { color: palette.text.secondary }]}>
-            {t('privacyPolicy.contactContent')}
+            {t('privacyPolicy.lastUpdated')} {lastUpdatedDate}
           </Text>
         </View>
+
+        <View style={styles.sectionsContainer}>
+          {sections.map((section) => (
+            <View key={section.id} style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: palette.card }]}>
+                  <MaterialIcons name={section.icon as any} size={20} color={palette.primary} />
+                </View>
+                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+                  {section.title}
+                </Text>
+              </View>
+              <Card style={[styles.sectionCard, { backgroundColor: palette.card }]}>
+                <Text style={[styles.content, { color: palette.text.secondary }]}>
+                  {section.content}
+                </Text>
+              </Card>
+            </View>
+          ))}
+
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconContainer, { backgroundColor: palette.card }]}>
+                <MaterialIcons name="mail-outline" size={20} color={palette.primary} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+                {t('privacyPolicy.contactTitle')}
+              </Text>
+            </View>
+            <Card style={[styles.sectionCard, { backgroundColor: palette.card }]}>
+              <Text style={[styles.content, { color: palette.text.secondary }]}>
+                {t('privacyPolicy.contactContent')}
+              </Text>
+            </Card>
+          </View>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -113,40 +109,64 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
-  section: {
-    padding: spacing.md,
+  header: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
   title: {
-    fontSize: typography.fontSize.xxl,
+    fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
-    marginBottom: spacing.xs,
-    letterSpacing: -0.015,
+    marginBottom: 4,
   },
   lastUpdated: {
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.normal,
-    marginBottom: spacing.xl,
+  },
+  sectionsContainer: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xl,
+  },
+  sectionContainer: {
+    gap: spacing.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingLeft: 4,
+  },
+  sectionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
   },
   sectionTitle: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
-    letterSpacing: -0.015,
+  },
+  sectionCard: {
+    padding: spacing.md,
+    marginHorizontal: 0,
+    marginBottom: 0,
+    borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
   content: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.normal,
-    lineHeight: 24,
-    marginBottom: spacing.md,
-  },
-  contactTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
+    fontSize: typography.fontSize.sm,
+    lineHeight: 22,
   },
 });
-

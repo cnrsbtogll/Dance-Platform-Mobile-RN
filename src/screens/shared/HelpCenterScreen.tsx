@@ -1,48 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Card } from '../../components/common/Card';
 
-interface FAQItem {
-  id: string;
-  question: string;
-  answer: string;
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-// Mock FAQ data
-const mockFAQs: FAQItem[] = [
-  {
-    id: '1',
-    question: 'How do I book a lesson?',
-    answer: 'You can browse available lessons on the home screen, tap on a lesson to view details, and then tap "Register for Lesson" to book.',
-  },
-  {
-    id: '2',
-    question: 'How do I become an instructor?',
-    answer: 'Go to your profile, tap "Become an Instructor", create an account if needed, and contact us via WhatsApp to complete the registration process.',
-  },
-  {
-    id: '3',
-    question: 'How do I cancel a booking?',
-    answer: 'Go to "My Lessons", find the lesson you want to cancel, and tap the cancel button. Please note that cancellation policies may apply.',
-  },
-  {
-    id: '4',
-    question: 'How do I change my password?',
-    answer: 'Go to your profile, tap "Account Settings", then "Change Password". Enter your current password and your new password.',
-  },
-  {
-    id: '5',
-    question: 'How do I contact support?',
-    answer: 'You can contact us via WhatsApp using the contact information in the app, or email us at support@danceplatform.com',
-  },
-];
 
 export const HelpCenterScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -50,178 +18,118 @@ export const HelpCenterScreen: React.FC = () => {
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette(user?.role || 'student', isDarkMode);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const faqs = [
+    { id: '1', question: t('helpCenter.faqs.q1'), answer: t('helpCenter.faqs.a1') },
+    { id: '2', question: t('helpCenter.faqs.q2'), answer: t('helpCenter.faqs.a2') },
+    { id: '3', question: t('helpCenter.faqs.q3'), answer: t('helpCenter.faqs.a3') },
+    { id: '4', question: t('helpCenter.faqs.q4'), answer: t('helpCenter.faqs.a4') },
+    { id: '5', question: t('helpCenter.faqs.q5'), answer: t('helpCenter.faqs.a5') },
+  ];
+
+  const toggleExpand = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedId(expandedId === id ? null : id);
+  };
 
   useEffect(() => {
     navigation.setOptions({
       headerTitle: t('profile.helpCenter'),
       headerTintColor: palette.text.primary,
-      headerStyle: {
-        backgroundColor: palette.background,
-      },
-      headerTitleStyle: {
-        fontSize: typography.fontSize.lg,
-        fontWeight: typography.fontWeight.bold,
-        color: palette.text.primary,
-      },
+      headerStyle: { backgroundColor: palette.background },
+      headerTitleStyle: { fontWeight: 'bold' },
+      headerShadowVisible: false,
     });
-  }, [navigation, isDarkMode, palette, t, user?.role]);
+  }, [navigation, isDarkMode, palette, t]);
 
-  const toggleItem = (id: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
+  const handleContactSupport = async () => {
+    const phoneNumber = '905550059876';
+    const message = 'Feriha Dans platformu hakkında yardıma ihtiyacım var';
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        await Linking.openURL(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`);
+      }
+    } catch (error) {
+      console.error("WhatsApp error:", error);
     }
-    setExpandedItems(newExpanded);
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('helpCenter.frequentlyAskedQuestions')}
-          </Text>
-          <Text style={[styles.sectionDescription, { color: palette.text.secondary }]}>
-            {t('helpCenter.findAnswers')}
-          </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {mockFAQs.map((faq) => {
-            const isExpanded = expandedItems.has(faq.id);
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: palette.text.primary }]}>{t('helpCenter.frequentlyAskedQuestions')}</Text>
+          <Text style={[styles.subtitle, { color: palette.text.secondary }]}>{t('helpCenter.findAnswers')}</Text>
+        </View>
+
+        <View style={styles.faqList}>
+          {faqs.map((item) => {
+            const isExpanded = expandedId === item.id;
             return (
-              <Card key={faq.id} style={[styles.faqCard, { backgroundColor: palette.card }]}>
-                <TouchableOpacity
-                  style={styles.faqHeader}
-                  onPress={() => toggleItem(faq.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.faqQuestion, { color: palette.text.primary }]} numberOfLines={2}>
-                    {faq.question}
-                  </Text>
-                  <MaterialIcons
-                    name={isExpanded ? 'expand-less' : 'expand-more'}
-                    size={24}
-                    color={palette.text.secondary}
-                  />
+              <View key={item.id} style={[
+                styles.faqItem,
+                {
+                  backgroundColor: palette.card,
+                  borderColor: isExpanded ? palette.primary : 'transparent',
+                  borderWidth: 1
+                }
+              ]}>
+                <TouchableOpacity onPress={() => toggleExpand(item.id)} activeOpacity={0.8} style={styles.questionRow}>
+                  <View style={styles.qTextContainer}>
+                    <Text style={[styles.questionText, { color: isExpanded ? palette.primary : palette.text.primary }]}>
+                      {item.question}
+                    </Text>
+                  </View>
+                  <MaterialIcons name={isExpanded ? "remove" : "add"} size={20} color={isExpanded ? palette.primary : palette.text.secondary} />
                 </TouchableOpacity>
                 {isExpanded && (
-                  <View style={[styles.faqAnswerContainer, { borderTopColor: palette.border }]}>
-                    <Text style={[styles.faqAnswer, { color: palette.text.secondary }]}>
-                      {faq.answer}
+                  <View style={styles.answerRow}>
+                    <Text style={[styles.answerText, { color: palette.text.secondary }]}>
+                      {item.answer}
                     </Text>
                   </View>
                 )}
-              </Card>
+              </View>
             );
           })}
         </View>
 
-        {/* Contact Support */}
         <View style={styles.contactSection}>
-          <Text style={[styles.contactTitle, { color: palette.text.primary }]}>
-            {t('helpCenter.stillNeedHelp')}
-          </Text>
-          <Text style={[styles.contactDescription, { color: palette.text.secondary }]}>
-            {t('helpCenter.contactSupport')}
-          </Text>
-          <TouchableOpacity
-            style={[styles.contactButton, { backgroundColor: colors.student.primary }]}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="support-agent" size={20} color="#ffffff" />
-            <Text style={styles.contactButtonText}>
-              {t('helpCenter.contactUs')}
-            </Text>
+          <Text style={[styles.contactTitle, { color: palette.text.primary }]}>{t('helpCenter.stillNeedHelp')}</Text>
+          <TouchableOpacity style={[styles.contactButton, { backgroundColor: palette.primary }]} onPress={handleContactSupport}>
+            <MaterialIcons name="chat" size={20} color="#fff" />
+            <Text style={styles.contactButtonText}>{t('helpCenter.contactUs')}</Text>
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    padding: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    marginBottom: spacing.sm,
-    letterSpacing: -0.015,
-  },
-  sectionDescription: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.normal,
-    marginBottom: spacing.lg,
-    lineHeight: 20,
-  },
-  faqCard: {
-    marginBottom: spacing.sm,
-  },
-  faqHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  faqQuestion: {
-    flex: 1,
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
-  },
-  faqAnswerContainer: {
-    borderTopWidth: 1,
-    padding: spacing.md,
-    paddingTop: spacing.sm,
-  },
-  faqAnswer: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.normal,
-    lineHeight: 20,
-  },
-  contactSection: {
-    padding: spacing.md,
-    paddingTop: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  contactTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    textAlign: 'center',
-  },
-  contactDescription: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.normal,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  contactButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: borderRadius.xl,
-    gap: spacing.sm,
-    minWidth: 200,
-  },
-  contactButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.bold,
-    color: '#ffffff',
-  },
+  container: { flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  header: { marginBottom: spacing.xl },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
+  subtitle: { fontSize: 16 },
+  faqList: { gap: spacing.md },
+  faqItem: { borderRadius: 12, overflow: 'hidden', ...shadows.sm },
+  questionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  qTextContainer: { flex: 1, marginRight: 12 },
+  questionText: { fontSize: 16, fontWeight: '600' },
+  answerRow: { paddingHorizontal: 16, paddingBottom: 16 },
+  answerText: { fontSize: 14, lineHeight: 22 },
+  contactSection: { marginTop: spacing.xxl, alignItems: 'center', gap: 16 },
+  contactTitle: { fontSize: 18, fontWeight: '600' },
+  contactButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 30, gap: 8, ...shadows.md },
+  contactButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });
-
