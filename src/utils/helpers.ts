@@ -152,20 +152,15 @@ export const getBookingStatus = (booking: Booking): 'upcoming' | 'completed' | '
 
 export const getUpcomingBookings = (bookings: Booking[]): Booking[] => {
   const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
   return bookings.filter(booking => {
     if (booking.status === 'cancelled') return false;
     
-    // Handle potential missing time
-    const timeStr = booking.time || '00:00';
-    // Ensure date format is correct (YYYY-MM-DD)
     const dateStr = booking.date.includes('T') ? booking.date.split('T')[0] : booking.date;
     
-    const bookingDateTime = new Date(`${dateStr}T${timeStr}`);
-    
-    // Check if date is valid
-    if (isNaN(bookingDateTime.getTime())) return false;
-    
-    return bookingDateTime > now;
+    // Include today's lessons (date >= today)
+    return dateStr >= todayStr;
   }).sort((a, b) => {
     const dateA = new Date(`${a.date.split('T')[0]}T${a.time || '00:00'}`).getTime();
     const dateB = new Date(`${b.date.split('T')[0]}T${b.time || '00:00'}`).getTime();
@@ -175,18 +170,19 @@ export const getUpcomingBookings = (bookings: Booking[]): Booking[] => {
 
 export const getPastBookings = (bookings: Booking[]): Booking[] => {
   const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
   return bookings.filter(booking => {
-    const timeStr = booking.time || '00:00';
     const dateStr = booking.date.includes('T') ? booking.date.split('T')[0] : booking.date;
-    const bookingDateTime = new Date(`${dateStr}T${timeStr}`);
     
-    if (isNaN(bookingDateTime.getTime())) return false;
+    if (booking.status === 'completed' || booking.status === 'cancelled') return true;
     
-    return bookingDateTime <= now || booking.status === 'completed' || booking.status === 'cancelled';
+    // Past if before today
+    return dateStr < todayStr;
   }).sort((a, b) => {
     const dateA = new Date(`${a.date.split('T')[0]}T${a.time || '00:00'}`).getTime();
     const dateB = new Date(`${b.date.split('T')[0]}T${b.time || '00:00'}`).getTime();
-    return dateB - dateA; // Descending order
+    return dateB - dateA; 
   });
 };
 
