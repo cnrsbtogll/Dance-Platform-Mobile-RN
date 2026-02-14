@@ -281,3 +281,91 @@ export const normalizeDayName = (day: string): string => {
 export const normalizeDaysOfWeek = (days: string[]): string[] => {
   return days.map(normalizeDayName);
 };
+
+/**
+ * Calculate the next occurrence of a recurring lesson
+ * @param daysOfWeek - Array of day names (e.g., ['monday', 'wednesday'])
+ * @param time - Time string (e.g., '14:00')
+ * @param count - Number of upcoming occurrences to return (default: 1)
+ * @returns Array of next occurrence dates
+ */
+export const getNextLessonOccurrence = (
+  daysOfWeek: string[],
+  time: string,
+  count: number = 1
+): Date[] => {
+  if (!daysOfWeek || daysOfWeek.length === 0 || !time) {
+    return [];
+  }
+
+  const DAY_TO_NUMBER: { [key: string]: number } = {
+    'sunday': 0,
+    'monday': 1,
+    'tuesday': 2,
+    'wednesday': 3,
+    'thursday': 4,
+    'friday': 5,
+    'saturday': 6,
+  };
+
+  const normalizedDays = normalizeDaysOfWeek(daysOfWeek);
+  const dayNumbers = normalizedDays
+    .map(day => DAY_TO_NUMBER[day])
+    .filter(num => num !== undefined)
+    .sort((a, b) => a - b);
+
+  if (dayNumbers.length === 0) {
+    return [];
+  }
+
+  const [hours, minutes] = time.split(':').map(Number);
+  const now = new Date();
+  const results: Date[] = [];
+
+  // Find next occurrences
+  let searchDate = new Date(now);
+  while (results.length < count) {
+    const currentDay = searchDate.getDay();
+    
+    // Find next matching day
+    let nextDayNumber: number | null = null;
+    let daysToAdd = 0;
+
+    // First, check if any day is today or later this week
+    for (const dayNum of dayNumbers) {
+      if (dayNum > currentDay) {
+        nextDayNumber = dayNum;
+        daysToAdd = dayNum - currentDay;
+        break;
+      } else if (dayNum === currentDay) {
+        // Check if time hasn't passed yet
+        const todayLesson = new Date(searchDate);
+        todayLesson.setHours(hours, minutes, 0, 0);
+        if (todayLesson > now) {
+          nextDayNumber = dayNum;
+          daysToAdd = 0;
+          break;
+        }
+      }
+    }
+
+    // If no day found this week, take first day of next week
+    if (nextDayNumber === null) {
+      nextDayNumber = dayNumbers[0];
+      daysToAdd = 7 - currentDay + nextDayNumber;
+    }
+
+    // Create the next occurrence date
+    const nextDate = new Date(searchDate);
+    nextDate.setDate(searchDate.getDate() + daysToAdd);
+    nextDate.setHours(hours, minutes, 0, 0);
+
+    results.push(nextDate);
+
+    // Move search date to day after this occurrence
+    searchDate = new Date(nextDate);
+    searchDate.setDate(searchDate.getDate() + 1);
+  }
+
+  return results;
+};

@@ -354,7 +354,8 @@
     "noActiveLessons": "Yayında ders bulunmuyor",
     "studentsCount": "{{count}}/{{max}} Öğrenci",
     "createNewLesson": "Yeni Ders Oluştur",
-    "student": "Öğrenci"
+    "student": "Öğrenci",
+    "recurringLesson": "Tekrarlayan Ders"
   },
   "earnings": {
     "totalEarnings": "Toplam Kazanç",

@@ -354,7 +354,8 @@
     "noActiveLessons": "No active lessons",
     "studentsCount": "{{count}}/{{max}} Students",
     "createNewLesson": "Create New Lesson",
-    "student": "Student"
+    "student": "Student",
+    "recurringLesson": "Recurring Lesson"
   },
   "earnings": {
     "totalEarnings": "Total Earnings",

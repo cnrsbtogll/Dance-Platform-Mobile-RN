@@ -91,30 +91,62 @@ export const InstructorHomeScreen: React.FC = () => {
     };
   }, [instructorLessons, instructorBookings]);
 
-  // Get upcoming bookings (next 3)
-  const upcomingBookings = useMemo(() => {
-    const now = new Date();
-    return instructorBookings
-      .filter(b => {
-        // @ts-ignore
-        const bookingDate = new Date(`${b.date}T${b.time}`);
-        // @ts-ignore
-        return bookingDate > now && b.status !== 'cancelled';
-      })
-      .sort((a, b) => {
-        // @ts-ignore
-        const dateA = new Date(`${a.date}T${a.time}`).getTime();
-        // @ts-ignore
-        const dateB = new Date(`${b.date}T${b.time}`).getTime();
-        return dateA - dateB;
-      })
-      .slice(0, 3);
-  }, [instructorBookings]);
-
   // Get active lessons
   const activeLessons = useMemo(() => {
     return instructorLessons.filter(l => l.isActive);
   }, [instructorLessons]);
+
+  // Get upcoming bookings and recurring lessons
+  const upcomingBookings = useMemo(() => {
+    const now = new Date();
+
+    // Get upcoming bookings and recurring lessons
+    const oneWeekFromNow = new Date(now);
+    oneWeekFromNow.setDate(now.getDate() + 7);
+
+    // Get explicit bookings
+    const explicitBookings = instructorBookings
+      .filter(b => {
+        // @ts-ignore
+        const bookingDate = new Date(`${b.date}T${b.time}`);
+        // @ts-ignore
+        return bookingDate > now && bookingDate <= oneWeekFromNow && b.status !== 'cancelled';
+      })
+      .map(b => ({
+        ...b,
+        // @ts-ignore
+        dateTime: new Date(`${b.date}T${b.time}`),
+        isRecurring: false,
+      }));
+
+    // Get recurring lessons (lessons with daysOfWeek)
+    const recurringLessons = activeLessons
+      .filter(lesson => lesson.daysOfWeek && lesson.daysOfWeek.length > 0 && lesson.time)
+      .flatMap(lesson => {
+        const { getNextLessonOccurrence } = require('../../utils/helpers');
+        // Fetch up to 7 occurrences to cover daily lessons for a week
+        const nextOccurrences = getNextLessonOccurrence(lesson.daysOfWeek!, lesson.time!, 7);
+
+        return nextOccurrences
+          .filter((dateTime: Date) => dateTime <= oneWeekFromNow)
+          .map((dateTime: Date) => ({
+            id: `${lesson.id}-${dateTime.getTime()}`,
+            lessonId: lesson.id,
+            date: dateTime.toISOString().split('T')[0],
+            time: dateTime.toTimeString().slice(0, 5),
+            dateTime: dateTime,
+            isRecurring: true,
+            studentName: null,
+            status: 'scheduled',
+          }));
+      });
+
+    // Combine and sort by date/time
+    const allUpcoming = [...explicitBookings, ...recurringLessons]
+      .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime()); // Remove limit, show all within week
+
+    return allUpcoming;
+  }, [instructorBookings, activeLessons]);
 
   useEffect(() => {
     if (user) {
@@ -287,7 +319,10 @@ export const InstructorHomeScreen: React.FC = () => {
                         {lesson.title}
                       </Text>
                       <Text style={[styles.upcomingStudent, { color: palette.text.secondary }]} numberOfLines={1}>
-                        {booking.studentName || t('instructorHome.student')}
+                        {booking.isRecurring
+                          ? t('instructorHome.recurringLesson')
+                          : (booking.studentName || t('instructorHome.student'))
+                        }
                       </Text>
                       <View style={styles.upcomingDateTime}>
                         <MaterialIcons name="event" size={14} color={palette.text.secondary} />
