@@ -191,7 +191,10 @@ export const LessonDetailScreen: React.FC = () => {
               <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.date')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? formatDate(booking.date) : lesson.date ? formatDate(lesson.date) : t('lessons.notSpecified')}
+                {booking ? formatDate(booking.date) :
+                  (Array.isArray(lesson.daysOfWeek) && lesson.daysOfWeek.length > 0) ? lesson.daysOfWeek.join(', ') :
+                    lesson.date ? formatDate(lesson.date) :
+                      (typeof lesson.daysOfWeek === 'string' ? lesson.daysOfWeek : t('lessons.notSpecified'))}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
@@ -222,17 +225,11 @@ export const LessonDetailScreen: React.FC = () => {
               <View style={styles.locationTextContainer}>
                 <Text style={[styles.locationName, { color: palette.text.primary }]}>{school?.ad || school?.name || t('common.loading')}</Text>
                 <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
-                  {school?.iletisim || school?.description || t('lessons.addressNotAvailable')}
+                  {school?.address || school?.city ? `${school.address}${school.city ? `, ${school.city}` : ''}` : t('lessons.addressNotAvailable')}
                 </Text>
               </View>
             </View>
-            <View style={styles.mapContainer}>
-              <Image
-                source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdlKSrjSVNaws68X6Mj1wmNS4eTBkffsjaEQpAM66SAJwU6d2aTkwdmJ_FiNH__z1BzgxangkJH8tCrYxzMyiIpeDzj4_8EfiBVAl61zDO3oboPKjMgMkcdTFDkngMdK7BuzchBo1SJaQMGWjwGMBjjRRgBLw6tpwcU7C6q1Wj_WSViCjrsDaZRPShHonoPLVDni-BJVBvYq73a7jwf96AX8j6d19tjIPV5sj4r_-X39wu2ta5fpdF4TnwxYKJ6siZVRfUWyPV1uyb' }}
-                style={styles.mapImage}
-                resizeMode="cover"
-              />
-            </View>
+
           </View>
 
           {/* Bottom spacing for fixed bar */}
