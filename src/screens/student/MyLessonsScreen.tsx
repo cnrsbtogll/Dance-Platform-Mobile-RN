@@ -67,8 +67,9 @@ export const MyLessonsScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.segmentedButton,
-                activeTab === 'active' && styles.segmentedButtonActive
-              ]}
+                activeTab === 'active' && [styles.segmentedButtonActive, { backgroundColor: palette.primary }]
+              ]
+              }
               onPress={() => setActiveTab('active')}
             >
               <Text style={[
@@ -82,7 +83,7 @@ export const MyLessonsScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.segmentedButton,
-                activeTab === 'past' && styles.segmentedButtonActive
+                activeTab === 'past' && [styles.segmentedButtonActive, { backgroundColor: palette.primary }]
               ]}
               onPress={() => setActiveTab('past')}
             >
@@ -105,7 +106,10 @@ export const MyLessonsScreen: React.FC = () => {
               <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
                 {t('lessons.discoverLessonsText')}
               </Text>
-              <TouchableOpacity style={styles.emptyStateButton}>
+              <TouchableOpacity
+                style={[styles.emptyStateButton, { backgroundColor: palette.primary }]}
+                onPress={() => (navigation as any).navigate('Home')}
+              >
                 <Text style={styles.emptyStateButtonText}>{t('lessons.discoverLessons')}</Text>
               </TouchableOpacity>
             </View>
@@ -149,17 +153,17 @@ export const MyLessonsScreen: React.FC = () => {
                             {formatDate(booking.date)}, {dayName} - {formatTime(booking.time)}
                           </Text>
                           {isUpcomingSoon && activeTab === 'active' && (
-                            <View style={styles.upcomingBadge}>
-                              <Text style={styles.upcomingBadgeText}>{t('lessons.upcoming')}</Text>
+                            <View style={[styles.upcomingBadge, { backgroundColor: `${palette.secondary}33` }]}>
+                              <Text style={[styles.upcomingBadgeText, { color: palette.secondary }]}>{t('lessons.upcoming')}</Text>
                             </View>
                           )}
                         </View>
                       </View>
                       <View style={styles.lessonCardRight}>
-                        <MaterialIcons 
-                          name="chevron-right" 
-                          size={24} 
-                          color={palette.text.secondary} 
+                        <MaterialIcons
+                          name="chevron-right"
+                          size={24}
+                          color={palette.text.secondary}
                         />
                       </View>
                     </View>
@@ -199,7 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   segmentedButtonActive: {
-    backgroundColor: '#4A90E2',
     ...shadows.sm,
   },
   segmentedButtonText: {
@@ -253,7 +256,6 @@ const styles = StyleSheet.create({
   },
   upcomingBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(245, 166, 35, 0.2)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.full,
@@ -262,7 +264,6 @@ const styles = StyleSheet.create({
   upcomingBadgeText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
-    color: '#F5A623',
   },
   lessonCardRight: {
     width: 24,
@@ -290,7 +291,6 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   emptyStateButton: {
-    backgroundColor: '#4A90E2',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.full,
