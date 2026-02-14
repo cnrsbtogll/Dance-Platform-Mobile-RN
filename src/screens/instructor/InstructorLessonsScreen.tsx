@@ -182,60 +182,66 @@ export const InstructorLessonsScreen: React.FC = () => {
   };
 
   const renderLessonCard = (lesson: Lesson & { studentCount: number; averageRating: number }) => (
-    <Card key={lesson.id} style={styles.lessonCard}>
-      <View style={styles.lessonCardHeader}>
-        <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
-        <View style={styles.lessonActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleToggleStatus(lesson)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons
-              name={lesson.isActive ? "visibility" : "visibility-off"}
-              size={20}
-              color={lesson.isActive ? palette.secondary : palette.text.secondary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleEdit(lesson)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleDelete(lesson)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="delete" size={20} color={palette.text.secondary} />
-          </TouchableOpacity>
+    <TouchableOpacity
+      key={lesson.id}
+      onPress={() => (navigation as any).navigate('LessonDetail', { lessonId: lesson.id, isInstructor: true })}
+      activeOpacity={0.9}
+    >
+      <Card style={styles.lessonCard}>
+        <View style={styles.lessonCardHeader}>
+          <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+          <View style={styles.lessonActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleToggleStatus(lesson)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name={lesson.isActive ? "visibility" : "visibility-off"}
+                size={20}
+                color={lesson.isActive ? palette.secondary : palette.text.secondary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleEdit(lesson)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleDelete(lesson)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="delete" size={20} color={palette.text.secondary} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.lessonStatus}>
-        <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
-        <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
-          {lesson.isActive ? t('lessons.active') : t('lessons.inactive')}
-        </Text>
-      </View>
-
-      <View style={styles.lessonStats}>
-        <View style={styles.statItem}>
-          <MaterialIcons name="people" size={18} color={palette.text.secondary} />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>
-            {lesson.studentCount} {t('lessons.registeredStudent')}
+        <View style={styles.lessonStatus}>
+          <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
+          <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
+            {lesson.isActive ? t('lessons.active') : t('lessons.inactive')}
           </Text>
         </View>
-        <View style={styles.statItem}>
-          <MaterialIcons name="star" size={18} color="#FFB800" />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>
-            {lesson.averageRating.toFixed(1)} {t('lessons.averageRating')}
-          </Text>
+
+        <View style={styles.lessonStats}>
+          <View style={styles.statItem}>
+            <MaterialIcons name="people" size={18} color={palette.text.secondary} />
+            <Text style={[styles.statText, { color: palette.text.secondary }]}>
+              {lesson.studentCount} {t('lessons.registeredStudent')}
+            </Text>
+          </View>
+          <View style={styles.statItem}>
+            <MaterialIcons name="star" size={18} color="#FFB800" />
+            <Text style={[styles.statText, { color: palette.text.secondary }]}>
+              {lesson.averageRating.toFixed(1)} {t('lessons.averageRating')}
+            </Text>
+          </View>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </TouchableOpacity>
   );
 
   return (

@@ -252,8 +252,14 @@ export const LessonDetailScreen: React.FC = () => {
       {isOwnLesson ? (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
+            <View style={styles.priceContainer}>
+              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
+              <Text style={[styles.priceValue, { color: colors.instructor.primary }]}>
+                {formatPrice(lesson.price)}
+              </Text>
+            </View>
             <TouchableOpacity
-              style={[styles.registerButton, { marginLeft: 0, flex: 1 }]}
+              style={[styles.registerButton, { marginLeft: spacing.md, flex: 1 }]}
               onPress={handleEdit}
             >
               <LinearGradient
