@@ -424,6 +424,21 @@ export class FirestoreService {
     }
   }
 
+  static async getBookingsByLesson(lessonId: string): Promise<Booking[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.BOOKINGS),
+        where('lessonId', '==', lessonId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc<Booking>(doc));
+    } catch (error) {
+      console.error('Error getting lesson bookings:', error);
+      return [];
+    }
+  }
+
   static async updateBookingStatus(bookingId: string, status: Booking['status']): Promise<void> {
     try {
       const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);

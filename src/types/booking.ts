@@ -13,5 +13,7 @@ export interface Booking {
   paymentStatus: PaymentStatus;
   createdAt: string;
   updatedAt?: string;
+  studentName?: string;
+  lessonTitle?: string;
 }
 

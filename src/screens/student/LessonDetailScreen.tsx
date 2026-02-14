@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Modal, FlatList } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -134,6 +134,30 @@ export const LessonDetailScreen: React.FC = () => {
 
   const [pendingRegistration, setPendingRegistration] = useState(false);
   const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
+
+  // Registered Students Logic (For Instructor)
+  const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
+  useEffect(() => {
+    if (isOwnLesson && lessonId) {
+      const fetchStudents = async () => {
+        setLoadingStudents(true);
+        try {
+          const bookings = await FirestoreService.getBookingsByLesson(lessonId);
+          // Filter out cancelled bookings
+          const activeBookings = bookings.filter(b => b.status !== 'cancelled');
+          setEnrolledStudents(activeBookings);
+        } catch (error) {
+          console.error('Error fetching enrolled students:', error);
+        } finally {
+          setLoadingStudents(false);
+        }
+      };
+      fetchStudents();
+    }
+  }, [isOwnLesson, lessonId]);
 
   // Check if user logged in after clicking register button
   useFocusEffect(
@@ -344,14 +368,25 @@ export const LessonDetailScreen: React.FC = () => {
       {isOwnLesson ? (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
-            <View style={styles.priceContainer}>
-              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
-              <Text style={[styles.priceValue, { color: colors.instructor.primary }]}>
+            <View style={{ flex: 1, marginRight: spacing.sm, justifyContent: 'center' }}>
+              <Text style={[styles.priceValue, { color: colors.instructor.primary, fontSize: 20 }]}>
                 {formatPrice(lesson.price)}
               </Text>
+              <TouchableOpacity
+                onPress={() => setShowStudentsModal(true)}
+                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="people" size={18} color={palette.text.secondary} />
+                <Text style={{ marginLeft: 4, color: palette.text.secondary, fontWeight: '600', fontSize: 14 }}>
+                  {enrolledStudents.length} {t('lessons.enrolledStudents')}
+                </Text>
+                <MaterialIcons name="chevron-right" size={18} color={palette.text.secondary} />
+              </TouchableOpacity>
             </View>
+
             <TouchableOpacity
-              style={[styles.registerButton, { marginLeft: spacing.md, flex: 1 }]}
+              style={[styles.registerButton, { flex: 1.2 }]}
               onPress={handleEdit}
             >
               <LinearGradient
@@ -365,6 +400,65 @@ export const LessonDetailScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+
+          {/* Students List Modal */}
+          <Modal
+            visible={showStudentsModal}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setShowStudentsModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background }]}>
+                <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                  <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                    {t('lessons.enrolledStudentsList') || 'Enrolled Students'} ({enrolledStudents.length})
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowStudentsModal(false)} style={styles.closeButton}>
+                    <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                {loadingStudents ? (
+                  <ActivityIndicator size="large" color={colors.instructor.primary} style={{ marginTop: 20 }} />
+                ) : enrolledStudents.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={[styles.emptyText, { color: palette.text.secondary }]}>
+                      {t('lessons.noStudentsEnrolled') || 'No students enrolled yet.'}
+                    </Text>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={enrolledStudents}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <View style={[styles.studentItem, { borderBottomColor: palette.border }]}>
+                        <Image
+                          source={getAvatarSource(null, item.studentName)}
+                          style={styles.studentAvatar}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.studentName, { color: palette.text.primary }]}>
+                            {item.studentName || t('studentHome.unknown')}
+                          </Text>
+                          <Text style={[styles.studentDate, { color: palette.text.secondary }]}>
+                            {formatDate(item.createdAt)}
+                          </Text>
+                        </View>
+                        <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#E8F5E9' : '#FFF3E0' }]}>
+                          <Text style={[styles.statusText, { color: item.status === 'confirmed' ? '#2E7D32' : '#EF6C00' }]}>
+                            {item.status}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                  />
+                )}
+              </View>
+            </View>
+          </Modal>
+
         </SafeAreaView>
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
@@ -641,6 +735,71 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    height: '70%',
+    padding: spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  studentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    gap: spacing.sm,
+  },
+  studentAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  studentName: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: 2,
+  },
+  studentDate: {
+    fontSize: typography.fontSize.sm,
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  statusText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    textTransform: 'uppercase',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    marginTop: spacing.md,
+    fontSize: typography.fontSize.base,
   },
 });
 

@@ -69,14 +69,25 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       const lesson = await FirestoreService.getLessonById(lessonId);
       if (!lesson) throw new Error('Lesson not found');
       
+      if (lesson.instructorId === user.id) {
+        throw new Error('Instructors cannot book their own lessons');
+      }
+
+      // Check if user is already enrolled
+      const existingBooking = await FirestoreService.getUserBookingForLesson(user.id, lessonId);
+      if (existingBooking && existingBooking.status !== 'cancelled') {
+        throw new Error('You are already enrolled in this lesson');
+      }
+      
       const bookingData: Partial<Booking> = {
         lessonId,
         studentId: user.id,
         instructorId: lesson.instructorId,
+        studentName: user.name || user.displayName || 'Student', // Store student name for easy display
         date,
         time,
         price,
-        status: 'pending',
+        status: 'confirmed', // Auto-confirm since it's a group class (or keep pending if approval needed)
         paymentStatus: 'pending',
         createdAt: new Date().toISOString(),
       };
