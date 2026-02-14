@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { MockDataService } from '../../services/mockDataService';
 import { Card } from '../../components/common/Card';
 import { Lesson } from '../../types';
+import { FirestoreService } from '../../services/firebase/firestore';
 
 type TabType = 'active' | 'past';
 
@@ -20,21 +21,40 @@ export const InstructorLessonsScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
 
-  const instructorLessons = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return MockDataService.getLessonsByInstructor(user.id);
+  // State for lessons
+  const [instructorLessons, setInstructorLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch lessons from Firestore
+  useEffect(() => {
+    const fetchLessons = async () => {
+      if (!user || user.role !== 'instructor') {
+        setInstructorLessons([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+        setInstructorLessons(lessons);
+      } catch (error) {
+        console.error('Error fetching instructor lessons:', error);
+        setInstructorLessons([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLessons();
   }, [user]);
 
-  // Get bookings for each lesson to calculate student count
+  // Lessons with stats (stats currently mocked/simplified until Firestore bookings/reviews are implemented)
   const lessonsWithStats = useMemo(() => {
     return instructorLessons.map(lesson => {
-      const bookings = MockDataService.getBookingsByLesson(lesson.id);
-      const reviews = MockDataService.getReviewsByLesson(lesson.id);
-
-      const studentCount = new Set(bookings.map(b => b.studentId)).size;
-      const averageRating = reviews.length > 0
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-        : 0;
+      // TODO: Implement Firestore service for bookings and reviews
+      const studentCount = 0; // Placeholder
+      const averageRating = lesson.rating || 0;
 
       return {
         ...lesson,
@@ -45,11 +65,24 @@ export const InstructorLessonsScreen: React.FC = () => {
   }, [instructorLessons]);
 
   const activeLessons = useMemo(() => {
-    return lessonsWithStats.filter(lesson => lesson.isActive);
+    const today = new Date().toISOString().split('T')[0];
+    return lessonsWithStats.filter(lesson => {
+      // Must be active
+      if (!lesson.isActive) return false;
+      // If date exists, must be today or future
+      if (lesson.date && lesson.date < today) return false;
+      return true;
+    });
   }, [lessonsWithStats]);
 
   const pastLessons = useMemo(() => {
-    return lessonsWithStats.filter(lesson => !lesson.isActive);
+    const today = new Date().toISOString().split('T')[0];
+    return lessonsWithStats.filter(lesson => {
+      // Either explicitly inactive OR date is in past
+      if (!lesson.isActive) return true;
+      if (lesson.date && lesson.date < today) return true;
+      return false;
+    });
   }, [lessonsWithStats]);
 
   const displayedLessons = activeTab === 'active' ? activeLessons : pastLessons;
@@ -111,7 +144,38 @@ export const InstructorLessonsScreen: React.FC = () => {
 
   const handleDelete = (lesson: Lesson) => {
     // TODO: Implement delete functionality
-    console.log('Delete lesson:', lesson.id);
+    Alert.alert(
+      t('common.delete'),
+      t('messages.deleteConfirmation'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () => console.log('Delete lesson:', lesson.id)
+        }
+      ]
+    );
+  };
+
+  const handleToggleStatus = async (lesson: Lesson) => {
+    try {
+      const newActiveState = !lesson.isActive;
+
+      // Optimistic update
+      setInstructorLessons(prev =>
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: newActiveState } : l)
+      );
+
+      await FirestoreService.updateLesson(lesson.id, { isActive: newActiveState });
+    } catch (error) {
+      console.error('Error updating lesson status:', error);
+      // Revert optimization
+      setInstructorLessons(prev =>
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: !lesson.isActive } : l)
+      );
+      Alert.alert(t('common.error'), 'Error updating status');
+    }
   };
 
   const renderLessonCard = (lesson: Lesson & { studentCount: number; averageRating: number }) => (
@@ -119,6 +183,17 @@ export const InstructorLessonsScreen: React.FC = () => {
       <View style={styles.lessonCardHeader}>
         <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
         <View style={styles.lessonActions}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleToggleStatus(lesson)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialIcons
+              name={lesson.isActive ? "visibility" : "visibility-off"}
+              size={20}
+              color={lesson.isActive ? palette.secondary : palette.text.secondary}
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleEdit(lesson)}
@@ -179,7 +254,7 @@ export const InstructorLessonsScreen: React.FC = () => {
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'past' && styles.tabTextActive]}>
-            {t('lessons.pastLessons')}
+            {t('lessons.inactiveLessons')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -198,7 +273,7 @@ export const InstructorLessonsScreen: React.FC = () => {
               color={palette.text.secondary}
             />
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {activeTab === 'active' ? t('lessons.noActiveLessons') : t('lessons.noPastLessons')}
+              {activeTab === 'active' ? t('lessons.noActiveLessons') : t('lessons.noInactiveLessons')}
             </Text>
           </View>
         )}

@@ -211,6 +211,29 @@ export class FirestoreService {
     }
   }
 
+  static async updateLesson(id: string, data: Partial<Lesson>): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.COURSES, id);
+      
+      // Prepare update data
+      const updateData: any = { ...data };
+      
+      // Map isActive back to status for Firestore storage
+      if (data.isActive !== undefined) {
+        updateData.status = data.isActive ? 'active' : 'inactive';
+        // Remove derived field so it's not saved to Firestore
+        delete updateData.isActive;
+      }
+      
+      updateData.updatedAt = new Date().toISOString();
+      
+      await updateDoc(docRef, updateData as DocumentData);
+    } catch (error) {
+      console.error('[FirestoreService] Error updating lesson:', error);
+      throw error;
+    }
+  }
+
   // Instructors
   static async getInstructors(): Promise<Instructor[]> {
     try {
