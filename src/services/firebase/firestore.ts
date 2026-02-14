@@ -99,11 +99,15 @@ export class FirestoreService {
     try {
       const q = query(collection(db, COLLECTIONS.COURSES), where('status', '==', 'active'));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => {
+      
+      const lessons = querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id,
-          title: data.name || '',
+          // Spread data first
+          ...data,
+          // Then override with required fields to ensure consistency
+          id: doc.id, // IMPORTANT: Document ID must be the source of truth
+          title: data.name || data.title || '',
           name: data.name || '',
           description: data.description || '',
           category: data.danceStyle || 'Other',
@@ -116,15 +120,16 @@ export class FirestoreService {
           // Map other fields
           isActive: data.status === 'active',
           status: data.status,
-          rating: 0, // Default as not in course
-          reviewCount: 0,
-          favoriteCount: 0,
+          rating: data.rating || 0,
+          reviewCount: data.reviewCount || 0,
+          favoriteCount: data.favoriteCount || 0,
           createdAt: data.createdAt?.toString(),
-          ...data
         } as Lesson;
       });
+      
+      return lessons;
     } catch (error) {
-      console.error('Error getting lessons:', error);
+      console.error('[FirestoreService] Error getting lessons:', error);
       return [];
     }
   }

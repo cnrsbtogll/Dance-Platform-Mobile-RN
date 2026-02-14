@@ -32,6 +32,7 @@ export const LessonDetailScreen: React.FC = () => {
 
   // Get lesson from store instead of MockDataService
   const lesson = lessons.find(l => l.id === lessonId);
+
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
   const booking = bookingId ? MockDataService.getBookingById(bookingId) : null;
 

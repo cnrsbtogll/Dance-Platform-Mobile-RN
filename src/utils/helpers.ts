@@ -7,9 +7,13 @@ export const CURRENCY_SYMBOLS: { [key in Currency]: string } = {
   TRY: '₺',
 };
 
-export const formatPrice = (price: number, currency: Currency = 'USD'): string => {
-  const symbol = CURRENCY_SYMBOLS[currency];
-  const locale = currency === 'TRY' ? 'tr-TR' : currency === 'EUR' ? 'de-DE' : 'en-US';
+export const formatPrice = (price: number, currency?: Currency): string => {
+  // Eğer dil Türkçe ise ve currency belirtilmemişse, TRY kullan
+  const currentLanguage = i18n.language;
+  const effectiveCurrency = currentLanguage === 'tr' ? 'TRY' : (currency || 'USD');
+  
+  const symbol = CURRENCY_SYMBOLS[effectiveCurrency];
+  const locale = effectiveCurrency === 'TRY' ? 'tr-TR' : effectiveCurrency === 'EUR' ? 'de-DE' : 'en-US';
   return `${symbol}${price.toLocaleString(locale)}`;
 };
 

@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
+import { useLessonStore } from '../../store/useLessonStore';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { paymentService } from '../../services/backendService';
 import { appConfig } from '../../config/appConfig';
@@ -22,13 +23,15 @@ export const PaymentScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
-  
+
   const { createBooking } = useBookingStore();
-  
+  const { lessons } = useLessonStore();
+
   const lessonId = params?.lessonId;
-  const lesson = lessonId ? MockDataService.getLessonById(lessonId) : null;
+  const lesson = lessonId ? lessons.find(l => l.id === lessonId) : null;
+
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
-  
+
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer'>('card');
   const [cardNumber, setCardNumber] = useState('');
   const [cardholderName, setCardholderName] = useState('');
@@ -104,7 +107,7 @@ export const PaymentScreen: React.FC = () => {
       if (paymentResult.success) {
         // Create booking
         const booking = createBooking(lesson.id, params.date, params.time, lesson.price);
-        
+
         // Navigate back or to success screen
         navigation.goBack();
       } else {
@@ -135,8 +138,8 @@ export const PaymentScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
@@ -266,7 +269,7 @@ export const PaymentScreen: React.FC = () => {
               </View>
 
               {/* Use Saved Card Option */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.useSavedCardButton}
                 onPress={() => setUseSavedCard(true)}
               >
