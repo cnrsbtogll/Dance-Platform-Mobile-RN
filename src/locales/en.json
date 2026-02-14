@@ -152,6 +152,24 @@
     "selectDanceType": "Select dance type",
     "selectDanceTypeTitle": "Select Dance Type",
     "selectLessonImage": "Select Lesson Image",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "shortDays": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    },
     "selectImageFirst": "Select dance type first",
     "clickToUpload": "Click to upload",
     "orDrag": "or drag",
@@ -165,6 +183,7 @@
     "selectDuration": "Select Lesson Duration",
     "scheduling": "Scheduling",
     "selectDate": "Select Date",
+    "selectDays": "Select Days",
     "selectTime": "Select Time",
     "datePlaceholder": "DD.MM.YYYY",
     "timePlaceholder": "HH:MM",

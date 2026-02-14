@@ -54,6 +54,7 @@ const LESSON_IMAGES: { [key: string]: any[] } = {
 };
 
 const DANCE_TYPES = ['Salsa', 'Bachata', 'Kizomba', 'Tango', 'Modern'];
+const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const getDurationOptions = (t: any) => [
     { label: t('lessons.durations.45min'), value: 45 },
     { label: t('lessons.durations.60min'), value: 60 },
@@ -66,7 +67,7 @@ export const CreateLessonScreen: React.FC = () => {
     const { isDarkMode } = useThemeStore();
     const { user } = useAuthStore();
     const palette = getPalette('instructor', isDarkMode);
-    
+
     const currency = user?.currency || 'USD';
     const currencySymbol = CURRENCY_SYMBOLS[currency];
 
@@ -90,11 +91,14 @@ export const CreateLessonScreen: React.FC = () => {
     const [title, setTitle] = useState('');
     const [danceType, setDanceType] = useState('');
     const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('150');
+    const [price, setPrice] = useState('1250');
     const [duration, setDuration] = useState(60);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [selectedTime, setSelectedTime] = useState<Date | null>(null);
-    const [recurring, setRecurring] = useState(false);
+    const [selectedDays, setSelectedDays] = useState<string[]>([]);
+    const [selectedTime, setSelectedTime] = useState<Date | null>(() => {
+        const defaultTime = new Date();
+        defaultTime.setHours(19, 0, 0, 0);
+        return defaultTime;
+    });
     const [selectedImage, setSelectedImage] = useState<any>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -104,13 +108,7 @@ export const CreateLessonScreen: React.FC = () => {
 
     const availableImages = danceType ? LESSON_IMAGES[danceType] || [] : [];
 
-    const formatDate = (date: Date | null): string => {
-        if (!date) return '';
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}.${month}.${year}`;
-    };
+
 
     const formatTime = (date: Date | null): string => {
         if (!date) return '';
@@ -131,9 +129,8 @@ export const CreateLessonScreen: React.FC = () => {
             description,
             price,
             duration,
-            date: selectedDate,
+            daysOfWeek: selectedDays,
             time: selectedTime,
-            recurring,
             selectedImage
         });
         navigation.goBack();
@@ -183,8 +180,8 @@ export const CreateLessonScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={[]}>
-            <ScrollView 
-                style={[styles.scrollView, { backgroundColor: palette.background }]} 
+            <ScrollView
+                style={[styles.scrollView, { backgroundColor: palette.background }]}
                 contentContainerStyle={styles.scrollViewContent}
                 showsVerticalScrollIndicator={false}
             >
@@ -298,21 +295,37 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
                         <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.scheduling')}</Text>
-                        <View style={styles.gridRow}>
-                            <View style={[styles.inputGroup, styles.gridItem]}>
-                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDate')}</Text>
+
+                        <Text style={[styles.inputLabel, { color: palette.text.primary, marginTop: spacing.sm, marginHorizontal: spacing.md, marginBottom: spacing.xs }]}>{t('lessons.selectDays')}</Text>
+                        <View style={styles.daysContainer}>
+                            {WEEK_DAYS.map(day => (
                                 <TouchableOpacity
-                                    style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                    onPress={() => setShowDatePicker(true)}
+                                    key={day}
+                                    style={[
+                                        styles.dayButton,
+                                        { borderColor: palette.border },
+                                        selectedDays.includes(day) && styles.dayButtonSelected
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedDays(prev =>
+                                            prev.includes(day)
+                                                ? prev.filter(d => d !== day)
+                                                : [...prev, day]
+                                        );
+                                    }}
                                 >
-                                    <MaterialIcons name="calendar-month" size={20} color={palette.text.secondary} />
-                                    <Text style={[styles.dateTimeText, { color: selectedDate ? palette.text.primary : palette.text.secondary }]}>
-                                        {selectedDate ? formatDate(selectedDate) : t('lessons.datePlaceholder')}
+                                    <Text style={[
+                                        styles.dayButtonText,
+                                        { color: selectedDays.includes(day) ? '#ffffff' : palette.text.primary }
+                                    ]}>
+                                        {t(`lessons.shortDays.${day}`)}
                                     </Text>
                                 </TouchableOpacity>
-                            </View>
+                            ))}
+                        </View>
 
-                            <View style={[styles.inputGroup, styles.gridItem]}>
+                        <View style={styles.gridRow}>
+                            <View style={[styles.inputGroup, styles.gridItem, { marginTop: spacing.md }]}>
                                 <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
                                 <TouchableOpacity
                                     style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
@@ -325,17 +338,6 @@ export const CreateLessonScreen: React.FC = () => {
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <View style={styles.checkboxContainer}>
-                            <TouchableOpacity
-                                style={[styles.checkbox, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                onPress={() => setRecurring(!recurring)}
-                                activeOpacity={0.7}
-                            >
-                                {recurring && <MaterialIcons name="check" size={20} color={colors.instructor.secondary} />}
-                            </TouchableOpacity>
-                            <Text style={[styles.checkboxLabel, { color: palette.text.primary }]}>{t('lessons.repeatWeekly')}</Text>
-                        </View>
                     </Card>
                 </View>
 
@@ -346,7 +348,7 @@ export const CreateLessonScreen: React.FC = () => {
             {/* Fixed Bottom Button */}
             <SafeAreaView edges={['bottom']} style={[styles.bottomButtonContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
                 <TouchableOpacity
-                    style={styles.createButton}
+                    style={[styles.createButton, { backgroundColor: palette.secondary }]}
                     onPress={handleCreate}
                     activeOpacity={0.8}
                 >
@@ -399,57 +401,7 @@ export const CreateLessonScreen: React.FC = () => {
                 </View>
             </Modal>
 
-            {/* Date Picker */}
-            {showDatePicker && (
-                Platform.OS === 'ios' ? (
-                    <Modal
-                        visible={showDatePicker}
-                        animationType="slide"
-                        transparent={true}
-                        onRequestClose={() => setShowDatePicker(false)}
-                    >
-                        <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
-                            <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
-                                <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
-                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
-                                    </TouchableOpacity>
-                                    <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectDate')}</Text>
-                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <DateTimePicker
-                                    value={selectedDate || new Date()}
-                                    mode="date"
-                                    display="spinner"
-                                    onChange={(event, date) => {
-                                        if (event.type === 'set' && date) {
-                                            setSelectedDate(date);
-                                        }
-                                    }}
-                                    minimumDate={new Date()}
-                                    textColor={palette.text.primary}
-                                    themeVariant={isDarkMode ? 'dark' : 'light'}
-                                />
-                            </View>
-                        </View>
-                    </Modal>
-                ) : (
-                    <DateTimePicker
-                        value={selectedDate || new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={(event, date) => {
-                            setShowDatePicker(false);
-                            if (event.type === 'set' && date) {
-                                setSelectedDate(date);
-                            }
-                        }}
-                        minimumDate={new Date()}
-                    />
-                )
-            )}
+
 
             {/* Time Picker */}
             {showTimePicker && (
@@ -809,7 +761,6 @@ const styles = StyleSheet.create({
         padding: spacing.md,
     },
     createButton: {
-        backgroundColor: '#137fec',
         height: 48,
         borderRadius: borderRadius.xl,
         alignItems: 'center',
@@ -916,6 +867,35 @@ const styles = StyleSheet.create({
     pickerOptionTextSelected: {
         fontWeight: typography.fontWeight.bold,
         color: colors.instructor.secondary,
+    },
+    daysContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.xs,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        justifyContent: 'space-between',
+    },
+    dayButton: {
+        width: 40,
+        height: 40,
+        borderRadius: borderRadius.full,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+    },
+    dayButtonSelected: {
+        backgroundColor: colors.instructor.secondary,
+        borderColor: colors.instructor.secondary,
+    },
+    dayButtonText: {
+        fontSize: typography.fontSize.xs,
+        fontWeight: typography.fontWeight.medium,
+    },
+    dayButtonTextSelected: {
+        color: '#ffffff',
+        fontWeight: 'bold',
     },
 });
 
