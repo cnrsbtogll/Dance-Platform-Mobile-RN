@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Modal, FlatList, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -31,8 +31,8 @@ export const LessonDetailScreen: React.FC = () => {
   const palette = getPalette('student', isDarkMode);
 
   const { toggleFavorite, favoriteLessons, lessons } = useLessonStore();
-  const { createBooking } = useBookingStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { createBooking, pendingRegistrationLessonId, setPendingRegistrationLessonId } = useBookingStore();
+  const { user, isAuthenticated, setUser } = useAuthStore();
 
   const [lesson, setLesson] = useState<any>(lessons.find(l => l.id === lessonId) || null);
   const [loadingLesson, setLoadingLesson] = useState(!lesson);
@@ -132,7 +132,7 @@ export const LessonDetailScreen: React.FC = () => {
     checkBooking();
   }, [user, bookingId, lessonId]);
 
-  const [pendingRegistration, setPendingRegistration] = useState(false);
+
   // Instructor için ders sahibi kontrolü
   const isOwnLesson = isInstructor && lesson?.instructorId === user?.id;
 
@@ -140,6 +140,10 @@ export const LessonDetailScreen: React.FC = () => {
   const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
   const [showStudentsModal, setShowStudentsModal] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // Gender Selection Modal State
+  const [showGenderModal, setShowGenderModal] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
 
   // Fetch enrolled students if instructor viewing own lesson
   useEffect(() => {
@@ -194,16 +198,32 @@ export const LessonDetailScreen: React.FC = () => {
   // Check if user logged in after clicking register button
   useFocusEffect(
     React.useCallback(() => {
-      if (pendingRegistration && isAuthenticated && user && lesson) {
-        // User logged in, navigate to payment screen
-        setPendingRegistration(false);
+      if (pendingRegistrationLessonId) {
+        console.log('[LessonDetail] useFocusEffect Pending Check', {
+          pendingRegistrationLessonId,
+          currentLessonId: lesson.id,
+          isAuthenticated,
+          hasUser: !!user,
+          gender: user?.gender
+        });
+      }
+      if (pendingRegistrationLessonId === lesson.id && isAuthenticated && user && lesson) {
+        // Check Gender before proceeding
+        if (!user.gender || user.gender === 'other') {
+          setShowGenderModal(true);
+          setPendingRegistrationLessonId(null);
+          return;
+        }
+
+        // User logged in and has gender info, navigate to payment screen
+        setPendingRegistrationLessonId(null);
         (navigation as any).navigate('Payment', {
           lessonId: lesson.id,
           date: new Date().toISOString().split('T')[0],
           time: '18:00',
         });
       }
-    }, [isAuthenticated, user, pendingRegistration, lesson, navigation])
+    }, [isAuthenticated, user, pendingRegistrationLessonId, lesson, navigation, setPendingRegistrationLessonId])
   );
 
   if (loadingLesson) {
@@ -227,26 +247,63 @@ export const LessonDetailScreen: React.FC = () => {
     );
   }
 
+  const proceedToPayment = () => {
+    (navigation as any).navigate('Payment', {
+      lessonId: lesson.id,
+      date: new Date().toISOString().split('T')[0],
+      time: '18:00',
+    });
+  };
+
+  const confirmGenderUpdate = async () => {
+    if (!selectedGender || !user) return;
+
+    try {
+      // Update in Firestore
+      await FirestoreService.updateUser(user.id, { gender: selectedGender });
+
+      // Update local state immediately
+      const updatedUser = { ...user, gender: selectedGender };
+      setUser(updatedUser);
+
+      // Close modal and proceed
+      setShowGenderModal(false);
+      proceedToPayment();
+    } catch (error) {
+      console.error('Failed to update gender:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
+  };
+
   const handleRegister = () => {
+    console.log('[LessonDetail] handleRegister called', {
+      isAuthenticated,
+      userId: user?.id,
+      gender: user?.gender
+    });
+
     if (booking || isRegistered) {
-      // Already registered
+      console.log('[LessonDetail] Already registered or booking exists');
       return;
     }
 
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
-      // Set pending registration flag and navigate to login screen
-      setPendingRegistration(true);
+      setPendingRegistrationLessonId(lesson.id);
       (navigation as any).navigate('Login');
       return;
     }
 
-    // Navigate to payment screen
-    (navigation as any).navigate('Payment', {
-      lessonId: lesson.id,
-      date: new Date().toISOString().split('T')[0], // Default to today, in real app get from date picker
-      time: '18:00', // Default time, in real app get from time picker
-    });
+    // Check Gender
+    console.log('[LessonDetail] Checking gender:', user?.gender);
+    if (!user.gender || user.gender === 'other') {
+      console.log('[LessonDetail] Gender missing or other, showing modal');
+      setShowGenderModal(true);
+      return;
+    }
+    console.log('[LessonDetail] Proceeding to payment');
+
+    proceedToPayment();
   };
 
   const handleEdit = () => {
@@ -517,6 +574,77 @@ export const LessonDetailScreen: React.FC = () => {
             </View>
           </Modal>
 
+          {/* Gender Selection Modal */}
+          <Modal
+            visible={showGenderModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowGenderModal(false)}
+          >
+            <View style={[styles.modalOverlay, { justifyContent: 'center', padding: 20 }]}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background, maxHeight: 'auto', borderRadius: 16, padding: 24, width: '100%' }]}>
+                <Text style={[styles.modalTitle, { color: palette.text.primary, textAlign: 'center', marginBottom: 12 }]}>
+                  {t('lessons.genderSelectionTitle')}
+                </Text>
+
+                <Text style={{ color: palette.text.secondary, textAlign: 'center', marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
+                  {t('lessons.genderSelectionReason')}
+                </Text>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <TouchableOpacity
+                    onPress={() => setSelectedGender('female')}
+                    style={{
+                      flex: 1,
+                      marginRight: 8,
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 2,
+                      borderColor: selectedGender === 'female' ? '#E91E63' : palette.border,
+                      backgroundColor: selectedGender === 'female' ? '#FCE4EC' : palette.card,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <MaterialIcons name="female" size={32} color="#E91E63" />
+                    <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.female')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedGender('male')}
+                    style={{
+                      flex: 1,
+                      marginLeft: 8,
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 2,
+                      borderColor: selectedGender === 'male' ? '#2196F3' : palette.border,
+                      backgroundColor: selectedGender === 'male' ? '#E3F2FD' : palette.card,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <MaterialIcons name="male" size={32} color="#2196F3" />
+                    <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.male')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={confirmGenderUpdate}
+                  disabled={!selectedGender}
+                  style={{
+                    backgroundColor: selectedGender ? palette.primary : '#E0E0E0',
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center'
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                    {t('lessons.saveAndRegister')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
         </SafeAreaView>
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
@@ -533,7 +661,7 @@ export const LessonDetailScreen: React.FC = () => {
               disabled={isRegistered || !!booking}
             >
               <LinearGradient
-                colors={['#4A90E2', '#5BA3F5']}
+                colors={[palette.primary, palette.primary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.registerButtonGradient}
@@ -547,6 +675,76 @@ export const LessonDetailScreen: React.FC = () => {
         </SafeAreaView>
       )
       }
+      <Modal
+        visible={showGenderModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGenderModal(false)}
+      >
+        <View style={[styles.modalOverlay, { justifyContent: 'center', padding: 20 }]}>
+          <View style={[styles.modalContent, { backgroundColor: palette.background, maxHeight: 'auto', borderRadius: 16, padding: 24, width: '100%' }]}>
+            <Text style={[styles.modalTitle, { color: palette.text.primary, textAlign: 'center', marginBottom: 12 }]}>
+              {t('lessons.genderSelectionTitle')}
+            </Text>
+
+            <Text style={{ color: palette.text.secondary, textAlign: 'center', marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
+              {t('lessons.genderSelectionReason')}
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+              <TouchableOpacity
+                onPress={() => setSelectedGender('female')}
+                style={{
+                  flex: 1,
+                  marginRight: 8,
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: selectedGender === 'female' ? '#E91E63' : palette.border,
+                  backgroundColor: selectedGender === 'female' ? '#FCE4EC' : palette.card,
+                  alignItems: 'center'
+                }}
+              >
+                <MaterialIcons name="female" size={32} color="#E91E63" />
+                <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.female')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setSelectedGender('male')}
+                style={{
+                  flex: 1,
+                  marginLeft: 8,
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: selectedGender === 'male' ? '#2196F3' : palette.border,
+                  backgroundColor: selectedGender === 'male' ? '#E3F2FD' : palette.card,
+                  alignItems: 'center'
+                }}
+              >
+                <MaterialIcons name="male" size={32} color="#2196F3" />
+                <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.male')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              onPress={confirmGenderUpdate}
+              disabled={!selectedGender}
+              style={{
+                backgroundColor: selectedGender ? palette.primary : '#E0E0E0',
+                padding: 16,
+                borderRadius: 12,
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                {t('lessons.saveAndRegister')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView >
   );
 };

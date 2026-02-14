@@ -53,6 +53,7 @@ export class FirestoreService {
       if (docSnap.exists()) {
         const data = docSnap.data();
         return {
+          ...data,
           id: docSnap.id,
           name: data.displayName || '',
           displayName: data.displayName || '',
@@ -61,8 +62,7 @@ export class FirestoreService {
           avatar: data.photoURL,
           photoURL: data.photoURL,
           phoneNumber: data.phoneNumber,
-          createdAt: data.createdAt?.toString() || new Date().toISOString(),
-          ...data
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt?.toString() || new Date().toISOString(),
         } as User;
       }
       return null;

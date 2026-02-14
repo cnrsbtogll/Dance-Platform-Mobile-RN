@@ -44,15 +44,32 @@ export const AccountInformationScreen: React.FC = () => {
     );
   }
 
-  const formatCreatedDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return formatDate(date.toISOString().split('T')[0]);
+  const formatCreatedDate = (dateString?: any): string => {
+    if (!dateString) return '';
+
+    // Handle Firestore Timestamp object
+    if (dateString && typeof dateString === 'object' && dateString.seconds) {
+      try {
+        const date = new Date(dateString.seconds * 1000);
+        return formatDate(date.toISOString().split('T')[0]);
+      } catch (e) {
+        return '';
+      }
+    }
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return String(dateString);
+      return formatDate(date.toISOString().split('T')[0]);
+    } catch (e) {
+      return String(dateString || '');
+    }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>

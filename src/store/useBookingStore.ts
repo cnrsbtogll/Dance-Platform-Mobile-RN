@@ -8,9 +8,11 @@ interface BookingState {
   selectedBooking: Booking | null;
   isLoading: boolean;
   error: string | null;
+  pendingRegistrationLessonId: string | null;
   
   setBookings: (bookings: Booking[]) => void;
   setSelectedBooking: (booking: Booking | null) => void;
+  setPendingRegistrationLessonId: (lessonId: string | null) => void;
   
   fetchUserBookings: () => Promise<void>;
   getUserBookings: () => Booking[]; // Returns current state
@@ -24,10 +26,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   selectedBooking: null,
   isLoading: false,
   error: null,
+  pendingRegistrationLessonId: null,
   
   setBookings: (bookings) => set({ bookings }),
   
   setSelectedBooking: (booking) => set({ selectedBooking: booking }),
+  setPendingRegistrationLessonId: (lessonId) => set({ pendingRegistrationLessonId: lessonId }),
   
   getUserBookings: () => {
     return get().bookings;
