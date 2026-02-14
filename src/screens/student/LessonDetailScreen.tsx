@@ -331,7 +331,11 @@ export const LessonDetailScreen: React.FC = () => {
           {(lesson.participantStats && lesson.participantStats.total > 0) && (
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.participants') || 'Participants'}</Text>
-              <View style={[styles.participantsCard, { backgroundColor: palette.card }]}>
+              <TouchableOpacity
+                style={[styles.participantsCard, { backgroundColor: palette.card }]}
+                activeOpacity={isOwnLesson ? 0.7 : 1}
+                onPress={() => isOwnLesson && setShowStudentsModal(true)}
+              >
                 <View style={styles.participantStat}>
                   <MaterialIcons name="group" size={24} color={colors.student.primary} />
                   <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.total}</Text>
@@ -349,7 +353,14 @@ export const LessonDetailScreen: React.FC = () => {
                   <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.male}</Text>
                   <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.male') || 'Male'}</Text>
                 </View>
-              </View>
+
+                {/* Visual indicator for instructor */}
+                {isOwnLesson && (
+                  <View style={{ position: 'absolute', right: 8, top: 8 }}>
+                    <MaterialIcons name="list" size={16} color={palette.text.secondary} />
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
           )}
 
@@ -430,17 +441,6 @@ export const LessonDetailScreen: React.FC = () => {
               <Text style={[styles.priceValue, { color: colors.instructor.primary, fontSize: 20 }]}>
                 {formatPrice(lesson.price)}
               </Text>
-              <TouchableOpacity
-                onPress={() => setShowStudentsModal(true)}
-                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}
-                activeOpacity={0.7}
-              >
-                <MaterialIcons name="people" size={18} color={palette.text.secondary} />
-                <Text style={{ marginLeft: 4, color: palette.text.secondary, fontWeight: '600', fontSize: 14 }}>
-                  {enrolledStudents.length} {t('lessons.enrolledStudents')}
-                </Text>
-                <MaterialIcons name="chevron-right" size={18} color={palette.text.secondary} />
-              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -545,8 +545,9 @@ export const LessonDetailScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-      )}
-    </SafeAreaView>
+      )
+      }
+    </SafeAreaView >
   );
 };
 
