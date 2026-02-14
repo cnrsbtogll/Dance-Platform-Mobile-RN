@@ -89,6 +89,32 @@ export const EditLessonScreen: React.FC = () => {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showDanceTypePicker, setShowDanceTypePicker] = useState(false);
     const [showDurationPicker, setShowDurationPicker] = useState(false);
+    const [locationType, setLocationType] = useState<'school' | 'custom'>('school');
+    const [selectedSchool, setSelectedSchool] = useState<{ id: string; name: string } | null>(null);
+    const [customAddress, setCustomAddress] = useState('');
+    const [showSchoolPicker, setShowSchoolPicker] = useState(false);
+    const [danceSchools, setDanceSchools] = useState<{ id: string; name: string }[]>([]);
+    const [loadingSchools, setLoadingSchools] = useState(false);
+
+    // Fetch dance schools from Firebase
+    useEffect(() => {
+        const fetchDanceSchools = async () => {
+            setLoadingSchools(true);
+            try {
+                const schools = await FirestoreService.getDanceSchools();
+                setDanceSchools(schools.map(school => ({
+                    id: school.id,
+                    name: school.name
+                })));
+            } catch (error) {
+                console.error('Error fetching dance schools:', error);
+            } finally {
+                setLoadingSchools(false);
+            }
+        };
+
+        fetchDanceSchools();
+    }, []);
 
     // Fetch lesson data on mount
     useEffect(() => {
@@ -115,6 +141,19 @@ export const EditLessonScreen: React.FC = () => {
                             const date = new Date();
                             date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
                             setSelectedTime(date);
+                        }
+
+                        // Handle location
+                        if (data.location) {
+                            setLocationType(data.location.type);
+                            if (data.location.type === 'school' && data.location.schoolId && data.location.schoolName) {
+                                setSelectedSchool({
+                                    id: data.location.schoolId,
+                                    name: data.location.schoolName,
+                                });
+                            } else if (data.location.type === 'custom' && data.location.customAddress) {
+                                setCustomAddress(data.location.customAddress);
+                            }
                         }
 
                         // Handle image
@@ -207,6 +246,20 @@ export const EditLessonScreen: React.FC = () => {
                 // Only add imageUrl if it's defined
                 if (selectedImage) {
                     updateData.imageUrl = selectedImage;
+                }
+
+                // Add location data
+                if (locationType === 'school' && selectedSchool) {
+                    updateData.location = {
+                        type: 'school' as const,
+                        schoolId: selectedSchool.id,
+                        schoolName: selectedSchool.name,
+                    };
+                } else if (locationType === 'custom' && customAddress) {
+                    updateData.location = {
+                        type: 'custom' as const,
+                        customAddress: customAddress,
+                    };
                 }
 
                 await FirestoreService.updateLesson(lessonId, updateData);
@@ -472,6 +525,99 @@ export const EditLessonScreen: React.FC = () => {
                     </Card>
                 </View>
 
+                {/* Location Selection */}
+                <View style={styles.section}>
+                    <Card style={styles.formCard}>
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
+
+                        {/* Location Type Toggle */}
+                        <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                            <View style={styles.locationTypeContainer}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.locationTypeButton,
+                                        { borderColor: palette.border },
+                                        locationType === 'school' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
+                                    ]}
+                                    onPress={() => setLocationType('school')}
+                                    activeOpacity={0.7}
+                                >
+                                    <MaterialIcons
+                                        name="school"
+                                        size={20}
+                                        color={locationType === 'school' ? '#ffffff' : palette.text.secondary}
+                                    />
+                                    <Text style={[
+                                        styles.locationTypeText,
+                                        { color: locationType === 'school' ? '#ffffff' : palette.text.primary }
+                                    ]}>
+                                        {t('lessons.danceSchool')}
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[
+                                        styles.locationTypeButton,
+                                        { borderColor: palette.border },
+                                        locationType === 'custom' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
+                                    ]}
+                                    onPress={() => setLocationType('custom')}
+                                    activeOpacity={0.7}
+                                >
+                                    <MaterialIcons
+                                        name="location-on"
+                                        size={20}
+                                        color={locationType === 'custom' ? '#ffffff' : palette.text.secondary}
+                                    />
+                                    <Text style={[
+                                        styles.locationTypeText,
+                                        { color: locationType === 'custom' ? '#ffffff' : palette.text.primary }
+                                    ]}>
+                                        {t('lessons.customAddress')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* School Selector */}
+                            {locationType === 'school' && (
+                                <View style={styles.inputGroup}>
+                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
+                                    <TouchableOpacity
+                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                        onPress={() => setShowSchoolPicker(true)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={[styles.selectInputText, { color: selectedSchool ? palette.text.primary : palette.text.secondary }]}>
+                                            {selectedSchool?.name || t('lessons.selectDanceSchool')}
+                                        </Text>
+                                        <MaterialIcons
+                                            name="keyboard-arrow-down"
+                                            size={24}
+                                            color={palette.text.secondary}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {/* Custom Address Input */}
+                            {locationType === 'custom' && (
+                                <View style={styles.inputGroup}>
+                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
+                                    <TextInput
+                                        style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                        placeholder={t('lessons.addressPlaceholder')}
+                                        placeholderTextColor={palette.text.secondary}
+                                        value={customAddress}
+                                        onChangeText={setCustomAddress}
+                                        multiline
+                                        numberOfLines={2}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    </Card>
+                </View>
+
                 {/* Action Buttons */}
                 <View style={styles.section}>
                     <TouchableOpacity
@@ -717,6 +863,65 @@ export const EditLessonScreen: React.FC = () => {
                                 </TouchableOpacity>
                             )}
                             contentContainerStyle={styles.pickerListContent}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* School Picker Modal */}
+            <Modal
+                visible={showSchoolPicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowSchoolPicker(false)}
+            >
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
+                            <TouchableOpacity onPress={() => setShowSchoolPicker(false)}>
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={danceSchools}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.pickerOption,
+                                        { borderBottomColor: palette.border },
+                                        selectedSchool?.id === item.id && styles.pickerOptionSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedSchool(item);
+                                        setShowSchoolPicker(false);
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.pickerOptionText,
+                                            { color: palette.text.primary },
+                                            selectedSchool?.id === item.id && styles.pickerOptionTextSelected,
+                                        ]}
+                                    >
+                                        {item.name}
+                                    </Text>
+                                    {selectedSchool?.id === item.id && (
+                                        <MaterialIcons
+                                            name="check"
+                                            size={24}
+                                            color={colors.instructor.secondary}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={styles.pickerListContent}
+                            ListEmptyComponent={
+                                <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                                    <Text style={{ color: palette.text.secondary }}>{t('lessons.noDanceSchools')}</Text>
+                                </View>
+                            }
                         />
                     </View>
                 </View>
@@ -1065,6 +1270,29 @@ const styles = StyleSheet.create({
     dayButtonTextSelected: {
         color: '#ffffff',
         fontWeight: 'bold',
+    },
+    locationTypeContainer: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    locationTypeButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing.xs,
+        height: 48,
+        borderWidth: 1,
+        borderRadius: borderRadius.lg,
+        paddingHorizontal: spacing.md,
+    },
+    locationTypeButtonActive: {
+        borderColor: 'transparent',
+    },
+    locationTypeText: {
+        fontSize: typography.fontSize.sm,
+        fontWeight: typography.fontWeight.medium,
     },
 });
 

@@ -5,4 +5,5 @@ export * from './review';
 export * from './booking';
 export * from './message';
 export * from './notification';
+export * from './danceSchool';
 

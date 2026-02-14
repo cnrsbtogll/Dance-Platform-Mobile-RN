@@ -15,7 +15,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db } from './config';
-import { User, Lesson, Instructor, Booking, Review, Message, Notification } from '../../types';
+import { User, Lesson, Instructor, Booking, Review, Message, Notification, DanceSchool } from '../../types';
 
 // Collection names
 const COLLECTIONS = {
@@ -26,7 +26,8 @@ const COLLECTIONS = {
   TICKETS: 'tickets',
   MESSAGES: 'messages',
   REVIEWS: 'reviews', // Not verified if exists yet
-  NOTIFICATIONS: 'notifications' // Not verified if exists yet
+  NOTIFICATIONS: 'notifications', // Not verified if exists yet
+  DANCE_SCHOOLS: 'schools'
 };
 
 // Helper to convert Firestore doc to typed object
@@ -277,6 +278,69 @@ export class FirestoreService {
       return null;
     } catch (error) {
       console.error('Error getting instructor:', error);
+      return null;
+    }
+  }
+
+  // Dance Schools
+  static async getDanceSchools(): Promise<DanceSchool[]> {
+    try {
+      // Order by displayName since 'name' field might not exist
+      const q = query(
+        collection(db, COLLECTIONS.DANCE_SCHOOLS),
+        orderBy('displayName', 'asc')
+      );
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.displayName || data.name || data.ad || '',
+          address: data.address || data.adres || '',
+          city: data.city || data.konum || data.sehir || '',
+          country: data.country || data.ulke || '',
+          phone: data.phoneNumber || data.phone || data.telefon || '',
+          email: data.email || data.iletisim || '',
+          website: data.website || '',
+          description: data.description || data.aciklama || '',
+          imageUrl: data.photoURL || data.imageUrl || data.gorsel || '',
+          isActive: data.status === 'active' || data.isActive === true,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toString(),
+        } as DanceSchool;
+      });
+    } catch (error) {
+      console.error('Error getting dance schools:', error);
+      return [];
+    }
+  }
+
+  static async getDanceSchoolById(id: string): Promise<DanceSchool | null> {
+    try {
+      const docRef = doc(db, COLLECTIONS.DANCE_SCHOOLS, id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          name: data.displayName || data.name || data.ad || '',
+          address: data.address || data.adres || '',
+          city: data.city || data.konum || data.sehir || '',
+          country: data.country || data.ulke || '',
+          phone: data.phoneNumber || data.phone || data.telefon || '',
+          email: data.email || data.iletisim || '',
+          website: data.website || '',
+          description: data.description || data.aciklama || '',
+          imageUrl: data.photoURL || data.imageUrl || data.gorsel || '',
+          isActive: data.status === 'active' || data.isActive === true,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toString(),
+        } as DanceSchool;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting dance school:', error);
       return null;
     }
   }

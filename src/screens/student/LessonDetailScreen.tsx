@@ -12,6 +12,7 @@ import { formatDate, formatTime, getDurationText, formatPrice, normalizeDaysOfWe
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { FirestoreService } from '../../services/firebase/firestore';
 import { getLessonImageSource } from '../../utils/imageHelper';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
@@ -46,18 +47,22 @@ export const LessonDetailScreen: React.FC = () => {
         try {
           // Fetch Instructor
           if (lesson.instructorId) {
-            const instructorDoc = await getDoc(doc(db, 'instructors', lesson.instructorId));
-            if (instructorDoc.exists()) {
-              setInstructor({ id: instructorDoc.id, ...instructorDoc.data() });
+            const instructorData = await FirestoreService.getInstructorById(lesson.instructorId);
+            if (instructorData) {
+              setInstructor(instructorData);
             }
           }
 
           // Fetch School
-          if (lesson.schoolId) {
-            const schoolDoc = await getDoc(doc(db, 'schools', lesson.schoolId));
-            if (schoolDoc.exists()) {
-              setSchool({ id: schoolDoc.id, ...schoolDoc.data() });
+          const schoolId = lesson.location?.type === 'school' ? lesson.location.schoolId : lesson.schoolId;
+
+          if (schoolId) {
+            const schoolData = await FirestoreService.getDanceSchoolById(schoolId);
+            if (schoolData) {
+              setSchool(schoolData);
             }
+          } else if (lesson.location?.type === 'custom') {
+            setSchool(null); // Clear school if custom address
           }
         } catch (error) {
           console.error("Error fetching details:", error);
@@ -218,13 +223,24 @@ export const LessonDetailScreen: React.FC = () => {
             <View style={styles.locationContainer}>
               <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
               <View style={styles.locationTextContainer}>
-                <Text style={[styles.locationName, { color: palette.text.primary }]}>{school?.ad || school?.name || t('common.loading')}</Text>
-                <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
-                  {school?.address || school?.city ? `${school.address}${school.city ? `, ${school.city}` : ''}` : t('lessons.addressNotAvailable')}
-                </Text>
+                {lesson.location?.type === 'custom' ? (
+                  <Text style={[styles.locationName, { color: palette.text.primary }]}>
+                    {lesson.location.customAddress}
+                  </Text>
+                ) : (
+                  <>
+                    <Text style={[styles.locationName, { color: palette.text.primary }]}>
+                      {school?.name || lesson.location?.schoolName || lesson.schoolName || t('common.loading')}
+                    </Text>
+                    <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
+                      {school?.address
+                        ? `${school.address}${school.city ? `, ${school.city}` : ''}`
+                        : (school?.city || t('lessons.addressNotAvailable'))}
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
-
           </View>
 
           {/* Bottom spacing for fixed bar */}

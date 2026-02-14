@@ -27,7 +27,12 @@ export interface Lesson {
   status?: string; // Firebase field
   tags?: string[]; // Array of strings
   highlights?: string[]; // Array of strings
-  location?: any;
+  location?: {
+    type: 'school' | 'custom';
+    schoolId?: string;
+    schoolName?: string;
+    customAddress?: string;
+  };
   schoolId?: string;
   schoolName?: string;
   instructorName?: string;
