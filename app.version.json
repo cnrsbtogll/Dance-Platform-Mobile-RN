@@ -1,9 +1,9 @@
 {
-    "version": "1.0.1",
-    "ios": {
-        "buildNumber": "1"
-    },
-    "android": {
-        "versionCode": 3
-    }
+  "version": "1.0.1",
+  "ios": {
+    "buildNumber": "2"
+  },
+  "android": {
+    "versionCode": 4
+  }
 }

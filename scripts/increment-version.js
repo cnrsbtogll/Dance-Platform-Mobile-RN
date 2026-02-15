@@ -34,3 +34,39 @@ versionData.version = newVersion;
 fs.writeFileSync(versionFilePath, JSON.stringify(versionData, null, 2) + '\n');
 console.log('Updated app.version.json');
 console.log(`\nNew Release Ready: ${newVersion} (Build 1)`);
+
+// --- Update Native Files ---
+const { execSync } = require('child_process');
+
+// 1. Update iOS Info.plist
+const infoPlistPath = path.join(__dirname, '../ios/FerihaDancePlatform/Info.plist');
+if (fs.existsSync(infoPlistPath)) {
+    console.log(`Updating Info.plist at ${infoPlistPath}...`);
+    try {
+        execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${versionData.ios.buildNumber}" "${infoPlistPath}"`);
+        execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${versionData.version}" "${infoPlistPath}"`);
+        console.log('  Updated Info.plist successfully.');
+    } catch (error) {
+        console.error('  Error updating Info.plist:', error.message);
+    }
+}
+
+// 2. Update Android build.gradle
+const buildGradlePath = path.join(__dirname, '../android/app/build.gradle');
+if (fs.existsSync(buildGradlePath)) {
+    console.log(`Updating build.gradle at ${buildGradlePath}...`);
+    let gradleContent = fs.readFileSync(buildGradlePath, 'utf8');
+
+    gradleContent = gradleContent.replace(
+        /versionCode\s+\d+/,
+        `versionCode ${versionData.android.versionCode}`
+    );
+
+    gradleContent = gradleContent.replace(
+        /versionName\s+"[^"]+"/,
+        `versionName "${versionData.version}"`
+    );
+
+    fs.writeFileSync(buildGradlePath, gradleContent);
+    console.log('  Updated build.gradle successfully.');
+}
