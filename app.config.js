@@ -63,9 +63,7 @@ module.exports = {
     updates: {
       url: "https://u.expo.dev/4cd51a3f-fc74-4cfb-b923-8ce29df8b37d"
     },
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    runtimeVersion: versionConfig.version,
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
