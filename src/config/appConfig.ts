@@ -59,7 +59,7 @@ const brandConfigs: Record<Brand, AppConfig> = {
       firebase: true,
       stripe: true,
     },
-    appName: 'Feriha Dance Platform',
+    appName: 'Feriha',
     appNameShort: 'Feriha',
   },
 };
