@@ -45,11 +45,13 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('[App Config] App name:', currentBrand.name);
 }
 
+const versionConfig = require('./app.version.json');
+
 module.exports = {
   expo: {
     name: currentBrand.name,
     slug: currentBrand.slug,
-    version: '1.0.0',
+    version: versionConfig.version,
     orientation: 'portrait',
     icon: currentBrand.icon,
     userInterfaceStyle: 'light',
@@ -62,6 +64,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: currentBrand.bundleIdentifier,
+      buildNumber: versionConfig.ios.buildNumber,
       googleServicesFile: "./GoogleService-Info.plist",
     },
     android: {
@@ -70,6 +73,7 @@ module.exports = {
         backgroundColor: '#ffffff',
       },
       package: currentBrand.package,
+      versionCode: versionConfig.android.versionCode,
       googleServicesFile: "./google-services.json",
     },
     web: {
