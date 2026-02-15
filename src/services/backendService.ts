@@ -8,7 +8,8 @@ import { appConfig } from '../config/appConfig';
 import { MockDataService } from './mockDataService';
 import { FirestoreService } from './firebase/firestore';
 import { auth, storage as firebaseStorage } from './firebase/config';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signOut as customSignOut } from './firebase/auth';
 
 // Define stripeModule as null for now since it's not yet integrated
 const stripeModule: any = null;
@@ -61,7 +62,7 @@ export const authService = {
 
   logout: async (): Promise<void> => {
     if (firebaseEnabled) {
-      await signOut(auth);
+      await customSignOut();
       console.log('[AuthService] Firebase logout');
     } else {
       // Mock logout (no-op)

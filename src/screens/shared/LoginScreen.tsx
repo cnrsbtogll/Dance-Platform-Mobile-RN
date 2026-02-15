@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Platform } from 'react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -272,13 +272,15 @@ export const LoginScreen: React.FC = () => {
               <AntDesign name="google" size={24} color={palette.text.primary} />
               <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.socialButton, { borderColor: palette.border }]}
-              onPress={handleAppleLogin}
-            >
-              <MaterialIcons name="apple" size={24} color={palette.text.primary} />
-              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
-            </TouchableOpacity>
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={[styles.socialButton, { borderColor: palette.border }]}
+                onPress={handleAppleLogin}
+              >
+                <MaterialIcons name="apple" size={24} color={palette.text.primary} />
+                <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
