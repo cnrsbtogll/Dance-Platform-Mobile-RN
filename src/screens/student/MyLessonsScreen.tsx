@@ -30,7 +30,7 @@ export const MyLessonsScreen: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchUserBookings();
+      fetchUserBookings('student');
     }, [])
   );
 

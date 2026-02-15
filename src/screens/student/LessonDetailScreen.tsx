@@ -131,7 +131,7 @@ export const LessonDetailScreen: React.FC = () => {
         }
 
         // 2. Check Booking Status
-        if (user && user.role !== 'instructor') {
+        if (user) {
           try {
             let foundBooking: Booking | null = null;
             if (bookingId) {

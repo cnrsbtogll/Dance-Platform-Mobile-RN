@@ -14,7 +14,7 @@ interface BookingState {
   setSelectedBooking: (booking: Booking | null) => void;
   setPendingRegistrationLessonId: (lessonId: string | null) => void;
   
-  fetchUserBookings: () => Promise<void>;
+  fetchUserBookings: (role?: 'student' | 'instructor') => Promise<void>;
   getUserBookings: () => Booking[]; // Returns current state
   createBooking: (lessonId: string, date: string, time: string, price: number) => Promise<Booking | null>;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
@@ -37,7 +37,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     return get().bookings;
   },
 
-  fetchUserBookings: async () => {
+  fetchUserBookings: async (role?: 'student' | 'instructor') => {
     const user = useAuthStore.getState().user;
     if (!user) {
       set({ bookings: [] });
@@ -47,7 +47,9 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       let bookings: Booking[] = [];
-      if (user.role === 'instructor') {
+      const targetRole = role || user.role;
+      
+      if (targetRole === 'instructor') {
         bookings = await FirestoreService.getBookingsByInstructor(user.id);
       } else {
         bookings = await FirestoreService.getBookingsByStudent(user.id);
