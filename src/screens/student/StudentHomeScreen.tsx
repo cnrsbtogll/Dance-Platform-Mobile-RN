@@ -34,12 +34,14 @@ export const StudentHomeScreen: React.FC = () => {
   const [activeMaxPrice, setActiveMaxPrice] = useState<number | null>(null);
   const [activeMinRating, setActiveMinRating] = useState<number>(0);
   const [activeMaxDuration, setActiveMaxDuration] = useState<number | null>(null);
+  const [activeInstructorFilter, setActiveInstructorFilter] = useState<string>('');
 
   // Modal Filter States (Modal içindeki geçici değerler)
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minRating, setMinRating] = useState<number>(0);
   const [maxDuration, setMaxDuration] = useState<number | null>(null);
+  const [instructorFilter, setInstructorFilter] = useState<string>('');
 
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -51,14 +53,17 @@ export const StudentHomeScreen: React.FC = () => {
     }
 
     // Arama
+    const instructorName = lesson.instructorName || MockDataService.getInstructorForLesson(lesson.id)?.name || '';
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       if (!(lesson.title || '').toLowerCase().includes(query) &&
         !(lesson.description || '').toLowerCase().includes(query) &&
-        !(lesson.category || '').toLowerCase().includes(query)) return false;
+        !(lesson.category || '').toLowerCase().includes(query) &&
+        !instructorName.toLowerCase().includes(query)) return false;
     }
 
     // Aktif Filtreler
+    if (activeInstructorFilter && !instructorName.toLowerCase().includes(activeInstructorFilter.toLowerCase())) return false;
     if (activeMinPrice !== null && lesson.price < activeMinPrice) return false;
     if (activeMaxPrice !== null && lesson.price > activeMaxPrice) return false;
     if ((lesson.rating || 0) < activeMinRating) return false;
@@ -73,6 +78,7 @@ export const StudentHomeScreen: React.FC = () => {
     setMaxPrice(activeMaxPrice);
     setMinRating(activeMinRating);
     setMaxDuration(activeMaxDuration);
+    setInstructorFilter(activeInstructorFilter);
     setShowFilterModal(true);
   };
 
@@ -81,6 +87,7 @@ export const StudentHomeScreen: React.FC = () => {
     setActiveMaxPrice(maxPrice);
     setActiveMinRating(minRating);
     setActiveMaxDuration(maxDuration);
+    setActiveInstructorFilter(instructorFilter);
     setShowFilterModal(false);
   };
 
@@ -89,6 +96,7 @@ export const StudentHomeScreen: React.FC = () => {
     setMaxPrice(null);
     setMinRating(0);
     setMaxDuration(null);
+    setInstructorFilter('');
   };
 
   useEffect(() => {
@@ -279,6 +287,20 @@ export const StudentHomeScreen: React.FC = () => {
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Instructor Filter */}
+              <View style={styles.filterSection}>
+                <Text style={[styles.filterSectionTitle, { color: palette.text.primary }]}>
+                  {t('lessons.instructor')}
+                </Text>
+                <TextInput
+                  style={[styles.priceInputField, { backgroundColor: palette.background, color: palette.text.primary, borderColor: palette.border }]}
+                  placeholder={t('studentHome.searchPlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={instructorFilter}
+                  onChangeText={setInstructorFilter}
+                />
+              </View>
+
               {/* Price Range */}
               <View style={styles.filterSection}>
                 <Text style={[styles.filterSectionTitle, { color: palette.text.primary }]}>
