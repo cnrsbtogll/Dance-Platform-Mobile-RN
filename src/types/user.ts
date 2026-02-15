@@ -5,15 +5,17 @@ export interface User {
   id: string;
   name: string; // Mapped from displayName
   displayName: string; // Firebase field
+  firstName?: string | null;
+  lastName?: string | null;
   email: string;
   role: UserRole;
-  avatar?: string; // Mapped from photoURL
-  photoURL?: string; // Firebase field
+  avatar?: string | null; // Mapped from photoURL
+  photoURL?: string | null; // Firebase field
   bio?: string;
   rating?: number;
   totalLessons?: number;
   currency?: Currency; // For instructors only
-  phoneNumber?: string;
+  phoneNumber?: string | null;
   gender?: 'male' | 'female' | 'other';
   createdAt: string;
   updatedAt?: string;

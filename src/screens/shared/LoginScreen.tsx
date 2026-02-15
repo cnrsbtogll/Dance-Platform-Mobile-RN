@@ -8,6 +8,8 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { appConfig } from '../../config/appConfig';
 import { authService } from '../../services/backendService';
+import { signInWithGoogle, signInWithApple } from '../../services/firebase/auth';
+import { statusCodes } from '@react-native-google-signin/google-signin';
 import { Alert } from 'react-native';
 
 export const LoginScreen: React.FC = () => {
@@ -52,8 +54,8 @@ export const LoginScreen: React.FC = () => {
     }
 
     try {
-      const name = `${firstName} ${lastName}`;
-      const success = await authService.register(email, password, name);
+      // name variable constructed for other purposes if needed, or remove if unused
+      const success = await authService.register(email, password, firstName, lastName);
 
       if (success) {
         // After successful registration, the store's initialize() 
@@ -83,6 +85,48 @@ export const LoginScreen: React.FC = () => {
         );
       } else {
         navigation.goBack();
+      }
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    console.log('[LoginScreen] Google button pressed');
+    try {
+      const user = await signInWithGoogle();
+      console.log('[LoginScreen] Google login successful', user);
+      if (user) {
+        // Navigation is handled by the auth state listener in RootNavigator (if exists) 
+        // OR we need to manually navigate like in handleLogin
+        const currentUser = useAuthStore.getState().user; // State might not be updated yet due to async
+        // For safety, let's just goBack for now, or copy handleLogin logic if possible.
+        // But better pattern:
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Google login error', error);
+      // Check for cancellation code from GoogleSignin (statusCodes.SIGN_IN_CANCELLED is not directly exported to JS easily without import, but error.code is available)
+      if (error.code === statusCodes.SIGN_IN_CANCELLED || error.message?.includes('cancelled')) {
+        console.log('[LoginScreen] User cancelled Google login');
+      } else {
+        Alert.alert(t('common.error'), t('auth.loginError'));
+      }
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    console.log('[LoginScreen] Apple button pressed');
+    try {
+      const user = await signInWithApple();
+      console.log('[LoginScreen] Apple login successful', user);
+      if (user) {
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Apple login error', error);
+      if (error.code === 'ERR_REQUEST_CANCELED' || error.message?.includes('canceled')) {
+        console.log('[LoginScreen] User cancelled Apple login');
+      } else {
+        Alert.alert(t('common.error'), t('auth.loginError'));
       }
     }
   };
@@ -221,11 +265,17 @@ export const LoginScreen: React.FC = () => {
           </View>
 
           <View style={styles.socialButtons}>
-            <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
+            <TouchableOpacity
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleGoogleLogin}
+            >
               <AntDesign name="google" size={24} color={palette.text.primary} />
               <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
+            <TouchableOpacity
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleAppleLogin}
+            >
               <MaterialIcons name="apple" size={24} color={palette.text.primary} />
               <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
             </TouchableOpacity>

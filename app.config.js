@@ -9,6 +9,8 @@
  * Default: feriha (for feriha-production branch)
  */
 
+require('dotenv').config();
+
 const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'feriha';
 
 // Brand-specific configurations
@@ -24,7 +26,7 @@ const brands = {
     favicon: './assets/favicon.png',
   },
   feriha: {
-    name: 'Feriha Dance Platform',
+    name: 'Feriha',
     slug: 'feriha-dance-platform',
     icon: './assets/icon-feriha.png',
     bundleIdentifier: 'com.feriha.danceplatform',
@@ -60,6 +62,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: currentBrand.bundleIdentifier,
+      googleServicesFile: "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
@@ -67,6 +70,7 @@ module.exports = {
         backgroundColor: '#ffffff',
       },
       package: currentBrand.package,
+      googleServicesFile: "./google-services.json",
     },
     web: {
       favicon: currentBrand.favicon,
@@ -78,6 +82,16 @@ module.exports = {
     },
     plugins: [
       "@react-native-community/datetimepicker",
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       [
         "@stripe/stripe-react-native",
         {

@@ -31,18 +31,59 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // User is signed in, fetch profile
           const userProfile = await FirestoreService.getUserById(firebaseUser.uid);
           if (userProfile) {
-            get().setUser(userProfile);
+            // Check if we need to upgrade from "Misafir" to real name (fix for race condition)
+            if ((userProfile.name === 'Misafir Dansçı' || userProfile.displayName === 'Misafir Dansçı') && 
+                firebaseUser.displayName && 
+                firebaseUser.displayName !== 'Misafir Dansçı') {
+              
+              console.log('[AuthStore] Upgrading user from Misafir to:', firebaseUser.displayName);
+              const updatedUser = {
+                ...userProfile,
+                name: firebaseUser.displayName,
+                displayName: firebaseUser.displayName,
+                // Parse first/last name again if needed
+                firstName: firebaseUser.displayName.split(' ').slice(0, -1).join(' ') || firebaseUser.displayName,
+                lastName: firebaseUser.displayName.split(' ').slice(-1).join(' ') || ''
+              };
+              
+              await FirestoreService.updateUser(userProfile.id, updatedUser);
+              get().setUser(updatedUser);
+            } else {
+              get().setUser(userProfile);
+            }
           } else {
             // New user or profile missing, set minimal info
+            // Parse first and last name from display name
+            const displayName = firebaseUser.displayName || '';
+            const nameParts = displayName.split(' ');
+            const lastName = nameParts.length > 1 ? nameParts.pop() : '';
+            const firstName = nameParts.join(' ');
+
             const minimalUser: User = {
               id: firebaseUser.uid,
-              name: firebaseUser.displayName || '',
-              displayName: firebaseUser.displayName || '',
+              name: displayName || 'Misafir Dansçı',
+              displayName: displayName || 'Misafir Dansçı',
+              firstName: firstName,
+              lastName: lastName || null,
               email: firebaseUser.email || '',
               role: 'student',
+              // Map Firebase fields to our User type. Use null instead of undefined for Firestore.
+              // Eger profil resmi yoksa random bir avatar sec
+              photoURL: firebaseUser.photoURL || AVATARS[Math.floor(Math.random() * AVATARS.length)],
+              avatar: firebaseUser.photoURL || AVATARS[Math.floor(Math.random() * AVATARS.length)],
+              phoneNumber: firebaseUser.phoneNumber || null,
               createdAt: new Date().toISOString()
             };
-            get().setUser(minimalUser);
+            
+            console.log('[AuthStore] Creating new user in Firestore:', minimalUser.id);
+            try {
+              await FirestoreService.createUser(minimalUser.id, minimalUser);
+              get().setUser(minimalUser);
+            } catch (error) {
+              console.error('[AuthStore] Failed to create user in Firestore:', error);
+              // Set local state anyway so user can proceed
+              get().setUser(minimalUser);
+            }
           }
         } else {
           // User is signed out

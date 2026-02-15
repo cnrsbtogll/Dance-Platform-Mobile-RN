@@ -32,16 +32,19 @@ export const authService = {
     return false;
   },
 
-  register: async (email: string, password: string, name: string): Promise<boolean> => {
+  register: async (email: string, password: string, firstName: string, lastName: string): Promise<boolean> => {
     if (firebaseEnabled) {
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const displayName = `${firstName} ${lastName}`;
         // Also create user profile in Firestore
         if (cred.user) {
           await FirestoreService.createUser(cred.user.uid, {
             id: cred.user.uid,
-            name: name,
-            displayName: name,
+            name: displayName,
+            displayName: displayName,
+            firstName: firstName,
+            lastName: lastName,
             email: email,
             role: 'student', // Default role
             createdAt: new Date().toISOString()
