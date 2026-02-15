@@ -9,9 +9,38 @@ import {
   updateProfile
 } from 'firebase/auth';
 import app from './config'; // Assuming firebase app is initialized in config.ts
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import * as AppleAuthentication from 'expo-apple-authentication';
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+
+console.log('[AuthService] Environment Check:');
+console.log('[AuthService] Constants.executionEnvironment:', Constants.executionEnvironment);
+console.log('[AuthService] Constants.appOwnership:', Constants.appOwnership);
+console.log('[AuthService] isExpoGo detected:', isExpoGo);
+
+export let GoogleSignin: any = {
+  configure: () => {},
+  hasPlayServices: async () => {},
+  signIn: async () => {},
+  signOut: async () => {},
+};
+export let statusCodes: any = {
+  SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+};
+
+if (!isExpoGo) {
+  try {
+    const googleSigninPackage = require('@react-native-google-signin/google-signin');
+    GoogleSignin = googleSigninPackage.GoogleSignin;
+    statusCodes = googleSigninPackage.statusCodes;
+  } catch (error) {
+    console.error('[AuthService] Failed to require @react-native-google-signin/google-signin:', error);
+  }
+}
 
 const auth: Auth = getAuth(app);
 
@@ -23,14 +52,28 @@ console.log('[AuthService] Configuring Google Sign-In');
 console.log('[AuthService] Web Client ID present:', !!webClientId);
 console.log('[AuthService] iOS Client ID present:', !!iosClientId);
 
-GoogleSignin.configure({
-  webClientId: webClientId, // Get this from Firebase Console for Web
-  iosClientId: iosClientId, // Explicitly pass for iOS if plist fails
-  offlineAccess: true,
-});
+if (!isExpoGo) {
+  try {
+    GoogleSignin.configure({
+      webClientId: webClientId, // Get this from Firebase Console for Web
+      iosClientId: iosClientId, // Explicitly pass for iOS if plist fails
+      offlineAccess: true,
+    });
+  } catch (error) {
+    console.error('[AuthService] Google Sign-In Configuration Error:', error);
+  }
+} else {
+  console.log('[AuthService] Skipped Google Sign-In configuration (Expo Go detected)');
+}
 
 export const signInWithGoogle = async () => {
   console.log('[AuthService] signInWithGoogle called');
+  
+  if (isExpoGo) {
+    console.warn('[AuthService] Google Sign-In is not supported in Expo Go');
+    throw new Error('GOOGLE_SIGN_IN_NOT_SUPPORTED_IN_EXPO_GO');
+  }
+
   try {
     console.log('[AuthService] Checking Play Services...');
     await GoogleSignin.hasPlayServices();
@@ -126,7 +169,9 @@ export const signOut = async () => {
     try {
         await firebaseSignOut(auth);
         try {
-            await GoogleSignin.signOut();
+            if (!isExpoGo) {
+                await GoogleSignin.signOut();
+            }
         } catch (error) {
             // Include logic to ignore error if user was not signed in with Google
              console.log('Google Sign-Out Error (ignorable):', error);

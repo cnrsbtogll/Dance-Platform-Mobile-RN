@@ -8,8 +8,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { appConfig } from '../../config/appConfig';
 import { authService } from '../../services/backendService';
-import { signInWithGoogle, signInWithApple } from '../../services/firebase/auth';
-import { statusCodes } from '@react-native-google-signin/google-signin';
+import { signInWithGoogle, signInWithApple, statusCodes } from '../../services/firebase/auth';
 import { Alert } from 'react-native';
 
 export const LoginScreen: React.FC = () => {
@@ -104,6 +103,12 @@ export const LoginScreen: React.FC = () => {
       }
     } catch (error: any) {
       console.error('[LoginScreen] Google login error', error);
+
+      if (error.message === 'GOOGLE_SIGN_IN_NOT_SUPPORTED_IN_EXPO_GO') {
+        Alert.alert(t('common.notice'), t('auth.googleSignInNotSupportedInExpoGo'));
+        return;
+      }
+
       // Check for cancellation code from GoogleSignin (statusCodes.SIGN_IN_CANCELLED is not directly exported to JS easily without import, but error.code is available)
       if (error.code === statusCodes.SIGN_IN_CANCELLED || error.message?.includes('cancelled')) {
         console.log('[LoginScreen] User cancelled Google login');
