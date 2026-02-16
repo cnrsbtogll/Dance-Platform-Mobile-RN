@@ -297,26 +297,6 @@ export const EditLessonScreen: React.FC = () => {
         }
     };
 
-    const handleDelete = () => {
-        Alert.alert(
-            t('lessons.deleteLesson'),
-            t('lessons.deleteLessonConfirm'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('lessons.delete'),
-                    style: 'destructive',
-                    onPress: () => {
-                        // Delete lesson logic here
-                        console.log('Deleting lesson:', lessonId);
-                        Alert.alert(t('common.success'), t('lessons.lessonDeleted'), [
-                            { text: t('common.ok'), onPress: () => navigation.goBack() }
-                        ]);
-                    }
-                }
-            ]
-        );
-    };
 
     const renderImagePicker = () => {
         if (!danceType) {
@@ -636,15 +616,7 @@ export const EditLessonScreen: React.FC = () => {
                             {lessonData?.isActive ? t('lessons.deactivateLesson') : t('lessons.activateLesson')}
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={handleDelete}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.deleteButtonText}>{t('lessons.deleteLesson')}</Text>
-                    </TouchableOpacity>
                 </View>
-
                 {/* Bottom spacing */}
                 <View style={{ height: 100 }} />
             </ScrollView>
@@ -692,59 +664,61 @@ export const EditLessonScreen: React.FC = () => {
                         />
                     </View>
                 </View>
-            </Modal>
+            </Modal >
 
 
 
             {/* Time Picker */}
-            {showTimePicker && (
-                Platform.OS === 'ios' ? (
-                    <Modal
-                        visible={showTimePicker}
-                        animationType="slide"
-                        transparent={true}
-                        onRequestClose={() => setShowTimePicker(false)}
-                    >
-                        <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
-                            <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
-                                <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
-                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                                        <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
-                                    </TouchableOpacity>
-                                    <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
-                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                                        <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
-                                    </TouchableOpacity>
+            {
+                showTimePicker && (
+                    Platform.OS === 'ios' ? (
+                        <Modal
+                            visible={showTimePicker}
+                            animationType="slide"
+                            transparent={true}
+                            onRequestClose={() => setShowTimePicker(false)}
+                        >
+                            <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                                <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
+                                    <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
+                                        <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                            <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
+                                        </TouchableOpacity>
+                                        <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
+                                        <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                            <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <DateTimePicker
+                                        value={selectedTime || new Date()}
+                                        mode="time"
+                                        display="spinner"
+                                        onChange={(event, time) => {
+                                            if (event.type === 'set' && time) {
+                                                setSelectedTime(time);
+                                            }
+                                        }}
+                                        textColor={palette.text.primary}
+                                        themeVariant={isDarkMode ? 'dark' : 'light'}
+                                    />
                                 </View>
-                                <DateTimePicker
-                                    value={selectedTime || new Date()}
-                                    mode="time"
-                                    display="spinner"
-                                    onChange={(event, time) => {
-                                        if (event.type === 'set' && time) {
-                                            setSelectedTime(time);
-                                        }
-                                    }}
-                                    textColor={palette.text.primary}
-                                    themeVariant={isDarkMode ? 'dark' : 'light'}
-                                />
                             </View>
-                        </View>
-                    </Modal>
-                ) : (
-                    <DateTimePicker
-                        value={selectedTime || new Date()}
-                        mode="time"
-                        display="default"
-                        onChange={(event, time) => {
-                            setShowTimePicker(false);
-                            if (event.type === 'set' && time) {
-                                setSelectedTime(time);
-                            }
-                        }}
-                    />
+                        </Modal>
+                    ) : (
+                        <DateTimePicker
+                            value={selectedTime || new Date()}
+                            mode="time"
+                            display="default"
+                            onChange={(event, time) => {
+                                setShowTimePicker(false);
+                                if (event.type === 'set' && time) {
+                                    setSelectedTime(time);
+                                }
+                            }}
+                        />
+                    )
                 )
-            )}
+            }
 
             {/* Duration Picker Modal */}
             <Modal
@@ -926,7 +900,7 @@ export const EditLessonScreen: React.FC = () => {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 

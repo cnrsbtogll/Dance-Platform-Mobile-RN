@@ -25,7 +25,6 @@ export const InstructorLessonsScreen: React.FC = () => {
   const [instructorLessons, setInstructorLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch lessons from Firestore
   // Fetch lessons from Firestore when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -145,22 +144,6 @@ export const InstructorLessonsScreen: React.FC = () => {
     });
   };
 
-  const handleDelete = (lesson: Lesson) => {
-    // TODO: Implement delete functionality
-    Alert.alert(
-      t('common.delete'),
-      t('messages.deleteConfirmation'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => console.log('Delete lesson:', lesson.id)
-        }
-      ]
-    );
-  };
-
   const handleToggleStatus = async (lesson: Lesson) => {
     try {
       const newActiveState = !lesson.isActive;
@@ -192,15 +175,21 @@ export const InstructorLessonsScreen: React.FC = () => {
           <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
           <View style={styles.lessonActions}>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={{
+                backgroundColor: lesson.isActive ? colors.general.warning : colors.general.success,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+              }}
               onPress={() => handleToggleStatus(lesson)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <MaterialIcons
-                name={lesson.isActive ? "visibility" : "visibility-off"}
-                size={20}
-                color={lesson.isActive ? palette.secondary : palette.text.secondary}
-              />
+              <Text style={{
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: '600'
+              }}>
+                {lesson.isActive ? t('lessons.deactivateLesson') : t('lessons.activateLesson')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
@@ -208,13 +197,6 @@ export const InstructorLessonsScreen: React.FC = () => {
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => handleDelete(lesson)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MaterialIcons name="delete" size={20} color={palette.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -240,8 +222,8 @@ export const InstructorLessonsScreen: React.FC = () => {
             </Text>
           </View>
         </View>
-      </Card>
-    </TouchableOpacity>
+      </Card >
+    </TouchableOpacity >
   );
 
   return (
