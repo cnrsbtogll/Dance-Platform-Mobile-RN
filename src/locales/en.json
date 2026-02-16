@@ -11,6 +11,7 @@
     "next": "Next",
     "done": "Done",
     "ok": "OK",
+    "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
     "or": "or",
@@ -229,7 +230,14 @@
       "intermediate": "Intermediate",
       "advanced": "Advanced",
       "professional": "Professional"
-    }
+    },
+    "cancelRegistrationTitle": "Cancel Registration",
+    "cancelRegistrationConfirm": "Are you sure you want to cancel your registration for this lesson?",
+    "cancelRegistration": "Cancel Registration",
+    "registrationSuccess": "Registration completed successfully.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "cancelSuccess": "Registration cancelled successfully.",
+    "cancelFailed": "Registration cancellation failed."
   },
   "instructor": {
     "home": "Instructor Home",

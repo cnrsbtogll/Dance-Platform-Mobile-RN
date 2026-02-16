@@ -141,7 +141,7 @@ export const LessonDetailScreen: React.FC = () => {
             }
 
             if (isMounted) {
-              if (foundBooking) {
+              if (foundBooking && foundBooking.status !== 'cancelled') {
                 setBooking(foundBooking);
                 setIsRegistered(true);
               } else {
@@ -177,54 +177,68 @@ export const LessonDetailScreen: React.FC = () => {
   const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
 
   // Fetch enrolled students if instructor viewing own lesson
+  // Sync participant stats and fetch enrolled students (if instructor)
   useEffect(() => {
     let isMounted = true;
-    if (isOwnLesson && lesson?.id) {
-      const fetchStudents = async () => {
-        setLoadingStudents(true);
+    if (lesson?.id) {
+      const fetchStudentsAndSync = async () => {
+        if (isOwnLesson) setLoadingStudents(true);
         try {
           const bookings = await FirestoreService.getBookingsByLesson(lesson.id);
-          if (isMounted) {
+
+          if (!isMounted) return;
+
+          // If instructor, show the student list
+          if (isOwnLesson) {
             setEnrolledStudents(bookings);
             setLoadingStudents(false);
+          }
 
-            // AUTO-SYNC: Check if stats need update (Self-Healing for old data)
-            const currentTotal = lesson.participantStats?.total || 0;
-            const realTotal = bookings.length;
+          // AUTO-SYNC: Check if stats need update (Self-Healing logic)
+          // Calculate real stats from active bookings
+          const activeBookings = bookings.filter(b => b.status !== 'cancelled');
+          const realTotal = activeBookings.length;
+          const currentTotal = lesson.participantStats?.total || 0;
 
-            // Eğer sayı tutmuyorsa veya stats hiç yoksa güncelle
-            if (currentTotal !== realTotal || !lesson.participantStats) {
-              console.log('Syncing participant stats...');
-              let male = 0, female = 0, other = 0;
+          // Check consistency
+          if (currentTotal !== realTotal || !lesson.participantStats) {
+            console.log('Syncing participant stats for lesson:', lesson.id);
+            let male = 0, female = 0, other = 0;
 
-              bookings.forEach(b => {
-                // Booking'de gender yoksa (eski kayıt), 'other' varsayalım
-                // (veya ilerde student profilinden çekilebilir ama maliyetli)
-                const g = b.studentGender || 'other';
-                if (g === 'male') male++;
-                else if (g === 'female') female++;
-                else other++;
-              });
+            activeBookings.forEach(b => {
+              const g = b.studentGender || 'other';
+              if (g === 'male') male++;
+              else if (g === 'female') female++;
+              else other++;
+            });
 
-              const newStats = { male, female, other, total: realTotal };
+            const newStats = { male, female, other, total: realTotal };
 
-              // Background update
-              FirestoreService.updateLesson(lesson.id, {
-                participantStats: newStats,
-                currentParticipants: realTotal,
-                updatedAt: new Date().toISOString()
-              }).catch(err => console.error('Stats sync error:', err));
-            }
+            // Update local lesson state to reflect changes immediately
+            setLesson((prev: any) => ({
+              ...prev,
+              currentParticipants: realTotal,
+              participantStats: newStats
+            }));
+
+            // Background update to Firestore
+            FirestoreService.updateLesson(lesson.id, {
+              participantStats: newStats,
+              currentParticipants: realTotal,
+              updatedAt: new Date().toISOString()
+            }).catch(err => console.error('Stats sync error:', err));
           }
         } catch (error) {
-          console.error('Error fetching enrolled students:', error);
-        } finally {
-          setLoadingStudents(false);
+          console.error('Error in stats sync:', error);
+          if (isOwnLesson) setLoadingStudents(false);
         }
       };
-      fetchStudents();
+
+      fetchStudentsAndSync();
     }
-  }, [isOwnLesson, lessonId]);
+
+    return () => { isMounted = false; };
+  }, [lessonId, isOwnLesson]); // Removed lesson from dependency to avoid loop if we update lesson inside
 
   // Check if user logged in after clicking register button
   useFocusEffect(
@@ -246,13 +260,44 @@ export const LessonDetailScreen: React.FC = () => {
           return;
         }
 
-        // User logged in and has gender info, navigate to payment screen
+        // User logged in and has gender info, proceed to direct registration
         setPendingRegistrationLessonId(null);
-        (navigation as any).navigate('Payment', {
-          lessonId: lesson.id,
-          date: new Date().toISOString().split('T')[0],
-          time: '18:00',
-        });
+
+        (async () => {
+          try {
+            const date = lesson.date || new Date().toISOString().split('T')[0];
+            const time = lesson.time || '18:00';
+            const price = lesson.price || 0;
+
+            const result = await createBooking(lesson.id, date, time, price);
+
+            if (result) {
+              setBooking(result);
+              setIsRegistered(true);
+
+              // Update local lesson stats immediately
+              const gender = user.gender || 'other';
+              setLesson((prevLesson: any) => ({
+                ...prevLesson,
+                currentParticipants: (prevLesson.currentParticipants || 0) + 1,
+                participantStats: {
+                  ...prevLesson.participantStats,
+                  total: (prevLesson.participantStats?.total || 0) + 1,
+                  [gender]: (prevLesson.participantStats?.[gender] || 0) + 1
+                }
+              }));
+
+              Alert.alert(
+                t('common.success'),
+                t('lessons.registrationSuccess') || 'Registration successful!',
+                [{ text: 'OK' }]
+              );
+            }
+          } catch (error) {
+            console.error('Registration failed:', error);
+            Alert.alert(t('common.error'), t('lessons.registrationFailed') || 'Registration failed. Please try again.');
+          }
+        })();
       }
     }, [isAuthenticated, user, pendingRegistrationLessonId, lesson, navigation, setPendingRegistrationLessonId])
   );
@@ -278,12 +323,42 @@ export const LessonDetailScreen: React.FC = () => {
     );
   }
 
-  const proceedToPayment = () => {
-    (navigation as any).navigate('Payment', {
-      lessonId: lesson.id,
-      date: new Date().toISOString().split('T')[0],
-      time: '18:00',
-    });
+  const handleDirectRegistration = async () => {
+    if (!lesson || !user) return;
+
+    try {
+      const date = lesson.date || new Date().toISOString().split('T')[0];
+      const time = lesson.time || '18:00';
+      const price = lesson.price || 0;
+
+      const result = await createBooking(lesson.id, date, time, price);
+
+      if (result) {
+        setBooking(result);
+        setIsRegistered(true);
+
+        // Update local lesson stats immediately
+        const gender = user.gender || 'other';
+        setLesson((prevLesson: any) => ({
+          ...prevLesson,
+          currentParticipants: (prevLesson.currentParticipants || 0) + 1,
+          participantStats: {
+            ...prevLesson.participantStats,
+            total: (prevLesson.participantStats?.total || 0) + 1,
+            [gender]: (prevLesson.participantStats?.[gender] || 0) + 1
+          }
+        }));
+
+        Alert.alert(
+          t('common.success'),
+          t('lessons.registrationSuccess') || 'Registration successful!',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
+      Alert.alert(t('common.error'), t('lessons.registrationFailed') || 'Registration failed. Please try again.');
+    }
   };
 
   const confirmGenderUpdate = async () => {
@@ -299,11 +374,71 @@ export const LessonDetailScreen: React.FC = () => {
 
       // Close modal and proceed
       setShowGenderModal(false);
-      proceedToPayment();
+      handleDirectRegistration();
     } catch (error) {
       console.error('Failed to update gender:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
+  };
+
+  const handleUnsubscribe = () => {
+    if (!booking) return;
+
+    Alert.alert(
+      t('lessons.cancelRegistrationTitle') || 'Cancel Registration',
+      t('lessons.cancelRegistrationConfirm') || 'Are you sure you want to cancel your registration for this lesson?',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Update status to cancelled in Firestore
+              await FirestoreService.updateBookingStatus(booking.id, 'cancelled');
+
+              // Calculate new stats
+              const gender = user?.gender || 'other';
+              const currentTotal = lesson.participantStats?.total || 0;
+              const currentGenderCount = lesson.participantStats?.[gender] || 0;
+              const currentParticipants = lesson.currentParticipants || 0;
+
+              const newTotal = Math.max(currentTotal - 1, 0);
+              const newGenderCount = Math.max(currentGenderCount - 1, 0);
+              const newCurrentParticipants = Math.max(currentParticipants - 1, 0);
+
+              const newStats = {
+                ...lesson.participantStats,
+                total: newTotal,
+                [gender]: newGenderCount
+              };
+
+              // Update stats in Firestore
+              await FirestoreService.updateLesson(lesson.id, {
+                participantStats: newStats,
+                currentParticipants: newCurrentParticipants,
+                updatedAt: new Date().toISOString()
+              });
+
+              // Update local state
+              setBooking(null);
+              setIsRegistered(false);
+
+              setLesson((prevLesson: any) => ({
+                ...prevLesson,
+                currentParticipants: newCurrentParticipants,
+                participantStats: newStats
+              }));
+
+              Alert.alert(t('common.success'), t('lessons.cancelSuccess') || 'Registration cancelled successfully.');
+            } catch (error) {
+              console.error('Cancellation failed:', error);
+              Alert.alert(t('common.error'), t('lessons.cancelFailed') || 'Failed to cancel registration.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleRegister = () => {
@@ -314,7 +449,7 @@ export const LessonDetailScreen: React.FC = () => {
     });
 
     if (booking || isRegistered) {
-      console.log('[LessonDetail] Already registered or booking exists');
+      handleUnsubscribe();
       return;
     }
 
@@ -334,7 +469,7 @@ export const LessonDetailScreen: React.FC = () => {
     }
     console.log('[LessonDetail] Proceeding to payment');
 
-    proceedToPayment();
+    handleDirectRegistration();
   };
 
   const handleEdit = () => {
@@ -689,16 +824,15 @@ export const LessonDetailScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.registerButton}
               onPress={handleRegister}
-              disabled={isRegistered || !!booking}
             >
               <LinearGradient
-                colors={[palette.primary, palette.primary]}
+                colors={booking || isRegistered ? ['#FF5252', '#FF5252'] : [palette.primary, palette.primary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.registerButtonGradient}
               >
                 <Text style={styles.registerButtonText}>
-                  {booking || isRegistered ? t('lessons.registered') : t('lessons.register')}
+                  {booking || isRegistered ? (t('lessons.cancelRegistration') || 'Cancel Registration') : t('lessons.register')}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

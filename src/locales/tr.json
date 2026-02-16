@@ -11,6 +11,7 @@
     "next": "İleri",
     "done": "Tamam",
     "ok": "Tamam",
+    "confirm": "Onayla",
     "yes": "Evet",
     "no": "Hayır",
     "or": "veya",
@@ -228,7 +229,14 @@
       "intermediate": "Orta",
       "advanced": "İleri",
       "professional": "Profesyonel"
-    }
+    },
+    "cancelRegistrationTitle": "Kaydı İptal Et",
+    "cancelRegistrationConfirm": "Bu ders için kaydınızı iptal etmek istediğinize emin misiniz?",
+    "cancelRegistration": "Kaydı İptal Et",
+    "registrationSuccess": "Kayıt işlemi başarıyla tamamlandı.",
+    "registrationFailed": "Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.",
+    "cancelSuccess": "Kayıt başarıyla iptal edildi.",
+    "cancelFailed": "Kayıt iptali başarısız oldu."
   },
   "instructor": {
     "home": "Eğitmen Anasayfa",
