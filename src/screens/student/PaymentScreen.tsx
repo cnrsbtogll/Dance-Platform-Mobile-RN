@@ -185,7 +185,7 @@ export const PaymentScreen: React.FC = () => {
               <View style={styles.paymentMethodContent}>
                 <View style={styles.paymentMethodLeft}>
                   <View style={styles.cardBrandIcon}>
-                    <MaterialIcons name="credit-card" size={24} color={colors.student.primary} />
+                    <MaterialIcons name="credit-card" size={24} color={palette.primary} />
                   </View>
                   <Text style={[styles.savedCardText, { color: palette.text.primary }]}>
                     {savedCard.brand} **** {savedCard.last4}
@@ -260,7 +260,7 @@ export const PaymentScreen: React.FC = () => {
                 <Switch
                   value={saveCard}
                   onValueChange={setSaveCard}
-                  trackColor={{ false: palette.border, true: colors.student.primary }}
+                  trackColor={{ false: palette.border, true: palette.primary }}
                   thumbColor="#ffffff"
                 />
                 <Text style={[styles.saveCardText, { color: palette.text.primary }]}>

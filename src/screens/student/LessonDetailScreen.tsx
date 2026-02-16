@@ -519,7 +519,7 @@ export const LessonDetailScreen: React.FC = () => {
           {/* Info Cards */}
           <View style={styles.infoCards}>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
+              <MaterialIcons name="calendar-today" size={32} color={palette.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.schedule')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
                 {(() => {
@@ -537,14 +537,14 @@ export const LessonDetailScreen: React.FC = () => {
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="schedule" size={32} color={colors.student.primary} />
+              <MaterialIcons name="schedule" size={32} color={palette.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.time')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
                 {booking ? formatTime(booking.time) : lesson.time ? formatTime(lesson.time) : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="hourglass-empty" size={32} color={colors.student.primary} />
+              <MaterialIcons name="hourglass-empty" size={32} color={palette.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.duration')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>{getDurationText(lesson.duration)}</Text>
             </View>
@@ -560,7 +560,7 @@ export const LessonDetailScreen: React.FC = () => {
                 onPress={() => isOwnLesson && setShowStudentsModal(true)}
               >
                 <View style={styles.participantStat}>
-                  <MaterialIcons name="group" size={24} color={colors.student.primary} />
+                  <MaterialIcons name="group" size={24} color={palette.primary} />
                   <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.total}</Text>
                   <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.total') || 'Total'}</Text>
                 </View>
@@ -597,7 +597,7 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.location')}</Text>
             <View style={styles.locationContainer}>
-              <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
+              <MaterialIcons name="location-on" size={24} color={palette.primary} />
               <View style={styles.locationTextContainer}>
                 {lesson.location?.type === 'custom' ? (
                   <Text style={[styles.locationName, { color: palette.text.primary }]}>
@@ -643,7 +643,7 @@ export const LessonDetailScreen: React.FC = () => {
                 </Text>
               </View>
               <View style={styles.ratingContainer}>
-                <MaterialIcons name="star" size={20} color="#FFB800" />
+                <MaterialIcons name="star" size={20} color={colors.student.rating} />
                 <Text style={[styles.ratingText, { color: palette.text.primary }]}>
                   {instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
                 </Text>

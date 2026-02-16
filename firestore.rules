@@ -97,17 +97,51 @@ service cloud.firestore {
     }
     
     // ==========================================
-    // USERS (KULLANICILAR)
+    // USERS (KULLANICILAR - Partner listesi için public yapıldı)
     // ==========================================
     match /users/{userId} {
-      // Authenticated kullanıcılar okuyabilir
-      allow read: if isAuthenticated();
+      // Partner listesini görmek için girişe gerek yok
+      allow read: if true;
       
       // Sadece kendi profilini oluşturabilir/güncelleyebilir
       allow create, update: if isAuthenticated() && userId == request.auth.uid;
       
       // Sadece admin silebilir
       allow delete: if isAdmin();
+    }
+    
+    // ==========================================
+    // FESTIVALS & TICKETS (FESTİVALLER)
+    // ==========================================
+    match /tickets/{ticketId} {
+      // Festivaller listesini görmek için girişe gerek yok
+      allow read: if true;
+      
+      // Kullanıcı kendi ticketını oluşturabilir
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Kullanıcı kendi ticketını güncelleyebilir
+      allow update: if isAuthenticated() && 
+                      resource.data.userId == request.auth.uid;
+      
+      // Sadece admin silebilir
+      allow delete: if isAdmin();
+    }
+
+    match /festivals/{festivalId} {
+      // Herkes okuyabilir
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // ==========================================
+    // NIGHTS (GECELER)
+    // ==========================================
+    match /nights/{nightId} {
+      // Geceler listesini görmek için girişe gerek yok
+      allow read: if true;
+      allow write: if isAdmin();
     }
     
     // ==========================================
@@ -173,26 +207,6 @@ service cloud.firestore {
     }
     
     // ==========================================
-    // TICKETS (DESTEK TALEPLERİ)
-    // ==========================================
-    match /tickets/{ticketId} {
-      // Kullanıcı kendi ticketını okuyabilir
-      allow read: if isAuthenticated() && 
-                    (resource.data.userId == request.auth.uid || isAdmin());
-      
-      // Kullanıcı kendi ticketını oluşturabilir
-      allow create: if isAuthenticated() && 
-                      request.resource.data.userId == request.auth.uid;
-      
-      // Kullanıcı kendi ticketını güncelleyebilir
-      allow update: if isAuthenticated() && 
-                      resource.data.userId == request.auth.uid;
-      
-      // Sadece admin silebilir
-      allow delete: if isAdmin();
-    }
-    
-    // ==========================================
     // MESSAGES (MESAJLAR)
     // ==========================================
     match /messages/{messageId} {
@@ -207,7 +221,7 @@ service cloud.firestore {
       
       // Sadece gönderen güncelleyebilir/silebilir
       allow update, delete: if isAuthenticated() && 
-                              resource.data.senderId == request.auth.uid;
+                               resource.data.senderId == request.auth.uid;
     }
     
     // ==========================================

@@ -3,16 +3,18 @@
 export const colors = {
   // Student Home Page
   student: {
-    primary: '#005f73',
-    secondary: '#ee9b00',
+    primary: '#C7416C', // Deep Maroon (Bordo) - More dominant and premium
+    secondary: '#C7416C', // Warm Dusty Rose (Lighter, closer to pink)
+    accent: '#C7416C',
+    rating: '#FFB800', // Classic star yellow
     background: {
       light: '#F8F9FA',
       dark: '#101922',
     },
     text: {
-      primaryLight: '#343A40',
+      primaryLight: '#2D3436', // Slightly softer than black
       primaryDark: '#E9ECEF',
-      secondaryLight: '#617589',
+      secondaryLight: '#636E72', // Softer grey for secondary text
       secondaryDark: '#adb5bd',
     },
     card: {
@@ -27,8 +29,8 @@ export const colors = {
   
   // Instructor Home Page
   instructor: {
-    primary: '#a855f7',
-    secondary: '#6366f1',
+    primary: '#1ABC9C',
+    secondary: '#005f73',
     background: {
       light: '#F8F9FA',
       dark: '#101922',

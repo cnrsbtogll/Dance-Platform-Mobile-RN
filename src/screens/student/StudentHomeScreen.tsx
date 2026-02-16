@@ -242,7 +242,7 @@ export const StudentHomeScreen: React.FC = () => {
                     <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                     <View style={styles.lessonFooter}>
                       <View style={styles.ratingContainer}>
-                        <AntDesign name="star" size={20} color={colors.student.secondary} />
+                        <AntDesign name="star" size={20} color={colors.student.rating} />
                         <Text style={[styles.rating, { color: palette.text.primary }]}>
                           {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
                         </Text>

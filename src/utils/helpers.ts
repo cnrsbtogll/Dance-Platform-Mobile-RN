@@ -241,6 +241,32 @@ export const formatRelativeDate = (dateString: string): string => {
   }
 };
 
+export const formatNotificationTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSeconds < 60) {
+    return i18n.t('common.justNow');
+  } else if (diffMinutes < 60) {
+    return `${diffMinutes}m`;
+  } else if (diffHours < 24) {
+    return `${diffHours}h`;
+  } else if (diffDays < 7) {
+    return `${diffDays}d`;
+  } else {
+    const locale = i18n.language === 'en' ? 'en-US' : 'tr-TR';
+    return date.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: 'short',
+    });
+  }
+};
+
 // Normalize day names to English keys (for database storage)
 // Converts Turkish day names to English keys for consistency
 const DAY_NAME_MAP: { [key: string]: string } = {

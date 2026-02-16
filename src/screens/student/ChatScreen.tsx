@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -44,10 +44,10 @@ export const ChatScreen: React.FC = () => {
       if (message.senderId !== user.id && message.receiverId !== user.id) {
         return;
       }
-      
+
       const partnerId = message.senderId === user.id ? message.receiverId : message.senderId;
       const partner = MockDataService.getUserById(partnerId);
-      
+
       console.log('[ChatScreen] Processing message:', {
         messageId: message.id,
         senderId: message.senderId,
@@ -62,25 +62,25 @@ export const ChatScreen: React.FC = () => {
           hasAvatar: !!partner.avatar,
         } : null,
       });
-      
+
       if (!partner) {
         console.warn('[ChatScreen] Partner not found for partnerId:', partnerId);
         return;
       }
 
       const conversationId = [user.id, partnerId].sort().join('_');
-      
+
       if (!conversationMap.has(conversationId)) {
         const lessons = MockDataService.getLessonsByInstructor(partnerId);
         const category = lessons[0]?.category || t('chat.instructor');
-        const userName = partner.role === 'instructor' 
+        const userName = partner.role === 'instructor'
           ? `${partner.name} - ${category} ${t('chat.instructorSuffix')}`
           : `${t('chat.student')} - ${partner.name}`;
-        
+
         // Use getAvatarSource to ensure default avatar is used if partner.avatar is empty
         const avatarSource = getAvatarSource(partner.avatar, partnerId);
         const userAvatar = avatarSource.uri || '';
-        
+
         const conversation = {
           id: conversationId,
           userId: partnerId,
@@ -91,7 +91,7 @@ export const ChatScreen: React.FC = () => {
           unreadCount: 0,
           isOnline: Math.random() > 0.5, // Mock online status
         };
-        
+
         console.log('[ChatScreen] Creating new conversation:', {
           conversationId,
           userId: conversation.userId,
@@ -102,18 +102,18 @@ export const ChatScreen: React.FC = () => {
           partnerRole: partner.role,
           category,
         });
-        
+
         conversationMap.set(conversationId, conversation);
       } else {
         const conv = conversationMap.get(conversationId)!;
         const messageTime = new Date(message.createdAt);
         const lastTime = new Date(conv.lastMessageTime);
-        
+
         if (messageTime > lastTime) {
           conv.lastMessage = message.message;
           conv.lastMessageTime = message.createdAt;
         }
-        
+
         if (!message.isRead && message.receiverId === user.id) {
           conv.unreadCount++;
         }
@@ -124,7 +124,7 @@ export const ChatScreen: React.FC = () => {
     const sortedConversations = Array.from(conversationMap.values()).sort((a, b) => {
       return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
     });
-    
+
     console.log('[ChatScreen] Final conversations:', sortedConversations.map(conv => ({
       id: conv.id,
       userId: conv.userId,
@@ -132,7 +132,7 @@ export const ChatScreen: React.FC = () => {
       userAvatar: conv.userAvatar,
       hasAvatar: !!conv.userAvatar,
     })));
-    
+
     return sortedConversations;
   }, [user, t]);
 
@@ -148,7 +148,7 @@ export const ChatScreen: React.FC = () => {
           <MaterialIcons name="search" size={24} color={palette.text.primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.headerButton}
           onPress={() => (navigation as any).navigate('NewChat')}
         >
@@ -159,10 +159,10 @@ export const ChatScreen: React.FC = () => {
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {conversations.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons 
-              name="chat-bubble-outline" 
-              size={64} 
-              color={palette.text.secondary + '80'} 
+            <MaterialIcons
+              name="chat-bubble-outline"
+              size={64}
+              color={palette.text.secondary + '80'}
             />
             <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('chat.noChats')}</Text>
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   groupAvatar: {
-    backgroundColor: '#1ABC9C',
+    backgroundColor: colors.student.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#1ABC9C',
+    backgroundColor: colors.student.primary,
     borderWidth: 2,
   },
   messageInfo: {
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     minWidth: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#1ABC9C',
+    backgroundColor: colors.student.primary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 6,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
   emptyStateButton: {
     marginTop: spacing.lg,
-    backgroundColor: '#1ABC9C',
+    backgroundColor: colors.student.primary,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.full,

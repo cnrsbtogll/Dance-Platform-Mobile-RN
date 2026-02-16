@@ -300,7 +300,7 @@ export const InstructorProfileScreen: React.FC = () => {
 
         {/* Switch to Student Mode Button */}
         <TouchableOpacity
-          style={[styles.switchModeButton, { backgroundColor: colors.instructor.secondary }]}
+          style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
           activeOpacity={0.8}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => {

@@ -162,14 +162,14 @@ export const ProfileScreen: React.FC = () => {
                   ? '#e53e3e20'
                   : item.iconColor
                     ? `${item.iconColor}20`
-                    : '#48C9B020',
+                    : `${colors.student.primary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || '#48C9B0'}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.student.primary}
             />
           </View>
           <Text
@@ -220,7 +220,7 @@ export const ProfileScreen: React.FC = () => {
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.editProfileLink, { color: colors.student.primary }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   editProfileLink: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: '#48C9B0',
+    color: colors.student.primary,
   },
   loginButton: {
     height: 56,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   switchModeButton: {
     height: 56,
-    backgroundColor: colors.student.primary,
+    backgroundColor: colors.instructor.secondary,
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
