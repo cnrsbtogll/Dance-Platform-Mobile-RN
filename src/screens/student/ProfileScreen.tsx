@@ -53,12 +53,14 @@ export const ProfileScreen: React.FC = () => {
       title: t('profile.accountInfo'),
       onPress: () => (navigation as any).navigate('AccountInformation'),
     },
+    /*
     {
       id: 'payment',
       icon: 'credit-card',
       title: t('profile.paymentMethods'),
       onPress: () => (navigation as any).navigate('PaymentMethods'),
     },
+    */
     {
       id: 'password',
       icon: 'lock',
