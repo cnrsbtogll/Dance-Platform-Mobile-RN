@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
@@ -12,10 +12,14 @@ import { Card } from '../../components/common/Card';
 
 export const AboutScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette(user?.role || 'student', isDarkMode);
+
+  // @ts-ignore - params type
+  const mode = route.params?.mode || user?.role || 'student';
+  const palette = getPalette(mode, isDarkMode);
 
   useEffect(() => {
     navigation.setOptions({
@@ -34,8 +38,8 @@ export const AboutScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -76,25 +80,25 @@ export const AboutScreen: React.FC = () => {
             </Text>
             <View style={styles.featuresList}>
               <View style={styles.featureItem}>
-                <MaterialIcons name="check-circle" size={20} color={colors.student.primary} />
+                <MaterialIcons name="check-circle" size={20} color={palette.primary} />
                 <Text style={[styles.featureText, { color: palette.text.secondary }]}>
                   {t('about.feature1')}
                 </Text>
               </View>
               <View style={styles.featureItem}>
-                <MaterialIcons name="check-circle" size={20} color={colors.student.primary} />
+                <MaterialIcons name="check-circle" size={20} color={palette.primary} />
                 <Text style={[styles.featureText, { color: palette.text.secondary }]}>
                   {t('about.feature2')}
                 </Text>
               </View>
               <View style={styles.featureItem}>
-                <MaterialIcons name="check-circle" size={20} color={colors.student.primary} />
+                <MaterialIcons name="check-circle" size={20} color={palette.primary} />
                 <Text style={[styles.featureText, { color: palette.text.secondary }]}>
                   {t('about.feature3')}
                 </Text>
               </View>
               <View style={styles.featureItem}>
-                <MaterialIcons name="check-circle" size={20} color={colors.student.primary} />
+                <MaterialIcons name="check-circle" size={20} color={palette.primary} />
                 <Text style={[styles.featureText, { color: palette.text.secondary }]}>
                   {t('about.feature4')}
                 </Text>

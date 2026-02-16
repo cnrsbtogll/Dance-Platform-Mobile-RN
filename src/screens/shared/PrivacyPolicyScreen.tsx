@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, typography, borderRadius, getPalette, shadows } from '../../utils/theme';
@@ -11,10 +11,14 @@ import { Card } from '../../components/common/Card';
 
 export const PrivacyPolicyScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette(user?.role || 'student', isDarkMode);
+
+  // @ts-ignore - params type
+  const mode = route.params?.mode || user?.role || 'student';
+  const palette = getPalette(mode, isDarkMode);
 
   useEffect(() => {
     navigation.setOptions({

@@ -206,14 +206,14 @@ export const InstructorProfileScreen: React.FC = () => {
                   ? '#e53e3e20'
                   : item.iconColor
                     ? `${item.iconColor}20`
-                    : `${colors.instructor.secondary}20`,
+                    : `${colors.instructor.primary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.instructor.secondary}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.instructor.primary}
             />
           </View>
           <Text
@@ -262,7 +262,7 @@ export const InstructorProfileScreen: React.FC = () => {
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.editProfileLink, { color: colors.instructor.primary }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>

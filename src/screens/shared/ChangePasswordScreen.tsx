@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
@@ -10,10 +10,14 @@ import { useAuthStore } from '../../store/useAuthStore';
 
 export const ChangePasswordScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette(user?.role || 'student', isDarkMode);
+
+  // @ts-ignore - params type
+  const mode = route.params?.mode || user?.role || 'student';
+  const palette = getPalette(mode, isDarkMode);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');

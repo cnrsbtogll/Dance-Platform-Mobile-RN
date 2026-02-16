@@ -36,7 +36,7 @@ const MainTabs: React.FC = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
-  
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -160,10 +160,10 @@ const MainTabs: React.FC = () => {
             </Text>
           ),
           tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons 
-              name={focused ? "person" : "person-outline"} 
-              size={size} 
-              color={color} 
+            <MaterialIcons
+              name={focused ? "person" : "person-outline"}
+              size={size}
+              color={color}
             />
           ),
         }}
@@ -177,10 +177,10 @@ export const StudentNavigator: React.FC = () => {
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
-  
+
   return (
-    <Stack.Navigator 
-      screenOptions={{ 
+    <Stack.Navigator
+      screenOptions={{
         headerShown: false,
         headerTintColor: palette.text.primary,
         headerStyle: {
@@ -188,15 +188,15 @@ export const StudentNavigator: React.FC = () => {
         },
       }}
     >
-      <Stack.Screen 
-        name="MainTabs" 
+      <Stack.Screen
+        name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="LessonDetail"
         component={LessonDetailScreen}
-        options={{ 
+        options={{
           headerShown: false,
           presentation: 'card',
         }}
@@ -206,7 +206,7 @@ export const StudentNavigator: React.FC = () => {
           <Stack.Screen
             name="ChatDetail"
             component={ChatDetailScreen}
-            options={{ 
+            options={{
               headerShown: true,
               headerTitle: '', // Will be set dynamically in ChatDetailScreen
               headerBackTitle: '',
@@ -223,7 +223,7 @@ export const StudentNavigator: React.FC = () => {
           <Stack.Screen
             name="NewChat"
             component={NewChatScreen}
-            options={{ 
+            options={{
               headerShown: false,
               presentation: 'card',
             }}
@@ -233,7 +233,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="Payment"
         component={PaymentScreen}
-        options={{ 
+        options={{
           headerShown: true,
           headerBackTitle: '',
           headerTintColor: palette.text.primary,
@@ -250,7 +250,8 @@ export const StudentNavigator: React.FC = () => {
         <Stack.Screen
           name="Notification"
           component={NotificationScreen}
-          options={{ 
+          initialParams={{ mode: 'student' }}
+          options={{
             headerShown: true,
             headerTitle: t('notifications.title'),
             headerBackTitle: '',
@@ -268,6 +269,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.editProfile'),
@@ -282,6 +284,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="BecomeInstructor"
         component={BecomeInstructorScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('becomeInstructor.title'),
@@ -296,6 +299,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerBackTitle: '',
@@ -309,6 +313,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="AccountInformation"
         component={AccountInformationScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.accountInfo'),
@@ -324,6 +329,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="PaymentMethods"
         component={PaymentMethodsScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.paymentMethods'),
@@ -339,6 +345,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.changePassword'),
@@ -354,6 +361,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="HelpCenter"
         component={HelpCenterScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.helpCenter'),
@@ -369,6 +377,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="About"
         component={AboutScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.about'),
@@ -384,6 +393,7 @@ export const StudentNavigator: React.FC = () => {
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}
+        initialParams={{ mode: 'student' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.privacyPolicy'),

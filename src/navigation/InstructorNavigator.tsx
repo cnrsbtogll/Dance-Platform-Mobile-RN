@@ -316,6 +316,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.editProfile'),
@@ -345,6 +346,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="AccountInformation"
         component={AccountInformationScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.accountInfo'),
@@ -360,6 +362,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="PaymentMethods"
         component={PaymentMethodsScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.paymentMethods'),
@@ -375,6 +378,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.changePassword'),
@@ -390,6 +394,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="HelpCenter"
         component={HelpCenterScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.helpCenter'),
@@ -405,6 +410,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="About"
         component={AboutScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.about'),
@@ -420,6 +426,7 @@ export const InstructorNavigator: React.FC = () => {
       <Stack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}
+        initialParams={{ mode: 'instructor' }}
         options={{
           headerShown: true,
           headerTitle: t('profile.privacyPolicy'),
