@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 13.1.2"
+    "version": ">= 13.1.2",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -18,9 +19,11 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "staging"
+      "channel": "staging",
+      "autoIncrement": true
     },
     "production": {
+      "autoIncrement": true,
       "channel": "production",
       "android": {
         "buildType": "app-bundle"
