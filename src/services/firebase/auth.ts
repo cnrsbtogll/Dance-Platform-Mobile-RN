@@ -6,7 +6,8 @@ import {
   OAuthProvider,
   User,
   signOut as firebaseSignOut,
-  updateProfile
+  updateProfile,
+  deleteUser as deleteFirebaseUser
 } from 'firebase/auth';
 import app from './config'; // Assuming firebase app is initialized in config.ts
 import { Platform } from 'react-native';
@@ -178,6 +179,19 @@ export const signOut = async () => {
         }
     } catch (error) {
         console.error('Sign Out Error:', error);
+        throw error;
+    }
+}
+
+export const deleteAccount = async () => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user to delete');
+        
+        await deleteFirebaseUser(user);
+        console.log('[AuthService] Firebase account deleted');
+    } catch (error) {
+        console.error('Delete Account Error:', error);
         throw error;
     }
 }

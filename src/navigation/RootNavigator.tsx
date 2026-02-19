@@ -27,6 +27,22 @@ export const RootNavigator: React.FC = () => {
           routes: [{ name: 'Instructor' }],
         });
       }
+
+      // 2. Logout / Delete Account (User becomes null or role changes to student)
+      if ((!user || user.role === 'student') && prevUser?.role === 'instructor') {
+        navigationRef.current.reset({
+          index: 0,
+          routes: [{ name: 'Student' }],
+        });
+      }
+
+      // 3. Explicit check for null user (Logout/Delete from any state)
+      if (!user && prevUser) {
+        navigationRef.current.reset({
+          index: 0,
+          routes: [{ name: 'Student' }],
+        });
+      }
     }
 
     // Update ref

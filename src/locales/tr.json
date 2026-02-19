@@ -48,7 +48,25 @@
     "loginSubtitle": "En iyi eğitmenlerle tanışın ve dans etmeyi öğrenin.",
     "termsAndPrivacy": "Devam ederek {{terms}} ve {{privacy}} kabul etmiş olursunuz.",
     "terms": "Kullanım Koşullarımızı",
-    "privacy": "Gizlilik Politikamızı"
+    "privacy": "Gizlilik Politikamızı",
+    "fillAllFields": "Lütfen tüm alanları doldurun.",
+    "passwordsDoNotMatch": "Şifreler eşleşmiyor.",
+    "registrationFailed": "Kayıt başarısız oldu. Lütfen tekrar deneyin.",
+    "loginError": "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
+    "registrationError": "Kayıt sırasında bir hata oluştu.",
+    "errors": {
+      "invalidEmail": "Geçersiz e-posta adresi formatı.",
+      "userDisabled": "Bu kullanıcı hesabı devre dışı bırakılmış.",
+      "userNotFound": "Kullanıcı bulunamadı.",
+      "wrongPassword": "Girdiğiniz e-posta veya şifre hatalı.",
+      "emailInUse": "Bu e-posta adresi başka bir hesap tarafından kullanılıyor.",
+      "operationNotAllowed": "E-posta/şifre ile giriş etkin değil.",
+      "weakPassword": "Şifre çok zayıf. Lütfen daha güçlü bir şifre kullanın.",
+      "tooManyRequests": "Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.",
+      "networkRequestFailed": "Ağ hatası. Lütfen internet bağlantınızı kontrol edin.",
+      "requiresRecentLogin": "Bu işlem için yakın zamanda giriş yapmış olmanız gerekir. Lütfen tekrar giriş yapın.",
+      "unknown": "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin."
+    }
   },
   "navigation": {
     "home": "Ana Sayfa",
@@ -137,15 +155,6 @@
     "repeatWeekly": "Her hafta tekrar et",
     "save": "Kaydet",
     "update": "Güncelle",
-    "days": {
-      "sunday": "Pazar",
-      "monday": "Pazartesi",
-      "tuesday": "Salı",
-      "wednesday": "Çarşamba",
-      "thursday": "Perşembe",
-      "friday": "Cuma",
-      "saturday": "Cumartesi"
-    },
     "durations": {
       "45min": "45 dakika",
       "60min": "60 dakika",
@@ -407,7 +416,12 @@
     "bio": "Biyografi",
     "statistics": "İstatistikler",
     "totalLessons": "Toplam Ders",
-    "userNotFound": "Kullanıcı bulunamadı"
+    "userNotFound": "Kullanıcı bulunamadı",
+    "deleteAccount": "Hesabı Sil",
+    "deleteAccountConfirm": "Bu işlemi geri alamazsınız. Tüm verileriniz kalıcı olarak silinecektir. Devam etmek istiyor musunuz?",
+    "deleteAccountButton": "Hesabımı Sil",
+    "deleteSuccess": "Hesabınız başarıyla silindi.",
+    "deleteError": "Hesap silinirken bir hata oluştu. Lütfen tekrar deneyin."
   },
   "paymentMethods": {
     "noCards": "Kayıtlı kart bulunmuyor",

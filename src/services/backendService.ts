@@ -9,7 +9,7 @@ import { MockDataService } from './mockDataService';
 import { FirestoreService } from './firebase/firestore';
 import { auth, storage as firebaseStorage } from './firebase/config';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { signOut as customSignOut } from './firebase/auth';
+import { signOut as customSignOut, deleteAccount as customDeleteAccount } from './firebase/auth';
 
 // Define stripeModule as null for now since it's not yet integrated
 const stripeModule: any = null;
@@ -19,21 +19,21 @@ const firebaseEnabled = appConfig.integrations.firebase;
  * Authentication Service
  */
 export const authService = {
-  login: async (email: string, password: string): Promise<boolean> => {
+  login: async (email: string, password: string): Promise<{ success: boolean; error?: any }> => {
     if (firebaseEnabled) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('[AuthService] Firebase login success');
-        return true;
+        return { success: true };
       } catch (error) {
-        console.error('[AuthService] Firebase login error:', error);
-        return false;
+        console.log('[AuthService] Firebase login error:', error);
+        return { success: false, error };
       }
     }
-    return false;
+    return { success: false, error: new Error('Firebase disabled') };
   },
 
-  register: async (email: string, password: string, firstName: string, lastName: string): Promise<boolean> => {
+  register: async (email: string, password: string, firstName: string, lastName: string): Promise<{ success: boolean; error?: any }> => {
     if (firebaseEnabled) {
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -51,13 +51,13 @@ export const authService = {
             createdAt: new Date().toISOString()
           });
         }
-        return true;
+        return { success: true };
       } catch (error) {
-        console.error('[AuthService] Firebase register error:', error);
-        return false;
+        console.log('[AuthService] Firebase register error:', error);
+        return { success: false, error };
       }
     }
-    return false;
+    return { success: false, error: new Error('Firebase disabled') };
   },
 
   logout: async (): Promise<void> => {
@@ -67,6 +67,15 @@ export const authService = {
     } else {
       // Mock logout (no-op)
       console.log('[AuthService] Mock logout');
+    }
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    if (firebaseEnabled) {
+      await customDeleteAccount();
+      console.log('[AuthService] Firebase delete account');
+    } else {
+      console.log('[AuthService] Mock delete account');
     }
   },
 };

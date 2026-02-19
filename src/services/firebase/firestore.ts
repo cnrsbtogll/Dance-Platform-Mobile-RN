@@ -96,6 +96,17 @@ export class FirestoreService {
     }
   }
 
+  static async deleteUser(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.USERS, id);
+      await deleteDoc(docRef);
+      console.log(`[FirestoreService] User ${id} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
   // Lessons (Courses)
   static async getLessons(): Promise<Lesson[]> {
     try {

@@ -48,7 +48,25 @@
     "loginSubtitle": "Meet the best instructors and learn to dance.",
     "termsAndPrivacy": "By continuing, you agree to our {{terms}} and {{privacy}}.",
     "terms": "Terms of Use",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "fillAllFields": "Please fill in all fields.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "loginError": "Login failed. Please check your credentials.",
+    "registrationError": "An error occurred during registration.",
+    "errors": {
+      "invalidEmail": "Invalid email address format.",
+      "userDisabled": "This user account has been disabled.",
+      "userNotFound": "User not found.",
+      "wrongPassword": "The email or password you entered is incorrect.",
+      "emailInUse": "This email address is already in use by another account.",
+      "operationNotAllowed": "Email/password accounts are not enabled.",
+      "weakPassword": "Password is too weak. Please use a stronger password.",
+      "tooManyRequests": "Too many unsuccessful login attempts. Please try again later.",
+      "networkRequestFailed": "Network error. Please check your internet connection.",
+      "requiresRecentLogin": "This operation requires a recent login. Please log in again.",
+      "unknown": "An unknown error occurred. Please try again."
+    }
   },
   "navigation": {
     "home": "Home",
@@ -138,15 +156,6 @@
     "repeatWeekly": "Repeat weekly",
     "save": "Save",
     "update": "Update",
-    "days": {
-      "sunday": "Sunday",
-      "monday": "Monday",
-      "tuesday": "Tuesday",
-      "wednesday": "Wednesday",
-      "thursday": "Thursday",
-      "friday": "Friday",
-      "saturday": "Saturday"
-    },
     "durations": {
       "45min": "45 minutes",
       "60min": "60 minutes",
@@ -408,7 +417,12 @@
     "bio": "Bio",
     "statistics": "Statistics",
     "totalLessons": "Total Lessons",
-    "userNotFound": "User not found"
+    "userNotFound": "User not found",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "You cannot undo this action. All your data will be permanently deleted. Do you want to continue?",
+    "deleteAccountButton": "Delete My Account",
+    "deleteSuccess": "Your account has been successfully deleted.",
+    "deleteError": "An error occurred while deleting your account. Please try again."
   },
   "paymentMethods": {
     "noCards": "No saved cards",

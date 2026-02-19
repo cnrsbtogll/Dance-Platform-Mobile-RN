@@ -106,8 +106,8 @@ service cloud.firestore {
       // Sadece kendi profilini oluşturabilir/güncelleyebilir
       allow create, update: if isAuthenticated() && userId == request.auth.uid;
       
-      // Sadece admin silebilir
-      allow delete: if isAdmin();
+      // Sadece admin veya kişi kendi profilini silebilir
+      allow delete: if isAuthenticated() && (userId == request.auth.uid || isAdmin());
     }
     
     // ==========================================

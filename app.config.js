@@ -50,6 +50,7 @@ module.exports = {
     name: currentBrand.name,
     slug: currentBrand.slug,
     version: "1.0.1",
+    runtimeVersion: "1.0.1",
     orientation: 'portrait',
     icon: currentBrand.icon,
     userInterfaceStyle: 'light',
@@ -60,9 +61,6 @@ module.exports = {
     },
     updates: {
       url: "https://u.expo.dev/4cd51a3f-fc74-4cfb-b923-8ce29df8b37d"
-    },
-    runtimeVersion: {
-      policy: 'appVersion',
     },
     assetBundlePatterns: ['**/*'],
     ios: {

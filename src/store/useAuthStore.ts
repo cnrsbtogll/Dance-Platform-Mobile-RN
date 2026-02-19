@@ -10,8 +10,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
   logout: () => void;
+  deleteAccount: () => Promise<boolean>;
   setUser: (user: User | null) => void;
   updateCurrency: (currency: Currency) => void;
   initialize: () => void;
@@ -95,20 +96,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (email: string, password: string) => {
     // Use authService which handles Firebase/Mock switch
-    const success = await authService.login(email, password);
+    const result = await authService.login(email, password);
     
-    if (success && !auth) {
+    if (result.success && !auth) {
       // If mock login (auth is null), manually find user and set state
       const users = MockDataService.getUsers();
       const user = users.find(u => u.email === email);
       
       if (user) {
         get().setUser(user);
-        return true;
+        return { success: true };
       }
     }
     
-    return success;
+    return result;
   },
   
   logout: async () => {
@@ -121,6 +122,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       console.log('[AuthStore] Clearing auth state');
       set({ user: null, isAuthenticated: false });
+    }
+  },
+  
+  deleteAccount: async () => {
+    const user = get().user;
+    console.log('[AuthStore] deleteAccount called for:', user?.id);
+    if (!user || !user.id) return false;
+
+    try {
+      // 1. Delete Firestore data first (while we still have auth tokens/permissions)
+      await FirestoreService.deleteUser(user.id);
+      
+      // 2. Delete Firebase Auth account
+      await authService.deleteAccount();
+      
+      console.log('[AuthStore] Account deletion successful');
+      set({ user: null, isAuthenticated: false });
+      return true;
+    } catch (error) {
+      console.error('[AuthStore] deleteAccount error:', error);
+      return false;
     }
   },
   

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -14,12 +14,35 @@ export const AccountInformationScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { user, deleteAccount } = useAuthStore();
   const { isDarkMode } = useThemeStore();
 
   // @ts-ignore - params type
   const mode = route.params?.mode || user?.role || 'student';
   const palette = getPalette(mode, isDarkMode);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('accountInfo.deleteAccount'),
+      t('accountInfo.deleteAccountConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const success = await deleteAccount();
+            if (success) {
+              Alert.alert(t('common.success'), t('accountInfo.deleteSuccess'));
+              // User state change in store will trigger navigation
+            } else {
+              Alert.alert(t('common.error'), t('accountInfo.deleteError'));
+            }
+          }
+        }
+      ]
+    );
+  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -107,6 +130,20 @@ export const AccountInformationScreen: React.FC = () => {
             </Card>
           </View>
         )}
+
+        {/* Delete Account Section */}
+        <View style={styles.deleteSection}>
+          <TouchableOpacity
+            style={[styles.deleteButton, { borderColor: '#FF3B30' }]}
+            onPress={handleDeleteAccount}
+          >
+            <MaterialIcons name="delete-outline" size={20} color="#FF3B30" />
+            <Text style={styles.deleteButtonText}>{t('accountInfo.deleteAccountButton')}</Text>
+          </TouchableOpacity>
+          <Text style={[styles.deleteInfo, { color: palette.text.secondary }]}>
+            {t('accountInfo.deleteAccountConfirm')}
+          </Text>
+        </View>
 
       </ScrollView>
     </View>
@@ -198,5 +235,34 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     lineHeight: 24,
     padding: spacing.md,
+  },
+  deleteSection: {
+    marginTop: spacing.xxl,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.xxl,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+    width: '100%',
+  },
+  deleteButtonText: {
+    color: '#FF3B30',
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+  },
+  deleteInfo: {
+    fontSize: typography.fontSize.xs,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: spacing.md,
   },
 });

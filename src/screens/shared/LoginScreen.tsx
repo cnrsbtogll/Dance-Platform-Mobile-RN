@@ -10,6 +10,7 @@ import { appConfig } from '../../config/appConfig';
 import { authService } from '../../services/backendService';
 import { signInWithGoogle, signInWithApple, statusCodes } from '../../services/firebase/auth';
 import { Alert } from 'react-native';
+import { getFirebaseErrorKey } from '../../utils/firebaseErrorMessages';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -54,24 +55,37 @@ export const LoginScreen: React.FC = () => {
 
     try {
       // name variable constructed for other purposes if needed, or remove if unused
-      const success = await authService.register(email, password, firstName, lastName);
+      const result = await authService.register(email, password, firstName, lastName);
 
-      if (success) {
+      if (result.success) {
         // After successful registration, the store's initialize() 
         // will handle the onAuthStateChanged and set the user.
         navigation.goBack();
       } else {
-        Alert.alert(t('common.error'), t('auth.registrationFailed'));
+        if (result.error) {
+          const errorKey = getFirebaseErrorKey(result.error.code);
+          Alert.alert(t('common.error'), t(errorKey));
+        } else {
+          Alert.alert(t('common.error'), t('auth.registrationFailed'));
+        }
       }
     } catch (error: any) {
       console.error('[LoginScreen] Registration error:', error);
-      Alert.alert(t('common.error'), error.message || t('auth.registrationError'));
+      const errorKey = error.code ? getFirebaseErrorKey(error.code) : 'auth.errors.unknown';
+      Alert.alert(t('common.error'), t(errorKey));
     }
   };
 
+
   const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
+    // Basic validation
+    if (!email || !password) {
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
+      return;
+    }
+
+    const result = await login(email, password);
+    if (result.success) {
       const currentUser = useAuthStore.getState().user;
 
       if (currentUser?.role === 'instructor') {
@@ -84,6 +98,14 @@ export const LoginScreen: React.FC = () => {
         );
       } else {
         navigation.goBack();
+      }
+    } else {
+      // Handle error
+      if (result.error) {
+        const errorKey = getFirebaseErrorKey(result.error.code);
+        Alert.alert(t('common.error'), t(errorKey));
+      } else {
+        Alert.alert(t('common.error'), t('auth.errors.unknown'));
       }
     }
   }
