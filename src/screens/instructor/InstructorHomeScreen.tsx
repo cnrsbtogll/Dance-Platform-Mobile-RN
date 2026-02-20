@@ -62,28 +62,27 @@ export const InstructorHomeScreen: React.FC = () => {
 
   // Calculate stats
   const stats = useMemo(() => {
-    const activeLessons = instructorLessons.filter(l => l.isActive).length;
+    const activeInstructorBookings = instructorBookings.filter((b: any) => b.status !== 'cancelled');
+    const activeLessonsCount = instructorLessons.filter(l => l.isActive).length;
+
     // @ts-ignore - Booking type might need update or mock implementation fix
-    const totalStudents = new Set(instructorBookings.map(b => b.studentId)).size;
+    const totalStudents = new Set(activeInstructorBookings.map((b: any) => b.studentId)).size;
     const avgRating = instructorLessons.reduce((sum, l) => sum + l.rating, 0) / (instructorLessons.length || 1);
 
-    // Calculate earnings (mock data)
-    const thisMonthEarnings = instructorBookings
-      .filter(b => {
-        // @ts-ignore
+    // Calculate earnings
+    const thisMonthEarnings = activeInstructorBookings
+      .filter((b: any) => {
         const bookingDate = new Date(b.date);
         const now = new Date();
         return bookingDate.getMonth() === now.getMonth() &&
           bookingDate.getFullYear() === now.getFullYear();
       })
-      // @ts-ignore
-      .reduce((sum, b) => sum + b.price, 0);
+      .reduce((sum: number, b: any) => sum + (b.price || 0), 0);
 
-    // @ts-ignore
-    const totalEarnings = instructorBookings.reduce((sum, b) => sum + b.price, 0);
+    const totalEarnings = activeInstructorBookings.reduce((sum: number, b: any) => sum + (b.price || 0), 0);
 
     return {
-      activeLessons,
+      activeLessons: activeLessonsCount,
       totalStudents,
       avgRating: avgRating.toFixed(1),
       thisMonthEarnings,
@@ -352,9 +351,9 @@ export const InstructorHomeScreen: React.FC = () => {
           ) : (
             <View style={styles.activeLessonsList}>
               {activeLessons.map((lesson) => {
-                const lessonBookings = instructorBookings.filter(b => b.lessonId === lesson.id);
-                const enrolledCount = lessonBookings.length;
-                const maxStudents = 12; // Mock max students
+                const activeLessonBookings = instructorBookings.filter((b: any) => b.lessonId === lesson.id && b.status !== 'cancelled');
+                const enrolledCount = (lesson as any)?.participantStats?.total ?? activeLessonBookings.length;
+                const maxStudents = (lesson as any).capacity || 12;
 
                 return (
                   <TouchableOpacity
