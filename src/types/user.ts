@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'instructor';
+export type UserRole = 'student' | 'instructor' | 'admin' | 'draft-instructor';
 export type Currency = 'USD' | 'EUR' | 'TRY';
 
 export interface User {
@@ -19,5 +19,7 @@ export interface User {
   gender?: 'male' | 'female' | 'other';
   createdAt: string;
   updatedAt?: string;
+  isVerified?: boolean;
+  onboardingCompleted?: boolean;
 }
 

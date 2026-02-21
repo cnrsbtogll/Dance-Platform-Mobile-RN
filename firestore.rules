@@ -14,7 +14,7 @@ service cloud.firestore {
     
     // Kullanıcı instructor mı?
     function isInstructor() {
-      return request.auth != null && getUserRole() == 'instructor';
+      return request.auth != null && (getUserRole() == 'instructor' || getUserRole() == 'draft-instructor');
     }
     
     // Kullanıcı admin mi?
@@ -29,6 +29,31 @@ service cloud.firestore {
     
     // ==========================================
     // COURSES (DERSLER)
+    // ==========================================
+    match /lessons/{lessonId} {
+      // Herkes okuyabilir (giriş yapmadan da)
+      allow read: if true;
+      
+      // Sadece instructor'lar kendi derslerini oluşturabilir
+      allow create: if isAuthenticated() && 
+                      isInstructor() && 
+                      request.resource.data.instructorId == request.auth.uid;
+      
+      // Instructor kendi dersini güncelleyebilir
+      allow update: if isAuthenticated() && 
+                      (
+                        (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        isAdmin()
+                      );
+
+      // Instructor sadece kendi dersini silebilir
+      allow delete: if isAuthenticated() && 
+                      isInstructor() && 
+                      resource.data.instructorId == request.auth.uid;
+    }
+
+    // ==========================================
+    // COURSES (DERSLER - Eski İsimlendirme)
     // ==========================================
     match /courses/{courseId} {
       // Herkes okuyabilir (giriş yapmadan da)

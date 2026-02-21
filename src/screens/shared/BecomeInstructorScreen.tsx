@@ -8,21 +8,29 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { Card } from '../../components/common/Card';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { FirestoreService } from '../../services/firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
 
 export const BecomeInstructorScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
   const phone = '+90 555 005 9876';
   const message = t('becomeInstructor.whatsappMessage');
 
-  const [requestSubmitted, setRequestSubmitted] = useState(false);
+
+
+  const handleCreateAccount = () => {
+    // Navigate to login/register screen
+    (navigation as any).navigate('Login');
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingRequest, setIsCheckingRequest] = useState(false);
+  const [requestSubmitted, setRequestSubmitted] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -35,8 +43,8 @@ export const BecomeInstructorScreen: React.FC = () => {
 
     setIsCheckingRequest(true);
     try {
-      const requestsRef = collection(db, 'instructorRequests');
-      const q = query(requestsRef, where('userId', '==', user.id));
+      const requestsRef = collection(db, 'instructorVerifications');
+      const q = query(requestsRef, where('userId', '==', user.id), where('status', '==', 'pending'));
       const querySnapshot = await getDocs(q);
 
       setRequestSubmitted(!querySnapshot.empty);
@@ -47,11 +55,6 @@ export const BecomeInstructorScreen: React.FC = () => {
     }
   };
 
-  const handleCreateAccount = () => {
-    // Navigate to login/register screen
-    (navigation as any).navigate('Login');
-  };
-
   const handleSubmitRequest = async () => {
     if (!user?.id) {
       Alert.alert(t('common.error'), t('becomeInstructor.mustLogin'));
@@ -60,25 +63,34 @@ export const BecomeInstructorScreen: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const requestsRef = collection(db, 'instructorRequests');
-      await addDoc(requestsRef, {
-        userId: user.id,
-        userName: user.name || user.displayName || '',
-        userEmail: user.email || '',
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      // Direct the user to the Instructor Panel as a 'draft-instructor'
+      const updatedData = {
+        role: 'draft-instructor' as const,
+        onboardingCompleted: false,
+        isVerified: false,
+      };
 
-      setRequestSubmitted(true);
+      await FirestoreService.updateUser(user.id, updatedData);
+      setUser({ ...user, ...updatedData });
+
       Alert.alert(
         t('common.success'),
-        t('becomeInstructor.requestSubmitted'),
-        [{ text: t('common.ok') }]
+        t('becomeInstructor.roleUpdated') || 'Harika! Eğitmen paneliniz oluşturuldu. Şimdi paneli inceleyebilirsiniz.',
+        [{
+          text: t('common.ok'),
+          onPress: () => {
+            // Navigate to Instructor mode via MainTabs
+            // @ts-ignore
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs' as never }]
+            });
+          }
+        }]
       );
     } catch (error) {
-      console.error('[BecomeInstructor] Error submitting request:', error);
-      Alert.alert(t('common.error'), t('becomeInstructor.requestError'));
+      console.error('[BecomeInstructor] Error updating role:', error);
+      Alert.alert(t('common.error'), t('common.errorDesc'));
     } finally {
       setIsSubmitting(false);
     }
@@ -135,15 +147,11 @@ export const BecomeInstructorScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Step 2: Submit Instructor Request - Always show */}
+        {/* Step 2: Complete Profile */}
         <View style={styles.stepContainer}>
           <View style={styles.stepHeader}>
-            <View style={[styles.stepNumber, isAuthenticated ? (requestSubmitted ? styles.stepNumberCompleted : styles.stepNumberActive) : styles.stepNumberInactive]}>
-              {(isAuthenticated && requestSubmitted) ? (
-                <MaterialIcons name="check" size={18} color="#ffffff" />
-              ) : (
-                <Text style={[styles.stepNumberText, !isAuthenticated && styles.stepNumberTextInactive]}>2</Text>
-              )}
+            <View style={[styles.stepNumber, isAuthenticated ? styles.stepNumberActive : styles.stepNumberInactive]}>
+              <Text style={[styles.stepNumberText, !isAuthenticated && styles.stepNumberTextInactive]}>2</Text>
             </View>
             <Text style={[styles.stepTitle, { color: isAuthenticated ? palette.text.primary : palette.text.secondary }]}>
               {t('becomeInstructor.step2Title')}
@@ -164,15 +172,11 @@ export const BecomeInstructorScreen: React.FC = () => {
                 {t('becomeInstructor.step2NeedLogin')}
               </Text>
             </TouchableOpacity>
-          ) : isCheckingRequest ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.student.primary} />
-            </View>
           ) : requestSubmitted ? (
-            <View style={styles.successContainer}>
-              <MaterialIcons name="check-circle" size={24} color={colors.general.success} />
-              <Text style={[styles.successText, { color: colors.general.success }]}>
-                {t('becomeInstructor.requestAlreadySubmitted')}
+            <View style={styles.warningContainer}>
+              <MaterialIcons name="hourglass-empty" size={24} color={colors.instructor.primary} />
+              <Text style={[styles.warningText, { color: colors.instructor.primary }]}>
+                {t('becomeInstructor.requestPending') || 'Eğitmenlik başvurunuz inceleniyor...'}
               </Text>
             </View>
           ) : (
@@ -185,65 +189,13 @@ export const BecomeInstructorScreen: React.FC = () => {
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text style={styles.primaryButtonText}>{t('becomeInstructor.submitRequest')}</Text>
+                <Text style={styles.primaryButtonText}>{t('instructor.viewPanelButton') || 'Eğitmen Panelini Görüntüle'}</Text>
               )}
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Step 3: WhatsApp Contact */}
-        <View style={styles.stepContainer}>
-          <View style={styles.stepHeader}>
-            <View style={[styles.stepNumber, (isAuthenticated && requestSubmitted) ? styles.stepNumberActive : styles.stepNumberInactive]}>
-              <Text style={[styles.stepNumberText, !(isAuthenticated && requestSubmitted) && styles.stepNumberTextInactive]}>
-                3
-              </Text>
-            </View>
-            <Text style={[styles.stepTitle, { color: (isAuthenticated && requestSubmitted) ? palette.text.primary : palette.text.secondary }]}>
-              {t('becomeInstructor.step3')}
-            </Text>
-          </View>
-          <Text style={[styles.stepDescription, { color: palette.text.secondary }]}>
-            {(isAuthenticated && requestSubmitted)
-              ? t('becomeInstructor.step3DescriptionActive')
-              : t('becomeInstructor.step3DescriptionInactive')}
-          </Text>
-          {!(isAuthenticated && requestSubmitted) && (
-            <TouchableOpacity
-              style={styles.warningContainer}
-              onPress={!isAuthenticated ? handleCreateAccount : handleSubmitRequest}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name="info-outline" size={20} color={colors.student.primary} />
-              <Text style={[styles.warningText, { color: colors.student.primary }]}>
-                {!isAuthenticated
-                  ? t('becomeInstructor.mustCreateAccount')
-                  : t('becomeInstructor.mustSubmitRequest')}
-              </Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[
-              styles.whatsappButton,
-              !(isAuthenticated && requestSubmitted) && [styles.buttonDisabled, { backgroundColor: palette.border }]
-            ]}
-            onPress={() => (isAuthenticated && requestSubmitted) && openWhatsApp(phone, message)}
-            disabled={!(isAuthenticated && requestSubmitted)}
-            activeOpacity={0.8}
-          >
-            <FontAwesome
-              name="whatsapp"
-              size={20}
-              color={(isAuthenticated && requestSubmitted) ? '#ffffff' : palette.text.secondary}
-            />
-            <Text style={[
-              styles.whatsappText,
-              !(isAuthenticated && requestSubmitted) && { color: palette.text.secondary }
-            ]}>
-              {t('becomeInstructor.contactWhatsApp')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+
       </Card>
     </ScrollView>
   );

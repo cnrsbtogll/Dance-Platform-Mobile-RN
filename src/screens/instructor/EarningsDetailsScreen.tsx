@@ -143,7 +143,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.totalEarnings')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(totalEarnings, user?.currency || 'USD')}
+                {formatPrice(totalEarnings, user?.currency)}
               </Text>
             </Card>
             <Card style={[styles.summaryCard, { backgroundColor: palette.card }]}>
@@ -151,7 +151,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.averageMonthly')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(averageEarnings, user?.currency || 'USD')}
+                {formatPrice(averageEarnings, user?.currency)}
               </Text>
             </Card>
           </View>
@@ -183,7 +183,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                       {getMonthName(item.date).substring(0, 3)}
                     </Text>
                     <Text style={[styles.chartValueLabel, { color: palette.text.primary }]}>
-                      {formatPrice(item.earnings, user?.currency || 'USD')}
+                      {formatPrice(item.earnings, user?.currency)}
                     </Text>
                   </View>
                 );
@@ -234,7 +234,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                     </View>
                     <View style={styles.earningItemRight}>
                       <Text style={[styles.earningAmount, { color: colors.instructor.primary }]}>
-                        {formatPrice(booking.price, user?.currency || 'USD')}
+                        {formatPrice(booking.price, user?.currency)}
                       </Text>
                       <View style={[styles.earningStatusBadge, { backgroundColor: booking.paymentStatus === 'paid' ? '#10B981' + '20' : '#F59E0B' + '20' }]}>
                         <Text style={[styles.earningStatusText, { color: booking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }]}>

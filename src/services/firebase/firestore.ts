@@ -29,6 +29,7 @@ const COLLECTIONS = {
   NOTIFICATIONS: 'notifications', // Not verified if exists yet
   DANCE_SCHOOLS: 'schools',
   BOOKINGS: 'bookings',
+  INSTRUCTOR_REQUESTS: 'instructorRequests',
 };
 
 // Helper to convert Firestore doc to typed object
@@ -107,6 +108,51 @@ export class FirestoreService {
     }
   }
 
+  // Instructor Verifications
+  static async createVerificationRequest(data: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    userEmail: string;
+    danceStyles: string[];
+    experience: string;
+    bio: string;
+    contactNumber: string;
+    phoneNumber?: string;     // Added for redundancy
+    idDocumentUrl: string;    // Kimlik / Ehliyet / Pasaport
+    certDocumentUrl: string;  // Eğitmen sertifikası
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: string;
+    updatedAt: string;
+  }): Promise<void> {
+    try {
+      const colRef = collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS);
+      await addDoc(colRef, data);
+    } catch (error) {
+      console.error('Error creating instructor request:', error);
+      throw error;
+    }
+  }
+
+  static async getInstructorRequestStatus(userId: string): Promise<string | null> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data().status;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting instructor request status:', error);
+      return null;
+    }
+  }
+
   // Lessons (Courses)
   static async getLessons(): Promise<Lesson[]> {
     try {
@@ -179,6 +225,7 @@ export class FirestoreService {
           schedule: data.schedule || [],
           location: data.location || '',
           isActive: data.status === 'active',
+          status: data.status || (data.isActive ? 'active' : 'inactive'),
           rating: data.rating || 0,
           totalReviews: data.totalReviews || 0,
           reviewCount: data.reviewCount || 0,
@@ -232,12 +279,16 @@ export class FirestoreService {
 
   static async createLesson(lessonData: Partial<Lesson>): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), {
+      const dataToWrite = {
         ...lessonData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: 'active'
-      });
+        status: lessonData.status ?? 'active',
+      };
+      console.log('[FirestoreService] createLesson - incoming status:', lessonData.status);
+      console.log('[FirestoreService] createLesson - writing status:', dataToWrite.status);
+      const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), dataToWrite);
+      console.log('[FirestoreService] createLesson - saved with id:', docRef.id, 'status:', dataToWrite.status);
       return docRef.id;
     } catch (error) {
       console.error('Error creating lesson:', error);

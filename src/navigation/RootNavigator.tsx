@@ -21,15 +21,18 @@ export const RootNavigator: React.FC = () => {
 
     if (navigationRef.current) {
       // 1. Instructor Login
-      if (user?.role === 'instructor' && (!prevUser || prevUser.role !== 'instructor')) {
+      const isInstructorRole = user?.role === 'instructor' || user?.role === 'draft-instructor';
+      const wasInstructorRole = prevUser?.role === 'instructor' || prevUser?.role === 'draft-instructor';
+
+      if (isInstructorRole && !wasInstructorRole) {
         navigationRef.current.reset({
           index: 0,
           routes: [{ name: 'Instructor' }],
         });
       }
 
-      // 2. Logout / Delete Account (User becomes null or role changes to student)
-      if ((!user || user.role === 'student') && prevUser?.role === 'instructor') {
+      // 2. Logout / Delete Account / Downgrade (User becomes null, or role changes to student)
+      if ((!user || user.role === 'student') && wasInstructorRole) {
         navigationRef.current.reset({
           index: 0,
           routes: [{ name: 'Student' }],
@@ -52,10 +55,7 @@ export const RootNavigator: React.FC = () => {
   // Auto-login an instructor user for testing - hem login olmuş hem eğitmen olmuş kullanıcı
 
 
-  // Determine initial route based on user role
-  // If user is instructor, start with Instructor mode
-  // Otherwise, start with Student mode
-  const initialRouteName = user?.role === 'instructor' ? 'Instructor' : 'Student';
+  const initialRouteName = (user?.role === 'instructor' || user?.role === 'draft-instructor') ? 'Instructor' : 'Student';
 
   return (
     <NavigationContainer ref={navigationRef}>

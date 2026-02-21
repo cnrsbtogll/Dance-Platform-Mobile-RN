@@ -30,7 +30,7 @@ export interface Lesson {
   reviewCount: number;
   favoriteCount: number;
   isActive: boolean; // Mapped from status === 'active'
-  status?: string; // Firebase field
+  status?: 'draft' | 'pending_approval' | 'active' | string; // Firebase field
   tags?: string[]; // Array of strings
   highlights?: string[]; // Array of strings
   location?: {

@@ -277,6 +277,26 @@ export const EditLessonScreen: React.FC = () => {
     const handleToggleActive = async () => {
         if (!lessonId || !lessonData) return;
 
+        // Only block activation (not deactivation). Verified instructors can toggle freely.
+        const isActivating = !lessonData.isActive;
+        if (isActivating && user?.role !== 'instructor') {
+            Alert.alert(
+                t('instructor.verificationRequired') || 'Kimlik Doğrulaması Gerekiyor',
+                t('instructor.verificationDesc') || 'Derslerinizi yayınlayabilmek için kimlik doğrulaması yapmanız gerekmektedir.',
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    {
+                        text: t('instructor.verifyNow') || 'Hemen Doğrula',
+                        onPress: () => {
+                            // @ts-ignore
+                            navigation.navigate('Verification');
+                        }
+                    }
+                ]
+            );
+            return;
+        }
+
         try {
             const newStatus = !lessonData.isActive;
             await FirestoreService.updateLesson(lessonId, { isActive: newStatus });

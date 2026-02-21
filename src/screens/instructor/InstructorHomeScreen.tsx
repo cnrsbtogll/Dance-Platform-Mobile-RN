@@ -1,7 +1,8 @@
 import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { openWhatsApp } from '../../utils/whatsapp';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -16,11 +17,12 @@ import { Card } from '../../components/common/Card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getLessonImageSource } from '../../utils/imageHelper';
 import { Lesson, Booking } from '../../types';
+import { Alert } from 'react-native';
 
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { user, refreshProfile } = useAuthStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
@@ -30,6 +32,7 @@ export const InstructorHomeScreen: React.FC = () => {
 
   const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [hasSubmittedRequest, setHasSubmittedRequest] = React.useState(false);
 
   // Fetch instructor's lessons from Firestore
   useFocusEffect(
@@ -53,9 +56,18 @@ export const InstructorHomeScreen: React.FC = () => {
         }
       };
 
+      const checkRequestStatus = async () => {
+        if (user?.id) {
+          const status = await FirestoreService.getInstructorRequestStatus(user.id);
+          setHasSubmittedRequest(!!status);
+        }
+      };
+
+      refreshProfile();
       fetchLessons();
       fetchUserBookings();
-    }, [user])
+      checkRequestStatus();
+    }, [user?.id, user?.role, refreshProfile, fetchUserBookings])
   );
 
 
@@ -180,44 +192,73 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
       ),
       headerRight: appConfig.features.notifications ? () => (
-        <TouchableOpacity
-          style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
-          onPress={() => {
-            (navigation as any).getParent()?.navigate('Notification');
-          }}
-        >
-          <View style={{ position: 'relative' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs }}
+            onPress={() => {
+              console.log('[InstructorHome] Header Add clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
+              if (user && !user.onboardingCompleted) {
+                Alert.alert(
+                  t('instructor.profileIncomplete') || 'Profiliniz Eksik',
+                  t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                  [{
+                    text: t('common.ok'),
+                    onPress: () => {
+                      // @ts-ignore
+                      navigation.navigate('InstructorOnboarding');
+                    }
+                  }]
+                );
+              } else {
+                (navigation as any).navigate('CreateLesson');
+              }
+            }}
+          >
             <MaterialIcons
-              name="notifications"
+              name="add"
               size={28}
               color={palette.text.primary}
             />
-            {unreadCount > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                minWidth: 18,
-                height: 18,
-                borderRadius: 9,
-                backgroundColor: '#e53e3e',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 4,
-                borderWidth: 2,
-                borderColor: palette.background,
-              }}>
-                <Text style={{
-                  fontSize: 10,
-                  fontWeight: typography.fontWeight.bold,
-                  color: '#ffffff',
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
+            onPress={() => {
+              (navigation as any).getParent()?.navigate('Notification');
+            }}
+          >
+            <View style={{ position: 'relative' }}>
+              <MaterialIcons
+                name="notifications"
+                size={28}
+                color={palette.text.primary}
+              />
+              {unreadCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  backgroundColor: '#e53e3e',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 4,
+                  borderWidth: 2,
+                  borderColor: palette.background,
                 }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+                  <Text style={{
+                    fontSize: 10,
+                    fontWeight: typography.fontWeight.bold,
+                    color: '#ffffff',
+                  }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
       ) : undefined,
     });
   }, [navigation, unreadCount, isDarkMode, palette, t]);
@@ -225,6 +266,112 @@ export const InstructorHomeScreen: React.FC = () => {
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
+        {/* Verification Banner */}
+        {user?.role === 'draft-instructor' && (
+          <View style={[styles.verificationBanner, { backgroundColor: isDarkMode ? palette.card : '#F0FDFA', borderColor: colors.instructor.primary }]}>
+            <View style={styles.verificationBannerHeader}>
+              <View style={[styles.infoIconContainer, { backgroundColor: colors.instructor.primary + '20' }]}>
+                <MaterialIcons name="rocket-launch" size={20} color={colors.instructor.primary} />
+              </View>
+              <Text style={[styles.verificationBannerTitle, { color: palette.text.primary }]}>
+                {t('instructor.verificationRequired') || 'Aramıza Hoş Geldiniz!'}
+              </Text>
+            </View>
+
+            <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
+              {t('instructor.verificationStepDesc') || 'Eğitmen olarak ders vermeye başlamanız için sadece 3 küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
+            </Text>
+
+            <View style={styles.bannerActions}>
+              <TouchableOpacity
+                style={[
+                  styles.onboardingButton,
+                  { backgroundColor: user?.onboardingCompleted ? '#10B981' : colors.instructor.primary }
+                ]}
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('InstructorOnboarding');
+                }}
+              >
+                <View style={styles.buttonContent}>
+                  <MaterialIcons
+                    name={user?.onboardingCompleted ? "check-circle" : "person-outline"}
+                    size={18}
+                    color="#ffffff"
+                  />
+                  <Text style={styles.verificationButtonText}>
+                    {user?.onboardingCompleted
+                      ? (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')
+                      : (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.verificationButton,
+                  { backgroundColor: user?.onboardingCompleted ? colors.instructor.secondary : '#E5E7EB' }
+                ]}
+                onPress={() => {
+                  if (user?.onboardingCompleted) {
+                    // @ts-ignore
+                    navigation.navigate('Verification');
+                  } else {
+                    Alert.alert(
+                      t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
+                      t('instructor.onboardingRequiredDesc') || 'Doğrulama işlemine geçmeden önce lütfen profil bilgilerinizi (onboarding) tamamlayın.',
+                      [{ text: t('common.ok') }]
+                    );
+                  }
+                }}
+                activeOpacity={user?.onboardingCompleted ? 0.7 : 1}
+              >
+                <View style={styles.buttonContent}>
+                  <MaterialIcons
+                    name="verified-user"
+                    size={18}
+                    color={user?.onboardingCompleted ? "#ffffff" : "#9CA3AF"}
+                  />
+                  <Text style={[styles.verificationButtonText, { color: user?.onboardingCompleted ? '#ffffff' : '#9CA3AF' }]}>
+                    {t('instructor.verifyNow') || 'Kimlik & Sertifika Yükle'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.whatsappBannerButton,
+                  { backgroundColor: hasSubmittedRequest ? '#25D366' : '#E5E7EB' }
+                ]}
+                onPress={() => {
+                  if (hasSubmittedRequest) {
+                    const waMessage = `${t('instructor.verificationWhatsappMessage')}${user?.id}`;
+                    openWhatsApp('+90 0555 005 98 76', waMessage);
+                  } else {
+                    Alert.alert(
+                      t('instructor.requestRequiredTitle') || 'Başvuru Yapılmadı',
+                      t('instructor.requestRequiredDesc') || 'Destek ile iletişime geçmeden önce lütfen doğrulama belgelerinizi gönderin.',
+                      [{ text: t('common.ok') }]
+                    );
+                  }
+                }}
+                activeOpacity={hasSubmittedRequest ? 0.7 : 1}
+              >
+                <View style={styles.buttonContent}>
+                  <FontAwesome
+                    name="whatsapp"
+                    size={18}
+                    color={hasSubmittedRequest ? "#ffffff" : "#9CA3AF"}
+                  />
+                  <Text style={[styles.whatsappBannerButtonText, { color: hasSubmittedRequest ? '#ffffff' : '#9CA3AF' }]}>
+                    {t('instructor.contactSupportWhatsapp') || 'WhatsApp ile Hızlandır'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Earnings Card */}
         <View style={[styles.section, styles.earningsSection]}>
           <View style={[styles.earningsCard, { backgroundColor: palette.card }]}>
@@ -244,9 +391,9 @@ export const InstructorHomeScreen: React.FC = () => {
               </View>
               <View style={styles.earningsRow}>
                 <View style={styles.earningsAmountContainer}>
-                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings, user?.currency || 'USD')}</Text>
+                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings, user?.currency)}</Text>
                   <Text style={[styles.earningsTotal, { color: palette.text.primary }]}>
-                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency || 'USD')}
+                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency)}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -397,9 +544,24 @@ export const InstructorHomeScreen: React.FC = () => {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.instructor.primary }]}
         onPress={() => {
-          (navigation as any).navigate('CreateLesson');
+          console.log('[InstructorHome] FAB clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
+          if (user && !user.onboardingCompleted) {
+            Alert.alert(
+              t('instructor.profileIncomplete') || 'Profiliniz Eksik',
+              t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+              [{
+                text: t('common.ok'),
+                onPress: () => {
+                  // @ts-ignore
+                  navigation.navigate('InstructorOnboarding');
+                }
+              }]
+            );
+          } else {
+            (navigation as any).navigate('CreateLesson');
+          }
         }}
         activeOpacity={0.8}
       >
@@ -427,6 +589,76 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
+  },
+  verificationBanner: {
+    margin: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    ...shadows.md,
+    elevation: 4,
+  },
+  verificationBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verificationBannerTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    flex: 1,
+  },
+  verificationBannerText: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
+  },
+  bannerActions: {
+    gap: spacing.sm,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  onboardingButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  verificationButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  whatsappBannerButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  verificationButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
+  },
+  whatsappBannerButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
   },
   earningsSection: {
     marginTop: spacing.md,

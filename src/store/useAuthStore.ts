@@ -15,6 +15,7 @@ interface AuthState {
   deleteAccount: () => Promise<boolean>;
   setUser: (user: User | null) => void;
   updateCurrency: (currency: Currency) => void;
+  refreshProfile: () => Promise<void>;
   initialize: () => void;
 }
 
@@ -149,8 +150,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUser: (user: User | null) => {
     console.log('[AuthStore] setUser called with:', user ? `${user.name} (${user.role})` : 'null');
     // Set default currency for instructors if not set
-    if (user && user.role === 'instructor' && !user.currency) {
-      user.currency = 'USD';
+    if (user && (user.role === 'instructor' || user.role === 'draft-instructor') && !user.currency) {
+      user.currency = 'TRY';
     }
     // Set default avatar if not set
     if (user && (!user.avatar || user.avatar.trim() === '')) {
@@ -162,7 +163,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   updateCurrency: (currency: Currency) => {
     set((state) => {
-      if (state.user && state.user.role === 'instructor') {
+      if (state.user && (state.user.role === 'instructor' || state.user.role === 'draft-instructor')) {
         // TODO: Update in Firestore as well
         if (state.user.id) {
            FirestoreService.updateUser(state.user.id, { currency });
@@ -173,6 +174,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       return state;
     });
+  },
+
+  refreshProfile: async () => {
+    const user = get().user;
+    if (!user || !user.id) return;
+    
+    console.log('[AuthStore] Refreshing profile for:', user.id);
+    try {
+      const updatedProfile = await FirestoreService.getUserById(user.id);
+      if (updatedProfile) {
+        get().setUser(updatedProfile);
+      }
+    } catch (error) {
+      console.error('[AuthStore] Error refreshing profile:', error);
+    }
   },
 }));
 

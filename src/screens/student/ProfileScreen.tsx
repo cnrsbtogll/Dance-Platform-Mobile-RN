@@ -226,8 +226,8 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Switch to Instructor Mode Button - if user is instructor */}
-        {isAuthenticated && user?.role === 'instructor' && (
+        {/* Switch to Instructor Mode Button - if user is instructor or draft-instructor */}
+        {isAuthenticated && (user?.role === 'instructor' || user?.role === 'draft-instructor') && (
           <TouchableOpacity
             style={styles.switchModeButton}
             activeOpacity={0.8}

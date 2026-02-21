@@ -18,7 +18,7 @@ export const getDefaultCurrency = (): Currency => {
   const euroZone = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'IE', 'FI', 'PT', 'GR'];
   if (regionCode && euroZone.includes(regionCode)) return 'EUR';
   
-  return 'USD';
+  return 'TRY';
 };
 
 export const formatPrice = (price: number, currency?: Currency): string => {

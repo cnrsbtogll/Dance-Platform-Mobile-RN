@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -15,9 +15,11 @@ type TabType = 'active' | 'past';
 
 export const InstructorLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<TabType>('active');
+  const params = (route.params as any);
+  const [activeTab, setActiveTab] = useState<TabType>(params?.initialTab ?? 'active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
 
@@ -29,7 +31,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       const fetchLessons = async () => {
-        if (!user || user.role !== 'instructor') {
+        if (!user || (user.role !== 'instructor' && user.role !== 'draft-instructor')) {
           setInstructorLessons([]);
           setLoading(false);
           return;
@@ -123,7 +125,22 @@ export const InstructorLessonsScreen: React.FC = () => {
         <TouchableOpacity
           style={{ marginRight: spacing.md }}
           onPress={() => {
-            (navigation as any).navigate('CreateLesson');
+            console.log('[InstructorLessons] Header Add clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
+            if (user && !user.onboardingCompleted) {
+              Alert.alert(
+                t('instructor.profileIncomplete') || 'Profiliniz Eksik',
+                t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                [{
+                  text: t('common.ok'),
+                  onPress: () => {
+                    // @ts-ignore
+                    navigation.navigate('InstructorOnboarding');
+                  }
+                }]
+              );
+            } else {
+              (navigation as any).navigate('CreateLesson');
+            }
           }}
         >
           <MaterialIcons
@@ -145,20 +162,42 @@ export const InstructorLessonsScreen: React.FC = () => {
   };
 
   const handleToggleStatus = async (lesson: Lesson) => {
+    if (user?.role !== 'instructor') {
+      Alert.alert(
+        t('instructor.verificationRequired') || 'Kimlik Doğrulaması Gerekiyor',
+        t('instructor.verificationDesc') || 'Derslerinizi yayınlayabilmek için onaylanmış bir eğitmen olmanız gerekmektedir. Şimdi belge yüklemek ister misiniz?',
+        [{
+          text: t('common.cancel'),
+          style: 'cancel'
+        },
+        {
+          text: t('instructor.verifyNow') || 'Hemen Doğrula',
+          onPress: () => {
+            // @ts-ignore
+            navigation.navigate('Verification');
+          }
+        }]
+      );
+      return;
+    }
+
     try {
       const newActiveState = !lesson.isActive;
 
       // Optimistic update
       setInstructorLessons(prev =>
-        prev.map(l => l.id === lesson.id ? { ...l, isActive: newActiveState } : l)
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: newActiveState, status: newActiveState ? 'active' : 'inactive' } : l)
       );
 
-      await FirestoreService.updateLesson(lesson.id, { isActive: newActiveState });
+      await FirestoreService.updateLesson(lesson.id, {
+        isActive: newActiveState,
+        status: newActiveState ? 'active' : 'inactive'
+      });
     } catch (error) {
       console.error('Error updating lesson status:', error);
       // Revert optimization
       setInstructorLessons(prev =>
-        prev.map(l => l.id === lesson.id ? { ...l, isActive: !lesson.isActive } : l)
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: !lesson.isActive, status: !lesson.isActive ? 'active' : 'inactive' } : l)
       );
       Alert.alert(t('common.error'), 'Error updating status');
     }
@@ -204,7 +243,7 @@ export const InstructorLessonsScreen: React.FC = () => {
         <View style={styles.lessonStatus}>
           <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
           <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
-            {lesson.isActive ? t('lessons.active') : t('lessons.inactive')}
+            {lesson.status === 'draft' ? (t('lessons.draft') || 'Taslak') : (lesson.isActive ? t('lessons.active') : t('lessons.inactive'))}
           </Text>
         </View>
 

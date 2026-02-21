@@ -12,6 +12,7 @@ import { InstructorHomeScreen } from '../screens/instructor/InstructorHomeScreen
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessonsScreen';
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
+import { VerificationScreen } from '../screens/instructor/Verification/VerificationScreen';
 import { InstructorNewChatScreen } from '../screens/instructor/NewChatScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
@@ -21,6 +22,7 @@ import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { AccountInformationScreen } from '../screens/shared/AccountInformationScreen';
+import { InstructorOnboardingScreen } from '../screens/instructor/Onboarding/InstructorOnboardingScreen';
 import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
 import { ChangePasswordScreen } from '../screens/shared/ChangePasswordScreen';
 import { HelpCenterScreen } from '../screens/shared/HelpCenterScreen';
@@ -233,6 +235,22 @@ export const InstructorNavigator: React.FC = () => {
         options={{
           headerShown: false,
           presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="InstructorOnboarding"
+        component={InstructorOnboardingScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false, // Prevent swiping back
+        }}
+      />
+      <Stack.Screen
+        name="Verification"
+        component={VerificationScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
         }}
       />
       <Stack.Screen

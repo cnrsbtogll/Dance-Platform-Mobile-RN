@@ -140,6 +140,31 @@ export const CreateLessonScreen: React.FC = () => {
         fetchDanceSchools();
     }, []);
 
+    // Check if user has completed onboarding
+    useEffect(() => {
+        if (user && !user.onboardingCompleted) {
+            Alert.alert(
+                t('instructor.profileIncomplete') || 'Profiliniz Eksik',
+                t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                [{
+                    text: t('common.ok'),
+                    onPress: () => {
+                        // Go back first so we don't get stuck in CreateLesson alert loop
+                        if (navigation.canGoBack()) {
+                            navigation.goBack();
+                        }
+
+                        // Small delay to allow the modal/screen transition
+                        setTimeout(() => {
+                            // @ts-ignore
+                            navigation.navigate('InstructorOnboarding');
+                        }, 100);
+                    }
+                }]
+            );
+        }
+    }, [user]);
+
     // Populate form if editing
     useEffect(() => {
         if (editingLesson) {
@@ -191,6 +216,20 @@ export const CreateLessonScreen: React.FC = () => {
         }
 
         try {
+            // Draft instructor lesson cap: max 3 draft lessons
+            if (user?.role === 'draft-instructor' && !editingLesson) {
+                const existingLessons = await FirestoreService.getLessonsByInstructor(user.id);
+                const draftCount = existingLessons.filter(l => l.status === 'draft' || !l.isActive).length;
+                if (draftCount >= 3) {
+                    Alert.alert(
+                        t('instructor.draftLimitTitle') || 'Taslak Ders Limiti',
+                        t('instructor.draftLimitDesc') || 'Taslak eğitmen olarak en fazla 3 taslak ders oluşturabilirsiniz. Daha fazla ders eklemek için kimliğinizi doğrulayın.',
+                        [{ text: t('common.ok') }]
+                    );
+                    return;
+                }
+            }
+
             const locationData = locationType === 'school' && selectedSchool
                 ? {
                     type: 'school' as const,
@@ -218,7 +257,7 @@ export const CreateLessonScreen: React.FC = () => {
                 imageUrl: selectedImage,
                 instructorId: user?.id || '',
                 instructorName: user?.displayName || '',
-                status: 'active',
+                status: user?.role === 'instructor' ? 'active' : 'draft',
                 currency: currency,
                 ...(locationData ? { location: locationData } : {}),
             };
@@ -233,12 +272,17 @@ export const CreateLessonScreen: React.FC = () => {
             } else {
                 await FirestoreService.createLesson(newLessonData);
                 Alert.alert(t('common.success'), t('lessons.lessonCreateSuccess'), [
-                    { text: t('common.ok'), onPress: () => navigation.goBack() }
+                    {
+                        text: t('common.ok'), onPress: () => {
+                            // @ts-ignore
+                            navigation.navigate('MainTabs', { screen: 'Lessons', params: { initialTab: 'past' } });
+                        }
+                    }
                 ]);
             }
         } catch (error) {
             console.error('Error creating lesson:', error);
-            Alert.alert(t('common.error'), 'Failed to create lesson');
+            Alert.alert(t('common.error'), t('common.errorDesc'));
         }
     };
 
@@ -286,6 +330,14 @@ export const CreateLessonScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={[]}>
+            {user?.role === 'draft-instructor' && (
+                <View style={[styles.warningBanner, { backgroundColor: '#FEF3C7', borderBottomColor: '#FDE68A' }]}>
+                    <MaterialIcons name="info-outline" size={20} color="#D97706" />
+                    <Text style={[styles.warningText, { color: '#D97706' }]}>
+                        {t('lessons.unverifiedWarning') || 'Hesabınız henüz onaylanmadı. Oluşturduğunuz dersler "Taslak" olarak kaydedilecektir.'}
+                    </Text>
+                </View>
+            )}
             <ScrollView
                 style={[styles.scrollView, { backgroundColor: palette.background }]}
                 contentContainerStyle={styles.scrollViewContent}
@@ -551,7 +603,9 @@ export const CreateLessonScreen: React.FC = () => {
                     onPress={handleCreate}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.createButtonText}>{t('lessons.save')}</Text>
+                    <Text style={styles.createButtonText}>
+                        {user?.role === 'draft-instructor' ? (t('lessons.saveAsDraft') || 'Taslak Olarak Kaydet') : t('lessons.save')}
+                    </Text>
                 </TouchableOpacity>
             </SafeAreaView>
 
@@ -1107,6 +1161,18 @@ const styles = StyleSheet.create({
     },
     pickerListContent: {
         padding: spacing.md,
+    },
+    warningBanner: {
+        padding: spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+    },
+    warningText: {
+        marginLeft: spacing.sm,
+        fontSize: typography.fontSize.sm,
+        flex: 1,
+        lineHeight: 20,
     },
     pickerOption: {
         flexDirection: 'row',
