@@ -233,7 +233,12 @@ export const InstructorNavigator: React.FC = () => {
         name="LessonDetail"
         component={LessonDetailScreen}
         options={{
-          headerShown: false,
+          headerShown: true,
+          headerTitle: t('lessons.details'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: { color: palette.text.primary },
           presentation: 'card',
         }}
       />

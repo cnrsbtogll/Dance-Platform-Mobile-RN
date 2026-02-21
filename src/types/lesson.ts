@@ -42,6 +42,8 @@ export interface Lesson {
   schoolId?: string;
   schoolName?: string;
   instructorName?: string;
+  instructorIds?: string[];
+  instructorNames?: string[];
   createdAt: string;
   updatedAt?: string;
 }

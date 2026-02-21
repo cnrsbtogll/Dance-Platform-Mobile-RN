@@ -71,9 +71,11 @@ export const CreateLessonScreen: React.FC = () => {
     const { t } = useTranslation();
     const { isDarkMode } = useThemeStore();
     const { user } = useAuthStore();
-    const palette = getPalette('instructor', isDarkMode);
+    const isSchoolRoles = ['draft-school', 'school'];
+    const isSchool = user?.role ? isSchoolRoles.includes(user.role) : false;
+    const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
-    const currency = user?.currency || 'USD';
+    const currency = user?.currency || 'TRY';
     const currencySymbol = CURRENCY_SYMBOLS[currency];
 
     useEffect(() => {
@@ -118,27 +120,50 @@ export const CreateLessonScreen: React.FC = () => {
     const [danceSchools, setDanceSchools] = useState<{ id: string; name: string }[]>([]);
     const [loadingSchools, setLoadingSchools] = useState(false);
 
+    // Instructor picker state for schools
+    const [instructors, setInstructors] = useState<{ id: string; name: string }[]>([]);
+    const [selectedInstructors, setSelectedInstructors] = useState<{ id: string; name: string }[]>([]);
+    const [showInstructorPicker, setShowInstructorPicker] = useState(false);
+    const [loadingInstructors, setLoadingInstructors] = useState(false);
+
     const availableImages = danceType ? LESSON_IMAGES[danceType] || [] : [];
 
-    // Fetch dance schools from Firebase
+    // Fetch dance schools or instructors from Firebase
     useEffect(() => {
-        const fetchDanceSchools = async () => {
-            setLoadingSchools(true);
-            try {
-                const schools = await FirestoreService.getDanceSchools();
-                setDanceSchools(schools.map(school => ({
-                    id: school.id,
-                    name: school.name
-                })));
-            } catch (error) {
-                console.error('Error fetching dance schools:', error);
-            } finally {
-                setLoadingSchools(false);
-            }
-        };
-
-        fetchDanceSchools();
-    }, []);
+        if (isSchool) {
+            const fetchInstructors = async () => {
+                setLoadingInstructors(true);
+                try {
+                    const instructorsData = await FirestoreService.getInstructors();
+                    setInstructors(instructorsData.map(inst => ({
+                        id: inst.id,
+                        name: inst.displayName || 'İsimsiz Eğitmen'
+                    })));
+                } catch (error) {
+                    console.error('Error fetching instructors:', error);
+                } finally {
+                    setLoadingInstructors(false);
+                }
+            };
+            fetchInstructors();
+        } else {
+            const fetchDanceSchools = async () => {
+                setLoadingSchools(true);
+                try {
+                    const schoolsData = await FirestoreService.getDanceSchools();
+                    setDanceSchools(schoolsData.map(s => ({
+                        id: s.id,
+                        name: s.name
+                    })));
+                } catch (error) {
+                    console.error('Error fetching dance schools:', error);
+                } finally {
+                    setLoadingSchools(false);
+                }
+            };
+            fetchDanceSchools();
+        }
+    }, [isSchool]);
 
     // Check if user has completed onboarding
     useEffect(() => {
@@ -192,10 +217,23 @@ export const CreateLessonScreen: React.FC = () => {
                     setSelectedSchool({ id: loc.schoolId, name: loc.schoolName });
                 } else if (typeof loc === 'object' && loc.type === 'custom') {
                     setLocationType('custom');
-                    setCustomAddress(loc.customAddress);
+                    setCustomAddress(loc.customAddress || loc.address || '');
                 } else if (typeof loc === 'string') {
                     setLocationType('custom');
                     setCustomAddress(loc);
+                }
+            }
+
+            // Instructor setup
+            if (isSchool) {
+                if (editingLesson.instructorIds && editingLesson.instructorIds.length > 0) {
+                    const mapped = editingLesson.instructorIds.map((id, index) => ({
+                        id,
+                        name: editingLesson.instructorNames?.[index] || ''
+                    }));
+                    setSelectedInstructors(mapped);
+                } else if (editingLesson.instructorId) {
+                    setSelectedInstructors([{ id: editingLesson.instructorId, name: editingLesson.instructorName || '' }]);
                 }
             }
         }
@@ -209,68 +247,134 @@ export const CreateLessonScreen: React.FC = () => {
         return `${hours}:${minutes}`;
     };
 
-    const handleCreate = async () => {
-        if (!title || !danceType || !description || !price || !selectedImage) {
-            Alert.alert(t('common.error'), t('lessons.fillAllFields'));
+    const handleSave = async (saveAsDraft: boolean) => {
+        if (!title.trim() || !danceType || !description || !price || !selectedImage) {
+            Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen tüm alanları doldurun.');
+            return;
+        }
+
+        if (selectedDays.length === 0) {
+            Alert.alert(t('common.error'), t('lessons.selectDayError') || 'En az bir gün seçmelisiniz.');
+            return;
+        }
+
+        if (isSchool && selectedInstructors.length === 0) {
+            Alert.alert(t('common.error'), t('lessons.selectInstructorError') || 'Bir eğitmen seçmelisiniz.');
+            return;
+        }
+
+        if (!isSchool) {
+            if (locationType === 'school' && !selectedSchool) {
+                Alert.alert(t('common.error'), t('lessons.selectSchoolError') || 'Bir okul seçmelisiniz.');
+                return;
+            }
+            if (locationType === 'custom' && !customAddress.trim()) {
+                Alert.alert(t('common.error'), t('lessons.enterAddressError') || 'Adres girmelisiniz.');
+                return;
+            }
+        }
+
+        if (!user) {
+            Alert.alert(t('common.error'), 'User is not authenticated.');
             return;
         }
 
         try {
-            // Draft instructor lesson cap: max 3 draft lessons
-            if (user?.role === 'draft-instructor' && !editingLesson) {
-                const existingLessons = await FirestoreService.getLessonsByInstructor(user.id);
+            // Draft role lesson cap: max 3 draft lessons
+            const isDraftRole = user?.role === 'draft-instructor' || user?.role === 'draft-school';
+            if (isDraftRole && !editingLesson) {
+                const existingLessons = user?.role === 'draft-school'
+                    ? await FirestoreService.getLessonsBySchool(user.id)
+                    : await FirestoreService.getLessonsByInstructor(user.id);
+                // Status 'draft' or inactive lessons count towards the limit for draft roles
                 const draftCount = existingLessons.filter(l => l.status === 'draft' || !l.isActive).length;
                 if (draftCount >= 3) {
                     Alert.alert(
-                        t('instructor.draftLimitTitle') || 'Taslak Ders Limiti',
-                        t('instructor.draftLimitDesc') || 'Taslak eğitmen olarak en fazla 3 taslak ders oluşturabilirsiniz. Daha fazla ders eklemek için kimliğinizi doğrulayın.',
+                        user?.role === 'draft-school'
+                            ? (t('school.draftLimitReachedTitle') || 'Taslak Limitine Ulaşıldı')
+                            : (t('instructor.draftLimitTitle') || 'Taslak Ders Limiti'),
+                        user?.role === 'draft-school'
+                            ? (t('school.draftLimitReachedDesc') || 'Hesabınız doğrulanmadan en fazla 3 taslak ders oluşturabilirsiniz. Devam etmek için lütfen belgelerinizi yükleyin.')
+                            : (t('instructor.draftLimitDesc') || 'Taslak eğitmen olarak en fazla 3 taslak ders oluşturabilirsiniz. Daha fazla ders eklemek için kimliğinizi doğrulayın.'),
                         [{ text: t('common.ok') }]
                     );
                     return;
                 }
             }
 
-            const locationData = locationType === 'school' && selectedSchool
-                ? {
-                    type: 'school' as const,
-                    schoolId: selectedSchool.id,
-                    schoolName: selectedSchool.name,
-                }
-                : locationType === 'custom' && customAddress
-                    ? {
-                        type: 'custom' as const,
-                        customAddress: customAddress,
-                    }
-                    : null;
+            let finalImageUrl = selectedImage; // Assuming selectedImage is already a URL or base64
+            // If selectedImage is a local asset reference (e.g., from require), it might be a number.
+            // For simplicity, we'll assume it's a string URL or base64 for now.
+            // If it's a local asset, it would typically be uploaded first.
+            // This part might need more robust handling depending on how `selectedImage` is managed.
+            // For example, if `selectedImage` is a local file URI, it needs to be uploaded to storage.
+            // For this change, we'll assume `selectedImage` is ready to be stored as a string URL.
 
-            const newLessonData = {
-                id: '', // Will be generated by Firestore
+            // Base lesson object
+            const now = new Date();
+            const lessonData: Partial<Lesson> = {
                 title,
                 name: title,
                 description,
-                category: danceType,
+                category: danceType as any,
                 danceStyle: danceType,
-                price: parseFloat(price),
+                price: Number(price),
+                currency,
                 duration,
                 daysOfWeek: selectedDays,
-                time: selectedTime ? formatTime(selectedTime) : '19:00',
-                imageUrl: selectedImage,
-                instructorId: user?.id || '',
-                instructorName: user?.displayName || '',
-                status: user?.role === 'instructor' ? 'active' : 'draft',
-                currency: currency,
-                ...(locationData ? { location: locationData } : {}),
+                time: selectedTime ? `${selectedTime.getHours().toString().padStart(2, '0')}:${selectedTime.getMinutes().toString().padStart(2, '0')}` : undefined,
+                imageUrl: finalImageUrl,
+                status: user?.role === 'instructor' ? 'active' : 'draft', // Default status based on user role
+                isActive: user?.role === 'instructor', // Default isActive based on user role
+                rating: editingLesson?.rating || 0,
+                reviewCount: editingLesson?.reviewCount || 0,
+                favoriteCount: editingLesson?.favoriteCount || 0,
+                createdAt: editingLesson?.createdAt || now.toISOString(),
+                updatedAt: now.toISOString()
             };
 
-            console.log('Saving lesson:', newLessonData);
+            if (isSchool) {
+                // If the user is a school, they set the instructors themselves
+                lessonData.instructorIds = selectedInstructors.map(i => i.id);
+                lessonData.instructorNames = selectedInstructors.map(i => i.name);
+                lessonData.instructorId = selectedInstructors.length > 0 ? selectedInstructors[0].id : '';
+                lessonData.instructorName = selectedInstructors.length > 0 ? selectedInstructors[0].name : '';
+                lessonData.schoolId = user.id;
+                lessonData.schoolName = user.schoolName || user.firstName + (user.lastName ? ' ' + user.lastName : '');
+                lessonData.location = {
+                    type: 'school',
+                    schoolId: user.id,
+                    schoolName: user.schoolName || user.firstName + (user.lastName ? ' ' + user.lastName : ''),
+                };
+            } else {
+                // If the user is an instructor, they set the location
+                lessonData.instructorId = user.id;
+                lessonData.instructorName = user.firstName ? user.firstName + (user.lastName ? ' ' + user.lastName : '') : 'Eğitmen';
+                if (locationType === 'school' && selectedSchool) {
+                    lessonData.schoolId = selectedSchool.id;
+                    lessonData.schoolName = selectedSchool.name;
+                    lessonData.location = {
+                        type: 'school',
+                        schoolId: selectedSchool.id,
+                        schoolName: selectedSchool.name,
+                    };
+                } else {
+                    lessonData.location = {
+                        type: 'custom',
+                        customAddress: customAddress.trim()
+                    };
+                }
+            }
+
+            console.log('Saving lesson:', lessonData);
 
             if (editingLesson) {
-                await FirestoreService.updateLesson(editingLesson.id, newLessonData);
+                await FirestoreService.updateLesson(editingLesson.id, lessonData);
                 Alert.alert(t('common.success'), 'Lesson updated successfully', [
                     { text: t('common.ok'), onPress: () => navigation.goBack() }
                 ]);
             } else {
-                await FirestoreService.createLesson(newLessonData);
+                await FirestoreService.createLesson(lessonData);
                 Alert.alert(t('common.success'), t('lessons.lessonCreateSuccess'), [
                     {
                         text: t('common.ok'), onPress: () => {
@@ -330,7 +434,7 @@ export const CreateLessonScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={[]}>
-            {user?.role === 'draft-instructor' && (
+            {(user?.role === 'draft-instructor' || user?.role === 'draft-school') && (
                 <View style={[styles.warningBanner, { backgroundColor: '#FEF3C7', borderBottomColor: '#FDE68A' }]}>
                     <MaterialIcons name="info-outline" size={20} color="#D97706" />
                     <Text style={[styles.warningText, { color: '#D97706' }]}>
@@ -499,96 +603,125 @@ export const CreateLessonScreen: React.FC = () => {
                     </Card>
                 </View>
 
-                {/* Location Selection */}
+                {/* Location or Instructor Selection depending on User Role */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
+                        {isSchool ? (
+                            <>
+                                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructorSelection') || 'Eğitmen Seçimi'}</Text>
 
-                        {/* Location Type Toggle */}
-                        <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
-                            <View style={styles.locationTypeContainer}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.locationTypeButton,
-                                        { borderColor: palette.border },
-                                        locationType === 'school' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
-                                    ]}
-                                    onPress={() => setLocationType('school')}
-                                    activeOpacity={0.7}
-                                >
-                                    <MaterialIcons
-                                        name="school"
-                                        size={20}
-                                        color={locationType === 'school' ? '#ffffff' : palette.text.secondary}
-                                    />
-                                    <Text style={[
-                                        styles.locationTypeText,
-                                        { color: locationType === 'school' ? '#ffffff' : palette.text.primary }
-                                    ]}>
-                                        {t('lessons.danceSchool')}
-                                    </Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={[
-                                        styles.locationTypeButton,
-                                        { borderColor: palette.border },
-                                        locationType === 'custom' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
-                                    ]}
-                                    onPress={() => setLocationType('custom')}
-                                    activeOpacity={0.7}
-                                >
-                                    <MaterialIcons
-                                        name="location-on"
-                                        size={20}
-                                        color={locationType === 'custom' ? '#ffffff' : palette.text.secondary}
-                                    />
-                                    <Text style={[
-                                        styles.locationTypeText,
-                                        { color: locationType === 'custom' ? '#ffffff' : palette.text.primary }
-                                    ]}>
-                                        {t('lessons.customAddress')}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            {/* School Selector */}
-                            {locationType === 'school' && (
-                                <View style={styles.inputGroup}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
-                                    <TouchableOpacity
-                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                        onPress={() => setShowSchoolPicker(true)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={[styles.selectInputText, { color: selectedSchool ? palette.text.primary : palette.text.secondary }]}>
-                                            {selectedSchool?.name || t('lessons.selectDanceSchool')}
-                                        </Text>
-                                        <MaterialIcons
-                                            name="keyboard-arrow-down"
-                                            size={24}
-                                            color={palette.text.secondary}
-                                        />
-                                    </TouchableOpacity>
+                                {/* Instructor Selector Box for Schools */}
+                                <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                                    <View style={styles.inputGroup}>
+                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu dersi kim verecek?'}</Text>
+                                        <TouchableOpacity
+                                            style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                            onPress={() => setShowInstructorPicker(true)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Text style={[styles.selectInputText, { color: selectedInstructors.length > 0 ? palette.text.primary : palette.text.secondary }]}>
+                                                {selectedInstructors.length > 0 ? selectedInstructors.map(i => i.name).join(', ') : (t('lessons.selectInstructorPlaceholder') || 'Bir eğitmen seçin')}
+                                            </Text>
+                                            <MaterialIcons
+                                                name="keyboard-arrow-down"
+                                                size={24}
+                                                color={palette.text.secondary}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                            )}
+                            </>
+                        ) : (
+                            <>
+                                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
 
-                            {/* Custom Address Input */}
-                            {locationType === 'custom' && (
-                                <View style={styles.inputGroup}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
-                                    <TextInput
-                                        style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                        placeholder={t('lessons.addressPlaceholder')}
-                                        placeholderTextColor={palette.text.secondary}
-                                        value={customAddress}
-                                        onChangeText={setCustomAddress}
-                                        multiline
-                                        numberOfLines={2}
-                                    />
+                                {/* Location Type Toggle */}
+                                <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                                    <View style={styles.locationTypeContainer}>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.locationTypeButton,
+                                                { borderColor: palette.border },
+                                                locationType === 'school' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
+                                            ]}
+                                            onPress={() => setLocationType('school')}
+                                            activeOpacity={0.7}
+                                        >
+                                            <MaterialIcons
+                                                name="school"
+                                                size={20}
+                                                color={locationType === 'school' ? '#ffffff' : palette.text.secondary}
+                                            />
+                                            <Text style={[
+                                                styles.locationTypeText,
+                                                { color: locationType === 'school' ? '#ffffff' : palette.text.primary }
+                                            ]}>
+                                                {t('lessons.danceSchool')}
+                                            </Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.locationTypeButton,
+                                                { borderColor: palette.border },
+                                                locationType === 'custom' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
+                                            ]}
+                                            onPress={() => setLocationType('custom')}
+                                            activeOpacity={0.7}
+                                        >
+                                            <MaterialIcons
+                                                name="location-on"
+                                                size={20}
+                                                color={locationType === 'custom' ? '#ffffff' : palette.text.secondary}
+                                            />
+                                            <Text style={[
+                                                styles.locationTypeText,
+                                                { color: locationType === 'custom' ? '#ffffff' : palette.text.primary }
+                                            ]}>
+                                                {t('lessons.customAddress')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* School Selector */}
+                                    {locationType === 'school' && (
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
+                                            <TouchableOpacity
+                                                style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                                onPress={() => setShowSchoolPicker(true)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[styles.selectInputText, { color: selectedSchool ? palette.text.primary : palette.text.secondary }]}>
+                                                    {selectedSchool?.name || t('lessons.selectDanceSchool')}
+                                                </Text>
+                                                <MaterialIcons
+                                                    name="keyboard-arrow-down"
+                                                    size={24}
+                                                    color={palette.text.secondary}
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+
+                                    {/* Custom Address Input */}
+                                    {locationType === 'custom' && (
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
+                                            <TextInput
+                                                style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                                placeholder={t('lessons.addressPlaceholder')}
+                                                placeholderTextColor={palette.text.secondary}
+                                                value={customAddress}
+                                                onChangeText={setCustomAddress}
+                                                multiline
+                                                numberOfLines={2}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
-                            )}
-                        </View>
+                            </>
+                        )}
                     </Card>
                 </View>
 
@@ -600,11 +733,11 @@ export const CreateLessonScreen: React.FC = () => {
             <SafeAreaView edges={['bottom']} style={[styles.bottomButtonContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
                 <TouchableOpacity
                     style={[styles.createButton, { backgroundColor: palette.secondary }]}
-                    onPress={handleCreate}
+                    onPress={() => handleSave(user?.role === 'draft-instructor' || user?.role === 'draft-school')}
                     activeOpacity={0.8}
                 >
                     <Text style={styles.createButtonText}>
-                        {user?.role === 'draft-instructor' ? (t('lessons.saveAsDraft') || 'Taslak Olarak Kaydet') : t('lessons.save')}
+                        {(user?.role === 'draft-instructor' || user?.role === 'draft-school') ? (t('lessons.saveAsDraft') || 'Taslak Olarak Kaydet') : t('lessons.save')}
                     </Text>
                 </TouchableOpacity>
             </SafeAreaView>
@@ -815,6 +948,71 @@ export const CreateLessonScreen: React.FC = () => {
                 </View>
             </Modal>
 
+            {/* Instructor Picker Modal */}
+            <Modal
+                visible={showInstructorPicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowInstructorPicker(false)}
+            >
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('school.instructorSelection') || 'Eğitmen Seçimi'}</Text>
+                            <TouchableOpacity onPress={() => setShowInstructorPicker(false)}>
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={instructors}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => {
+                                const isSelected = selectedInstructors.some(i => i.id === item.id);
+                                return (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.pickerOption,
+                                            { borderBottomColor: palette.border },
+                                            isSelected && styles.pickerOptionSelected,
+                                        ]}
+                                        onPress={() => {
+                                            if (isSelected) {
+                                                setSelectedInstructors(prev => prev.filter(i => i.id !== item.id));
+                                            } else {
+                                                setSelectedInstructors(prev => [...prev, item]);
+                                            }
+                                        }}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.pickerOptionText,
+                                                { color: palette.text.primary },
+                                                isSelected && styles.pickerOptionTextSelected,
+                                            ]}
+                                        >
+                                            {item.name}
+                                        </Text>
+                                        {isSelected && (
+                                            <MaterialIcons
+                                                name="check"
+                                                size={24}
+                                                color={colors.school.primary}
+                                            />
+                                        )}
+                                    </TouchableOpacity>
+                                )
+                            }}
+                            contentContainerStyle={styles.pickerListContent}
+                            ListEmptyComponent={
+                                <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                                    <Text style={{ color: palette.text.secondary }}>{'Listelenecek eğitmen bulunamadı.'}</Text>
+                                </View>
+                            }
+                        />
+                    </View>
+                </View>
+            </Modal>
+
             {/* School Picker Modal */}
             <Modal
                 visible={showSchoolPicker}
@@ -873,7 +1071,7 @@ export const CreateLessonScreen: React.FC = () => {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 

@@ -30,6 +30,7 @@ const COLLECTIONS = {
   DANCE_SCHOOLS: 'schools',
   BOOKINGS: 'bookings',
   INSTRUCTOR_REQUESTS: 'instructorRequests',
+  SCHOOL_REQUESTS: 'schoolRequests',
 };
 
 // Helper to convert Firestore doc to typed object
@@ -134,6 +135,29 @@ export class FirestoreService {
     }
   }
 
+  static async createSchoolRequest(data: {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    userEmail: string;
+    schoolName: string;
+    schoolAddress: string;
+    contactNumber: string;
+    contactPerson: string;
+    instagramHandle?: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: string;
+    updatedAt: string;
+  }): Promise<void> {
+    try {
+      const colRef = collection(db, COLLECTIONS.SCHOOL_REQUESTS);
+      await addDoc(colRef, data);
+    } catch (error) {
+      console.error('Error creating school request:', error);
+      throw error;
+    }
+  }
+
   static async getInstructorRequestStatus(userId: string): Promise<string | null> {
     try {
       const q = query(
@@ -149,6 +173,25 @@ export class FirestoreService {
       return null;
     } catch (error) {
       console.error('Error getting instructor request status:', error);
+      return null;
+    }
+  }
+
+  static async getSchoolRequestStatus(userId: string): Promise<string | null> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.SCHOOL_REQUESTS),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data().status;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting school request status:', error);
       return null;
     }
   }
@@ -237,6 +280,52 @@ export class FirestoreService {
       return lessons;
     } catch (error) {
       console.error('Error fetching instructor lessons:', error);
+      return [];
+    }
+  }
+
+  static async getLessonsBySchool(schoolId: string): Promise<Lesson[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.COURSES), 
+        where('schoolId', '==', schoolId)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      const lessons = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          title: data.name || data.title || '',
+          name: data.name || '',
+          description: data.description || '',
+          category: data.danceStyle || 'Other',
+          danceStyle: data.danceStyle || 'Other',
+          instructorId: data.instructorId || '',
+          price: data.price || 0,
+          currency: data.currency,
+          duration: data.duration || 60,
+          time: data.time,
+          daysOfWeek: data.daysOfWeek || [],
+          imageUrl: data.imageUrl,
+          level: data.level || 'Beginner',
+          maxStudents: data.maxStudents || 10,
+          schedule: data.schedule || [],
+          location: data.location || '',
+          isActive: data.status === 'active',
+          status: data.status || (data.isActive ? 'active' : 'inactive'),
+          rating: data.rating || 0,
+          totalReviews: data.totalReviews || 0,
+          reviewCount: data.reviewCount || 0,
+          favoriteCount: data.favoriteCount || 0,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+        } as Lesson;
+      });
+      
+      return lessons;
+    } catch (error) {
+      console.error('Error fetching school lessons:', error);
       return [];
     }
   }

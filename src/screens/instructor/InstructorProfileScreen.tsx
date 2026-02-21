@@ -29,7 +29,9 @@ export const InstructorProfileScreen: React.FC = () => {
   const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const palette = getPalette('instructor', isDarkMode);
+
+  const isSchool = user?.role === 'school' || user?.role === 'draft-school';
+  const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
   const currentCurrency: Currency = user?.currency || getDefaultCurrency();
 
@@ -50,7 +52,7 @@ export const InstructorProfileScreen: React.FC = () => {
       },
       headerLeft: () => (
         <View style={{
-          backgroundColor: colors.instructor.secondary,
+          backgroundColor: isSchool ? colors.school.primary : colors.instructor.secondary,
           paddingHorizontal: spacing.sm,
           paddingVertical: 4,
           borderRadius: borderRadius.full,
@@ -61,12 +63,12 @@ export const InstructorProfileScreen: React.FC = () => {
             fontWeight: typography.fontWeight.bold,
             color: '#ffffff',
           }}>
-            {t('instructor.badge')}
+            {isSchool ? (t('school.badge') || 'OKUL') : t('instructor.badge')}
           </Text>
         </View>
       ),
     });
-  }, [navigation, isDarkMode, palette, t]);
+  }, [navigation, isDarkMode, palette, t, isSchool]);
 
   const handleLogout = async () => {
     await logout();
@@ -154,7 +156,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={isDarkMode}
           onValueChange={setDarkMode}
-          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: isSchool ? colors.school.primary : colors.instructor.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -208,14 +210,14 @@ export const InstructorProfileScreen: React.FC = () => {
                   ? '#e53e3e20'
                   : item.iconColor
                     ? `${item.iconColor}20`
-                    : `${colors.instructor.primary}20`,
+                    : `${isSchool ? colors.school.primary : colors.instructor.primary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.instructor.primary}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || (isSchool ? colors.school.primary : colors.instructor.primary)}
             />
           </View>
           <Text
@@ -264,7 +266,7 @@ export const InstructorProfileScreen: React.FC = () => {
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: colors.instructor.primary }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.editProfileLink, { color: isSchool ? colors.school.primary : colors.instructor.primary }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -361,7 +363,7 @@ export const InstructorProfileScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.languageOption,
-                language === 'tr' && { backgroundColor: `${colors.instructor.secondary}20` },
+                language === 'tr' && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
               ]}
               onPress={() => {
                 setLanguage('tr');
@@ -372,14 +374,14 @@ export const InstructorProfileScreen: React.FC = () => {
                 {t('profile.turkish')}
               </Text>
               {language === 'tr' && (
-                <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.languageOption,
-                language === 'en' && { backgroundColor: `${colors.instructor.secondary}20` },
+                language === 'en' && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
               ]}
               onPress={() => {
                 setLanguage('en');
@@ -390,7 +392,7 @@ export const InstructorProfileScreen: React.FC = () => {
                 {t('profile.english')}
               </Text>
               {language === 'en' && (
-                <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
               )}
             </TouchableOpacity>
           </View>
@@ -427,7 +429,7 @@ export const InstructorProfileScreen: React.FC = () => {
                 key={currency.code}
                 style={[
                   styles.languageOption,
-                  currentCurrency === currency.code && { backgroundColor: `${colors.instructor.secondary}20` },
+                  currentCurrency === currency.code && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
                 ]}
                 onPress={() => {
                   updateCurrency(currency.code);
@@ -443,7 +445,7 @@ export const InstructorProfileScreen: React.FC = () => {
                   </Text>
                 </View>
                 {currentCurrency === currency.code && (
-                  <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                  <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
                 )}
               </TouchableOpacity>
             ))}

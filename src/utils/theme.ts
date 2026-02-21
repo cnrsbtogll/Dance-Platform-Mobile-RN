@@ -50,6 +50,29 @@ export const colors = {
     },
   },
   
+  // School Home Page
+  school: {
+    primary: '#D97706', // Yellow-brown / Amber
+    secondary: '#92400E',
+    background: {
+      light: '#FFFBEB',
+      dark: '#101922',
+    },
+    text: {
+      lightPrimary: '#451A03',
+      lightSecondary: '#78350F',
+      dark: '#FEF3C7',
+    },
+    card: {
+      light: '#FFFFFF',
+      dark: '#1a2632',
+    },
+    border: {
+      light: '#FDE68A',
+      dark: '#78350F',
+    },
+  },
+  
   // Lesson Creation
   lessonCreation: {
     primary: '#137fec',
@@ -151,12 +174,13 @@ export const shadows = {
 };
 
 // Helper function to get theme based on user role
-export const getTheme = (role: 'student' | 'instructor' = 'student') => {
+export const getTheme = (role: 'student' | 'instructor' | 'school' = 'student') => {
+  if (role === 'school') return colors.school;
   return role === 'student' ? colors.student : colors.instructor;
 };
 
-export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
-  const base = role === 'student' ? colors.student : colors.instructor;
+export const getPalette = (role: 'student' | 'instructor' | 'school', dark: boolean) => {
+  const base = role === 'school' ? colors.school : (role === 'student' ? colors.student : colors.instructor);
   const background = dark ? base.background.dark : base.background.light;
   const card = dark ? base.card.dark : base.card.light;
   const border = dark ? base.border.dark : base.border.light;
@@ -165,10 +189,15 @@ export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
         primary: dark ? colors.student.text.primaryDark : colors.student.text.primaryLight,
         secondary: dark ? '#CBD5E1' : colors.student.text.secondaryLight,
       }
-    : {
-        primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
-        secondary: dark ? '#CBD5E1' : colors.instructor.text.lightSecondary,
-      };
+    : role === 'school'
+      ? {
+          primary: dark ? colors.school.text.dark : colors.school.text.lightPrimary,
+          secondary: dark ? '#FDE68A' : colors.school.text.lightSecondary,
+        }
+      : {
+          primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
+          secondary: dark ? '#CBD5E1' : colors.instructor.text.lightSecondary,
+        };
   return {
     primary: base.primary,
     secondary: base.secondary,

@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StudentNavigator } from './StudentNavigator';
 import { InstructorNavigator } from './InstructorNavigator';
+import { SchoolNavigator } from './SchoolNavigator';
 import { useAuthStore } from '../store/useAuthStore';
 import { MockDataService } from '../services/mockDataService';
 import { User } from '../types';
@@ -24,6 +25,9 @@ export const RootNavigator: React.FC = () => {
       const isInstructorRole = user?.role === 'instructor' || user?.role === 'draft-instructor';
       const wasInstructorRole = prevUser?.role === 'instructor' || prevUser?.role === 'draft-instructor';
 
+      const isSchoolRole = user?.role === 'school' || user?.role === 'draft-school';
+      const wasSchoolRole = prevUser?.role === 'school' || prevUser?.role === 'draft-school';
+
       if (isInstructorRole && !wasInstructorRole) {
         navigationRef.current.reset({
           index: 0,
@@ -31,8 +35,15 @@ export const RootNavigator: React.FC = () => {
         });
       }
 
+      if (isSchoolRole && !wasSchoolRole) {
+        navigationRef.current.reset({
+          index: 0,
+          routes: [{ name: 'School' }],
+        });
+      }
+
       // 2. Logout / Delete Account / Downgrade (User becomes null, or role changes to student)
-      if ((!user || user.role === 'student') && wasInstructorRole) {
+      if ((!user || user.role === 'student') && (wasInstructorRole || wasSchoolRole)) {
         navigationRef.current.reset({
           index: 0,
           routes: [{ name: 'Student' }],
@@ -55,16 +66,21 @@ export const RootNavigator: React.FC = () => {
   // Auto-login an instructor user for testing - hem login olmuş hem eğitmen olmuş kullanıcı
 
 
-  const initialRouteName = (user?.role === 'instructor' || user?.role === 'draft-instructor') ? 'Instructor' : 'Student';
+  const getInitialRoute = () => {
+    if (user?.role === 'instructor' || user?.role === 'draft-instructor') return 'Instructor';
+    if (user?.role === 'school' || user?.role === 'draft-school') return 'School';
+    return 'Student';
+  };
 
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName={initialRouteName}
+        initialRouteName={getInitialRoute()}
       >
         <Stack.Screen name="Student" component={StudentNavigator} />
         <Stack.Screen name="Instructor" component={InstructorNavigator} />
+        <Stack.Screen name="School" component={SchoolNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

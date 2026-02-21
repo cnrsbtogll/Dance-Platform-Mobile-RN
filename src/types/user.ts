@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'instructor' | 'admin' | 'draft-instructor';
+export type UserRole = 'student' | 'instructor' | 'admin' | 'draft-instructor' | 'school' | 'draft-school';
 export type Currency = 'USD' | 'EUR' | 'TRY';
 
 export interface User {
@@ -21,5 +21,12 @@ export interface User {
   updatedAt?: string;
   isVerified?: boolean;
   onboardingCompleted?: boolean;
+  // School specific fields
+  schoolName?: string;
+  schoolAddress?: string;
+  contactNumber?: string;
+  contactPerson?: string;
+  instagramHandle?: string;
+  verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
 }
 

@@ -16,6 +16,7 @@ import { NewChatScreen } from '../screens/student/NewChatScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { BecomeInstructorScreen } from '../screens/shared/BecomeInstructorScreen';
+import { BecomeSchoolScreen } from '../screens/shared/BecomeSchoolScreen';
 import { LoginScreen } from '../screens/shared/LoginScreen';
 import { LessonDetailScreen } from '../screens/student/LessonDetailScreen';
 import { PaymentScreen } from '../screens/student/PaymentScreen';
@@ -197,7 +198,12 @@ export const StudentNavigator: React.FC = () => {
         name="LessonDetail"
         component={LessonDetailScreen}
         options={{
-          headerShown: false,
+          headerShown: true,
+          headerTitle: t('lessons.details'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: { color: palette.text.primary },
           presentation: 'card',
         }}
       />
@@ -288,6 +294,21 @@ export const StudentNavigator: React.FC = () => {
         options={{
           headerShown: true,
           headerTitle: t('becomeInstructor.title'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: {
+            color: palette.text.primary,
+          },
+        }}
+      />
+      <Stack.Screen
+        name="BecomeSchool"
+        component={BecomeSchoolScreen}
+        initialParams={{ mode: 'student' }}
+        options={{
+          headerShown: true,
+          headerTitle: t('becomeSchool.title'),
           headerBackTitle: '',
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,

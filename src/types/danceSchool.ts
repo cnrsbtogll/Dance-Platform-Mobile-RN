@@ -9,6 +9,8 @@ export interface DanceSchool {
   website?: string;
   description?: string;
   imageUrl?: string;
+  contactPerson?: string;
+  instagramHandle?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;

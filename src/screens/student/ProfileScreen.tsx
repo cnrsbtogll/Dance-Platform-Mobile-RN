@@ -46,6 +46,19 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
+  const handleSwitchToSchoolMode = () => {
+    // Navigate to School mode using CommonActions
+    const rootNavigation = navigation.getParent()?.getParent();
+    if (rootNavigation) {
+      rootNavigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'School' }],
+        })
+      );
+    }
+  };
+
   const accountSettings: SettingItem[] = [
     {
       id: 'account',
@@ -214,7 +227,7 @@ export const ProfileScreen: React.FC = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>
-              {user?.name || t('profile.defaultName')}
+              {user?.name || t('common.guest')}
             </Text>
             {isAuthenticated && user && (
               <TouchableOpacity onPress={() => {
@@ -235,6 +248,18 @@ export const ProfileScreen: React.FC = () => {
             onPress={handleSwitchToInstructorMode}
           >
             <Text style={styles.switchModeButtonText}>{t('profile.switchToInstructorMode')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Switch to School Mode Button - if user is school or draft-school */}
+        {isAuthenticated && (user?.role === 'school' || user?.role === 'draft-school') && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={handleSwitchToSchoolMode}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.switchToSchoolMode') || 'Okul Moduna Geç'}</Text>
           </TouchableOpacity>
         )}
 
@@ -263,6 +288,20 @@ export const ProfileScreen: React.FC = () => {
             }}
           >
             <Text style={styles.switchModeButtonText}>{t('profile.becomeInstructor')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Become School Button - if user is student or not logged in */}
+        {(!isAuthenticated || user?.role === 'student') && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              (navigation as any).getParent()?.navigate('BecomeSchool');
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.becomeSchool') || 'Dans Okulu Aç'}</Text>
           </TouchableOpacity>
         )}
 

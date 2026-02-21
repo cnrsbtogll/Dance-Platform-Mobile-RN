@@ -19,7 +19,8 @@ export const EarningsDetailsScreen: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('instructor', isDarkMode);
+  const isSchool = user?.role === 'school' || user?.role === 'draft-school';
+  const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
   const { getUserBookings, fetchUserBookings } = useBookingStore();
   const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
@@ -28,7 +29,7 @@ export const EarningsDetailsScreen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       const fetchLessons = async () => {
-        if (!user || user.role !== 'instructor') return;
+        if (!user || (user.role !== 'instructor' && !isSchool)) return;
         try {
           const lessons = await FirestoreService.getLessonsByInstructor(user.id);
           setInstructorLessons(lessons);
@@ -46,7 +47,7 @@ export const EarningsDetailsScreen: React.FC = () => {
 
   // Get instructor's bookings
   const instructorBookings = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
+    if (!user || (user.role !== 'instructor' && !isSchool)) return [];
     return getUserBookings()
       .filter((b: any) => b.status !== 'cancelled')
       .sort((a, b) => {
@@ -174,7 +175,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                           styles.chartBar,
                           {
                             height: `${barHeight}%`,
-                            backgroundColor: colors.instructor.secondary,
+                            backgroundColor: isSchool ? colors.school.primary : colors.instructor.secondary,
                           },
                         ]}
                       />
@@ -213,11 +214,11 @@ export const EarningsDetailsScreen: React.FC = () => {
                 <Card key={booking.id} style={[styles.earningItem, { backgroundColor: palette.card }]}>
                   <View style={styles.earningItemContent}>
                     <View style={styles.earningItemLeft}>
-                      <View style={[styles.earningIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
+                      <View style={[styles.earningIconContainer, { backgroundColor: (isSchool ? colors.school.primary : colors.instructor.secondary) + '15' }]}>
                         <MaterialIcons
                           name="account-balance-wallet"
                           size={20}
-                          color={colors.instructor.secondary}
+                          color={isSchool ? colors.school.primary : colors.instructor.secondary}
                         />
                       </View>
                       <View style={styles.earningItemInfo}>
@@ -233,7 +234,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                       </View>
                     </View>
                     <View style={styles.earningItemRight}>
-                      <Text style={[styles.earningAmount, { color: colors.instructor.primary }]}>
+                      <Text style={[styles.earningAmount, { color: isSchool ? colors.school.primary : colors.instructor.primary }]}>
                         {formatPrice(booking.price, user?.currency)}
                       </Text>
                       <View style={[styles.earningStatusBadge, { backgroundColor: booking.paymentStatus === 'paid' ? '#10B981' + '20' : '#F59E0B' + '20' }]}>

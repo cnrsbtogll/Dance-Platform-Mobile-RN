@@ -106,7 +106,11 @@ export const AccountInformationScreen: React.FC = () => {
 
           <View style={[styles.roleBadge, { backgroundColor: palette.primary + '20' }]}>
             <Text style={[styles.roleText, { color: palette.primary }]}>
-              {user.role === 'instructor' ? t('profile.instructor') : t('lessons.student')}
+              {user.role === 'instructor'
+                ? t('profile.instructor')
+                : (user.role === 'school' || user.role === 'draft-school')
+                  ? t('school.badge')
+                  : t('lessons.student')}
             </Text>
           </View>
         </View>
@@ -117,9 +121,24 @@ export const AccountInformationScreen: React.FC = () => {
           <Card style={[styles.card, { backgroundColor: palette.card }]}>
             <InfoItem icon="person" label={t('accountInfo.fullName')} value={user.name || '-'} />
             <InfoItem icon="email" label={t('auth.email')} value={user.email} />
+            {/* Phone — instructor & school */}
+            {(user.role === 'instructor' || user.role === 'draft-instructor') && user.phoneNumber && (
+              <InfoItem icon="phone" label={t('onboarding.phoneLabel')} value={user.phoneNumber} />
+            )}
+            {/* School specific */}
+            {(user.role === 'school' || user.role === 'draft-school') && (
+              <>
+                {user.schoolName && <InfoItem icon="business" label={t('becomeSchool.schoolNamePlaceholder').replace(' *', '')} value={user.schoolName} />}
+                {user.schoolAddress && <InfoItem icon="location-on" label={t('becomeSchool.schoolAddressPlaceholder').replace(' *', '')} value={user.schoolAddress} />}
+                {user.contactPerson && <InfoItem icon="person-outline" label={t('becomeSchool.contactPersonPlaceholder').replace(' *', '')} value={user.contactPerson} />}
+                {user.contactNumber && <InfoItem icon="phone" label={t('becomeSchool.contactNumberPlaceholder').replace(' *', '')} value={user.contactNumber} />}
+                {user.instagramHandle && <InfoItem icon="link" label="Instagram" value={`@${user.instagramHandle.replace('@', '')}`} />}
+              </>
+            )}
             <InfoItem icon="calendar-today" label={t('accountInfo.memberSince')} value={formatCreatedDate(user.createdAt)} isLast={!user.bio} />
           </Card>
         </View>
+
 
         {/* Bio Section */}
         {user.bio && (

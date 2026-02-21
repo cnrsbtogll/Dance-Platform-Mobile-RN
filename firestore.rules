@@ -16,6 +16,11 @@ service cloud.firestore {
     function isInstructor() {
       return request.auth != null && (getUserRole() == 'instructor' || getUserRole() == 'draft-instructor');
     }
+
+    // Kullanıcı school mu?
+    function isSchool() {
+      return request.auth != null && (getUserRole() == 'school' || getUserRole() == 'draft-school');
+    }
     
     // Kullanıcı admin mi?
     function isAdmin() {
@@ -34,22 +39,26 @@ service cloud.firestore {
       // Herkes okuyabilir (giriş yapmadan da)
       allow read: if true;
       
-      // Sadece instructor'lar kendi derslerini oluşturabilir
-      allow create: if isAuthenticated() && 
-                      isInstructor() && 
-                      request.resource.data.instructorId == request.auth.uid;
+      // Sadece instructor'lar veya school'lar kendi derslerini oluşturabilir
+      allow create: if isAuthenticated() && (
+                      (isInstructor() && request.resource.data.instructorId == request.auth.uid) ||
+                      (isSchool() && request.resource.data.schoolId == request.auth.uid)
+                    );
       
-      // Instructor kendi dersini güncelleyebilir
+      // Instructor veya School kendi dersini güncelleyebilir
       allow update: if isAuthenticated() && 
                       (
                         (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        (isSchool() && resource.data.schoolId == request.auth.uid) ||
                         isAdmin()
                       );
 
-      // Instructor sadece kendi dersini silebilir
+      // Instructor veya School sadece kendi dersini silebilir
       allow delete: if isAuthenticated() && 
-                      isInstructor() && 
-                      resource.data.instructorId == request.auth.uid;
+                      (
+                        (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        (isSchool() && resource.data.schoolId == request.auth.uid)
+                      );
     }
 
     // ==========================================
@@ -59,22 +68,26 @@ service cloud.firestore {
       // Herkes okuyabilir (giriş yapmadan da)
       allow read: if true;
       
-      // Sadece instructor'lar kendi kurslarını oluşturabilir
-      allow create: if isAuthenticated() && 
-                      isInstructor() && 
-                      request.resource.data.instructorId == request.auth.uid;
+      // Sadece instructor'lar veya school'lar kendi kurslarını oluşturabilir
+      allow create: if isAuthenticated() && (
+                      (isInstructor() && request.resource.data.instructorId == request.auth.uid) ||
+                      (isSchool() && request.resource.data.schoolId == request.auth.uid)
+                    );
       
-      // Instructor kendi kursunu güncelleyebilir, öğrenci sadece istatistikleri güncelleyebilir
+      // Instructor/School kendi kursunu güncelleyebilir, öğrenci sadece istatistikleri güncelleyebilir
       allow update: if isAuthenticated() && 
                       (
                         (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        (isSchool() && resource.data.schoolId == request.auth.uid) ||
                         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantStats', 'updatedAt', 'currentParticipants']))
                       );
 
-      // Instructor sadece kendi kursunu silebilir
+      // Instructor/School sadece kendi kursunu silebilir
       allow delete: if isAuthenticated() && 
-                      isInstructor() && 
-                      resource.data.instructorId == request.auth.uid;
+                      (
+                        (isInstructor() && resource.data.instructorId == request.auth.uid) ||
+                        (isSchool() && resource.data.schoolId == request.auth.uid)
+                      );
     }
     
     // ==========================================

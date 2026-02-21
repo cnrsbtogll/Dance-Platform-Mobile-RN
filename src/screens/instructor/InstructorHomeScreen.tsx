@@ -196,11 +196,10 @@ export const InstructorHomeScreen: React.FC = () => {
           <TouchableOpacity
             style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs }}
             onPress={() => {
-              console.log('[InstructorHome] Header Add clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
               if (user && !user.onboardingCompleted) {
                 Alert.alert(
-                  t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-                  t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                  t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
+                  t('instructor.onboardingRequiredDesc') || 'Ders oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
                   [{
                     text: t('common.ok'),
                     onPress: () => {
@@ -279,7 +278,7 @@ export const InstructorHomeScreen: React.FC = () => {
             </View>
 
             <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
-              {t('instructor.verificationStepDesc') || 'Eğitmen olarak ders vermeye başlamanız için sadece 3 küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
+              {t('instructor.verificationStepDesc') || 'Eğitmen olarak ders vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
             </Text>
 
             <View style={styles.bannerActions}>
@@ -309,48 +308,17 @@ export const InstructorHomeScreen: React.FC = () => {
 
               <TouchableOpacity
                 style={[
-                  styles.verificationButton,
-                  { backgroundColor: user?.onboardingCompleted ? colors.instructor.secondary : '#E5E7EB' }
-                ]}
-                onPress={() => {
-                  if (user?.onboardingCompleted) {
-                    // @ts-ignore
-                    navigation.navigate('Verification');
-                  } else {
-                    Alert.alert(
-                      t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-                      t('instructor.onboardingRequiredDesc') || 'Doğrulama işlemine geçmeden önce lütfen profil bilgilerinizi (onboarding) tamamlayın.',
-                      [{ text: t('common.ok') }]
-                    );
-                  }
-                }}
-                activeOpacity={user?.onboardingCompleted ? 0.7 : 1}
-              >
-                <View style={styles.buttonContent}>
-                  <MaterialIcons
-                    name="verified-user"
-                    size={18}
-                    color={user?.onboardingCompleted ? "#ffffff" : "#9CA3AF"}
-                  />
-                  <Text style={[styles.verificationButtonText, { color: user?.onboardingCompleted ? '#ffffff' : '#9CA3AF' }]}>
-                    {t('instructor.verifyNow') || 'Kimlik & Sertifika Yükle'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
                   styles.whatsappBannerButton,
                   { backgroundColor: hasSubmittedRequest ? '#25D366' : '#E5E7EB' }
                 ]}
                 onPress={() => {
                   if (hasSubmittedRequest) {
-                    const waMessage = `${t('instructor.verificationWhatsappMessage')}${user?.id}`;
+                    const waMessage = `${t('instructor.verificationWhatsappMessage') || 'Merhaba, eğitmen başvurumu hızlandırmak istiyorum.'} (ID: ${user?.id})`;
                     openWhatsApp('+90 0555 005 98 76', waMessage);
                   } else {
                     Alert.alert(
                       t('instructor.requestRequiredTitle') || 'Başvuru Yapılmadı',
-                      t('instructor.requestRequiredDesc') || 'Destek ile iletişime geçmeden önce lütfen doğrulama belgelerinizi gönderin.',
+                      t('instructor.requestRequiredDesc') || 'Destek ile iletişime geçmeden önce lütfen başvurunuzun alındığından emin olun.',
                       [{ text: t('common.ok') }]
                     );
                   }
@@ -540,10 +508,10 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Bottom spacing for FAB */}
         <View style={{ height: 20 }} />
-      </ScrollView>
+      </ScrollView >
 
       {/* Floating Action Button */}
-      <TouchableOpacity
+      < TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.instructor.primary }]}
         onPress={() => {
           console.log('[InstructorHome] FAB clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
@@ -574,8 +542,8 @@ export const InstructorHomeScreen: React.FC = () => {
           <MaterialIcons name="add" size={28} color="#ffffff" />
           <Text style={styles.fabText}>{t('instructorHome.createNewLesson')}</Text>
         </LinearGradient>
-      </TouchableOpacity>
-    </View>
+      </TouchableOpacity >
+    </View >
   );
 };
 

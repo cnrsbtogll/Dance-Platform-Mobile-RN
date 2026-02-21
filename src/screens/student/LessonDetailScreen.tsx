@@ -90,6 +90,17 @@ export const LessonDetailScreen: React.FC = () => {
             const schoolData = await FirestoreService.getDanceSchoolById(schoolId);
             if (schoolData) {
               setSchool(schoolData);
+            } else {
+              // Fallback to user data for draft schools whose `DANCE_SCHOOLS` document is not yet created
+              const userData = await FirestoreService.getUserById(schoolId);
+              if (userData && (userData.role === 'school' || userData.role === 'draft-school')) {
+                setSchool({
+                  id: userData.id,
+                  name: userData.schoolName || userData.displayName || '',
+                  address: userData.schoolAddress || '',
+                  city: '', // Set default empty fields below as needed
+                });
+              }
             }
           } else if (lesson.location?.type === 'custom') {
             setSchool(null); // Clear school if custom address
@@ -164,8 +175,8 @@ export const LessonDetailScreen: React.FC = () => {
   );
 
 
-  // Instructor için ders sahibi kontrolü
-  const isOwnLesson = isInstructor && lesson?.instructorId === user?.id;
+  // Instructor veya School için ders sahibi kontrolü
+  const isOwnLesson = isInstructor && (lesson?.instructorId === user?.id || lesson?.schoolId === user?.id);
 
   // Registered Students
   const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
@@ -246,13 +257,13 @@ export const LessonDetailScreen: React.FC = () => {
       if (pendingRegistrationLessonId) {
         console.log('[LessonDetail] useFocusEffect Pending Check', {
           pendingRegistrationLessonId,
-          currentLessonId: lesson.id,
+          currentLessonId: lesson?.id,
           isAuthenticated,
           hasUser: !!user,
           gender: user?.gender
         });
       }
-      if (pendingRegistrationLessonId === lesson.id && isAuthenticated && user && lesson) {
+      if (pendingRegistrationLessonId === lesson?.id && isAuthenticated && user && lesson) {
         // Check Gender before proceeding
         if (!user.gender || user.gender === 'other') {
           setShowGenderModal(true);
@@ -477,17 +488,7 @@ export const LessonDetailScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <View style={[styles.navbar, { borderBottomColor: palette.border, backgroundColor: palette.background }]}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialIcons name="arrow-back-ios-new" size={20} color={palette.text.primary} />
-        </TouchableOpacity>
-        <Text style={[styles.navTitle, { color: palette.text.primary }]}>{t('lessons.details') || 'Lesson Details'}</Text>
-        <View style={styles.navButton} />
-      </View>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Hero Image Section */}
         <View style={styles.heroContainer}>
@@ -910,7 +911,7 @@ export const LessonDetailScreen: React.FC = () => {
         </View>
       </Modal>
 
-    </SafeAreaView >
+    </View>
   );
 };
 
