@@ -17,8 +17,6 @@ web-build/
 *.mobileprovision
 *.jks
 google-play-key.json
-google-services.json
-GoogleService-Info.plist
 
 # Ignore native IDE configurations and local cache
 .DS_Store
