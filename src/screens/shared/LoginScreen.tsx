@@ -299,7 +299,7 @@ export const LoginScreen: React.FC = () => {
               <AntDesign name="google" size={24} color={palette.text.primary} />
               <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
             </TouchableOpacity>
-            {Platform.OS === 'ios' && (
+            {/* Platform.OS === 'ios' && (
               <TouchableOpacity
                 style={[styles.socialButton, { borderColor: palette.border }]}
                 onPress={handleAppleLogin}
@@ -307,7 +307,7 @@ export const LoginScreen: React.FC = () => {
                 <MaterialIcons name="apple" size={24} color={palette.text.primary} />
                 <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
               </TouchableOpacity>
-            )}
+            ) */}
           </View>
         </View>
 
