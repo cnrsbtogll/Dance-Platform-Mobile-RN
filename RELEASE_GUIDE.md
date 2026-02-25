@@ -6,13 +6,35 @@ Bu döküman, Feriha mobil uygulamasının geliştirme, test, sürüm yönetimi 
 
 ## 📌 1. Sürüm ve Build Yönetimi (Release)
 
-Yeni bir versiyon çıkacağınızda veya test için build alacağınızda bu komutları kullanın.
+Yeni bir versiyon çıkacağınızda veya test için build alacağınızda bu adımları izleyin.
 
 ### 🔢 Versiyonlama
-| İşlem | Komut | Açıklama |
-| :--- | :--- | :--- |
-| **Build Numarası Artır** | `npm run bump-build` | Build numarasını (1, 2, 3...) artırır. Native dosyaları günceller. Build almadan önce çalıştırın. |
-| **Versiyon Yükselt** | `npm run bump-version` | Yeni bir sürüm (1.0.1 -> 1.0.2) için kullanılır. Build numarasını 1'e sıfırlar. |
+
+> **⚠️ Önemli:** Bu proje **bare workflow** kullandığından EAS, `app.config.js`'deki `version` değerini native dosyalara otomatik **yazmaz**.
+> Sadece `expo_runtime_version` (OTA güncelleme için) ve `Expo.plist` otomatik güncellenir.
+> Gerçek App Store/Play Store versiyonu için aşağıdaki akışı kullanın.
+
+#### Versiyon Güncelleme Akışı
+
+**1. `app.config.js` dosyasında `version`'ı yükselt:**
+```js
+version: "1.0.3",
+runtimeVersion: "1.0.3",
+```
+
+**2. Native dosyalara sync et:**
+```bash
+yarn sync:version
+```
+Bu komut aşağıdakileri otomatik günceller:
+- `android/app/build.gradle` → `versionName`
+- `ios/FerihaDancePlatform/Info.plist` → `CFBundleShortVersionString`
+
+**3. Build al** (aşağıdaki build komutlarına bakın).
+
+> **Not:** `versionCode` (Android) ve `buildNumber` (iOS) sayısal değerleri EAS tarafından `"appVersionSource": "remote"` ayarı sayesinde otomatik artırılır. Bunlara dokunmanıza gerek yok.
+
+---
 
 ### 🍎 iOS Build Komutları
 | İşlem | Komut | Açıklama |
