@@ -17,6 +17,7 @@ interface AuthState {
   updateCurrency: (currency: Currency) => void;
   refreshProfile: () => Promise<void>;
   initialize: (pushToken?: string | null) => void;
+  updatePushToken: (token: string) => Promise<void>;
 }
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -101,6 +102,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ user: null, isAuthenticated: false });
         }
       });
+    }
+  },
+
+  updatePushToken: async (token: string) => {
+    const { user } = get();
+    if (!user) return; // Wait until user is authenticated
+
+    const updatedTokens = user.pushTokens ? [...user.pushTokens] : [];
+    if (!updatedTokens.includes(token)) {
+      updatedTokens.push(token);
+      await FirestoreService.updateUser(user.id, { pushTokens: updatedTokens });
+      get().setUser({ ...user, pushTokens: updatedTokens });
+      console.log('[AuthStore] Associated new push token with user:', user.id);
     }
   },
 

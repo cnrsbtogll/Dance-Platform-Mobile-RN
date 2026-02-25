@@ -5,16 +5,25 @@ import { StudentNavigator } from './StudentNavigator';
 import { InstructorNavigator } from './InstructorNavigator';
 import { SchoolNavigator } from './SchoolNavigator';
 import { useAuthStore } from '../store/useAuthStore';
-import { MockDataService } from '../services/mockDataService';
 import { User } from '../types';
+
+import { useNotificationStore } from '../store/useNotificationStore';
 
 const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
+  const { loadNotifications } = useNotificationStore();
   const navigationRef = useRef<any>(null);
 
   const previousUserRef = useRef<User | null>(null);
+
+  // Load notifications globally when user is signed in
+  useEffect(() => {
+    if (user?.id) {
+      loadNotifications(user.id);
+    }
+  }, [user?.id, loadNotifications]);
 
   // Handle dynamic navigation based on user role
   useEffect(() => {

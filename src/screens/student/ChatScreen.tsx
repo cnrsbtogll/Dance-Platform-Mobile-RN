@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatDate, formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 interface Conversation {
   id: string;
@@ -144,16 +145,21 @@ export const ChatScreen: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
       {/* Custom Header */}
       <View style={[styles.header, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
-        <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="search" size={24} color={palette.text.primary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={24} color={palette.text.primary} />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => (navigation as any).navigate('NewChat')}
-        >
-          <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <NotificationBell role="student" />
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => (navigation as any).navigate('NewChat')}
+          >
+            <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>

@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 import { Lesson } from '../../types';
 import { FirestoreService } from '../../services/firebase/firestore';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 type TabType = 'active' | 'past';
 
@@ -91,12 +92,15 @@ export const SchoolLessonsScreen: React.FC = () => {
                 </View>
             ),
             headerRight: () => (
-                <TouchableOpacity
-                    style={{ marginRight: spacing.md }}
-                    onPress={() => (navigation as any).navigate('CreateLesson')}
-                >
-                    <MaterialIcons name="add" size={28} color={palette.text.primary} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <NotificationBell role="school" />
+                    <TouchableOpacity
+                        style={{ marginRight: spacing.md }}
+                        onPress={() => (navigation as any).navigate('CreateLesson')}
+                    >
+                        <MaterialIcons name="add" size={28} color={palette.text.primary} />
+                    </TouchableOpacity>
+                </View>
             ),
         });
     }, [navigation, isDarkMode, t, palette]);

@@ -14,6 +14,7 @@ import { InstructorLessonsScreen } from '../screens/instructor/InstructorLessons
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
 import { VerificationScreen } from '../screens/instructor/Verification/VerificationScreen';
 import { InstructorNewChatScreen } from '../screens/instructor/NewChatScreen';
+import { PartnerSearchScreen } from '../screens/student/PartnerSearchScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { EarningsDetailsScreen } from '../screens/instructor/EarningsDetailsScreen';
@@ -30,6 +31,8 @@ import { AboutScreen } from '../screens/shared/AboutScreen';
 import { PrivacyPolicyScreen } from '../screens/shared/PrivacyPolicyScreen';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { NotificationBell } from '../components/common/NotificationBell';
+import { FloatingChatButton } from '../components/common/FloatingChatButton';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -43,168 +46,180 @@ const MainTabs: React.FC = () => {
   const { user } = useAuthStore();
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: palette.secondary,
-        tabBarInactiveTintColor: palette.text.secondary,
-        tabBarStyle: {
-          backgroundColor: palette.card,
-          borderTopWidth: 1,
-          borderTopColor: palette.border,
-          height: 60 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 8,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 4,
-        },
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={InstructorHomeScreen}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            if (!user) {
-              e.preventDefault();
-            }
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: palette.secondary,
+          tabBarInactiveTintColor: palette.text.secondary,
+          tabBarStyle: {
+            backgroundColor: palette.card,
+            borderTopWidth: 1,
+            borderTopColor: palette.border,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom,
+            paddingTop: 8,
+            elevation: 0,
+            shadowOpacity: 0,
           },
-        })}
-        options={{
-          title: t('navigation.home'),
-          headerShown: true,
-          headerTitle: t('navigation.home'),
-          headerLeft: () => (
-            <View style={{
-              backgroundColor: palette.secondary,
-              paddingHorizontal: spacing.sm,
-              paddingVertical: 4,
-              borderRadius: borderRadius.full,
-              marginLeft: spacing.sm,
-            }}>
+          tabBarItemStyle: {
+            paddingVertical: 4,
+          },
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          component={InstructorHomeScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (!user) {
+                e.preventDefault();
+              }
+            },
+          })}
+          options={{
+            title: t('navigation.home'),
+            headerShown: true,
+            headerTitle: t('navigation.home'),
+            headerLeft: () => (
+              <View style={{
+                backgroundColor: palette.secondary,
+                paddingHorizontal: spacing.sm,
+                paddingVertical: 4,
+                borderRadius: borderRadius.full,
+                marginLeft: spacing.sm,
+              }}>
+                <Text style={{
+                  fontSize: typography.fontSize.xs,
+                  fontWeight: typography.fontWeight.bold,
+                  color: '#ffffff',
+                }}>
+                  {t('instructor.badge')}
+                </Text>
+              </View>
+            ),
+            headerRight: () => <NotificationBell role="instructor" />,
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            headerTintColor: palette.text.primary,
+            tabBarLabel: ({ focused, color }) => (
               <Text style={{
                 fontSize: typography.fontSize.xs,
-                fontWeight: typography.fontWeight.bold,
-                color: '#ffffff',
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
               }}>
-                {t('instructor.badge')}
+                {t('navigation.home')}
               </Text>
-            </View>
-          ),
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            fontSize: typography.fontSize.lg,
-            fontWeight: typography.fontWeight.bold,
-            color: palette.text.primary,
-          },
-          headerTintColor: palette.text.primary,
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={{
-              fontSize: typography.fontSize.xs,
-              fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
-            }}>
-              {t('navigation.home')}
-            </Text>
-          ),
-          tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons
-              name={focused ? "home" : "home"}
-              size={size}
-              color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Lessons"
-        component={InstructorLessonsScreen}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            if (!user) {
-              e.preventDefault();
-            }
-          },
-        })}
-        options={{
-          title: t('instructor.lessons'),
-          headerShown: false,
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={{
-              fontSize: typography.fontSize.xs,
-              fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
-            }}>
-              {t('instructor.lessons')}
-            </Text>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
-          ),
-        }}
-      />
-      {appConfig.features.chat && (
+            ),
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialIcons
+                name={focused ? "home" : "home"}
+                size={size}
+                color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
+              />
+            ),
+          }}
+        />
         <Tab.Screen
-          name="Messages"
-          component={InstructorChatScreen}
+          name="Lessons"
+          component={InstructorLessonsScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (!user) {
+                e.preventDefault();
+              }
+            },
+          })}
           options={{
-            title: t('navigation.chat'),
+            title: t('instructor.lessons'),
             headerShown: false,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
+              }}>
+                {t('instructor.lessons')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size }) => (
+              <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="PartnerSearch"
+          component={PartnerSearchScreen}
+          options={{
+            title: t('navigation.partnerSearch'),
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            headerTintColor: palette.text.primary,
+            headerRight: () => <NotificationBell role="instructor" />,
             tabBarLabel: ({ focused, color }) => (
               <Text style={{
                 fontSize: typography.fontSize.xs,
                 fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
                 color,
               }}>
-                {t('navigation.chat')}
+                {t('navigation.partnerSearch')}
               </Text>
             ),
             tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
+              <MaterialIcons name="people" size={size} color={color} />
             ),
           }}
         />
-      )}
-      <Tab.Screen
-        name="Profile"
-        component={InstructorProfileScreen}
-        options={{
-          title: t('navigation.profile'),
-          headerShown: true,
-          headerTitle: t('navigation.profile'),
-          headerStyle: {
-            backgroundColor: palette.background,
-          },
-          headerTitleStyle: {
-            fontSize: typography.fontSize.lg,
-            fontWeight: typography.fontWeight.bold,
-            color: palette.text.primary,
-          },
-          headerTintColor: palette.text.primary,
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={{
-              fontSize: typography.fontSize.xs,
-              fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-              color,
-            }}>
-              {t('navigation.profile')}
-            </Text>
-          ),
-          tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons
-              name={focused ? "person" : "person-outline"}
-              size={size}
-              color={color}
-            />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name="Profile"
+          component={InstructorProfileScreen}
+          options={{
+            title: t('navigation.profile'),
+            headerShown: true,
+            headerTitle: t('navigation.profile'),
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            headerTintColor: palette.text.primary,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color,
+              }}>
+                {t('navigation.profile')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialIcons
+                name={focused ? "person" : "person-outline"}
+                size={size}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+      {appConfig.features.chat && <FloatingChatButton role="instructor" unreadCount={0} />}
+    </View>
   );
 };
 
@@ -290,6 +305,14 @@ export const InstructorNavigator: React.FC = () => {
       />
       {appConfig.features.chat && (
         <>
+          <Stack.Screen
+            name="Chat"
+            component={InstructorChatScreen}
+            options={{
+              headerShown: false,
+              presentation: 'card',
+            }}
+          />
           <Stack.Screen
             name="ChatDetail"
             component={ChatDetailScreen}

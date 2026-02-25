@@ -677,4 +677,79 @@ export class FirestoreService {
       throw error;
     }
   }
+
+  // ==========================================
+  // NOTIFICATIONS (BİLDİRİMLER)
+  // ==========================================
+
+  static async getUserNotifications(userId: string): Promise<any[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.NOTIFICATIONS),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc(doc));
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
+  }
+
+  static async getUnreadNotificationCount(userId: string): Promise<number> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.NOTIFICATIONS),
+        where('userId', '==', userId),
+        where('isRead', '==', false)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('Error fetching unread notification count:', error);
+      return 0;
+    }
+  }
+
+  static async markNotificationAsRead(notificationId: string): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.NOTIFICATIONS, notificationId);
+      await updateDoc(docRef, {
+        isRead: true,
+        updatedAt: Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }
+
+  static async markAllNotificationsAsRead(userId: string): Promise<void> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.NOTIFICATIONS),
+        where('userId', '==', userId),
+        where('isRead', '==', false)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      // Batch write to update all notifications at once
+      const batch = import('firebase/firestore').then(({ writeBatch }) => {
+        const wb = writeBatch(db);
+        querySnapshot.docs.forEach((document) => {
+          wb.update(document.ref, { 
+            isRead: true,
+            updatedAt: Timestamp.now(),
+          });
+        });
+        return wb.commit();
+      });
+
+      await batch;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  }
 }

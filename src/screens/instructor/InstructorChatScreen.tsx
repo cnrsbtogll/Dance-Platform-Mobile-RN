@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 interface Conversation {
   id: string;
@@ -44,19 +45,19 @@ export const InstructorChatScreen: React.FC = () => {
       if (message.senderId !== user.id && message.receiverId !== user.id) {
         return;
       }
-      
+
       const partnerId = message.senderId === user.id ? message.receiverId : message.senderId;
       const partner = MockDataService.getUserById(partnerId);
-      
+
       if (!partner) return;
 
       const conversationId = [user.id, partnerId].sort().join('_');
-      
+
       if (!conversationMap.has(conversationId)) {
         conversationMap.set(conversationId, {
           id: conversationId,
           userId: partnerId,
-          userName: partner.role === 'student' 
+          userName: partner.role === 'student'
             ? `${t('chat.student')} - ${partner.name}`
             : `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || t('chat.instructor')} ${t('chat.instructorSuffix')}`,
           userAvatar: partner.avatar || '',
@@ -69,12 +70,12 @@ export const InstructorChatScreen: React.FC = () => {
         const conv = conversationMap.get(conversationId)!;
         const messageTime = new Date(message.createdAt);
         const lastTime = new Date(conv.lastMessageTime);
-        
+
         if (messageTime > lastTime) {
           conv.lastMessage = message.message;
           conv.lastMessageTime = message.createdAt;
         }
-        
+
         if (!message.isRead && message.receiverId === user.id) {
           conv.unreadCount++;
         }
@@ -95,25 +96,30 @@ export const InstructorChatScreen: React.FC = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
       {/* Custom Header */}
       <View style={[styles.header, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
-        <TouchableOpacity style={styles.headerButton}>
-          <MaterialIcons name="search" size={24} color={palette.text.primary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back" size={24} color={palette.text.primary} />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
-        <TouchableOpacity 
-          style={styles.headerButton}
-          onPress={() => (navigation as any).navigate('NewChat')}
-        >
-          <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <NotificationBell role="instructor" />
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => (navigation as any).navigate('NewChat')}
+          >
+            <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {conversations.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialIcons 
-              name="chat-bubble-outline" 
-              size={64} 
-              color={palette.text.secondary + '80'} 
+            <MaterialIcons
+              name="chat-bubble-outline"
+              size={64}
+              color={palette.text.secondary + '80'}
             />
             <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('chat.noMessagesInstructor')}</Text>
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>

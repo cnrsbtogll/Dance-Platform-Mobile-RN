@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { Card } from '../../components/common/Card';
 import { Lesson } from '../../types';
 import { FirestoreService } from '../../services/firebase/firestore';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 type TabType = 'active' | 'past';
 
@@ -122,33 +123,36 @@ export const InstructorLessonsScreen: React.FC = () => {
         </View>
       ),
       headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: spacing.md }}
-          onPress={() => {
-            console.log('[InstructorLessons] Header Add clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
-            if (user && !user.onboardingCompleted) {
-              Alert.alert(
-                t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-                t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
-                [{
-                  text: t('common.ok'),
-                  onPress: () => {
-                    // @ts-ignore
-                    navigation.navigate('InstructorOnboarding');
-                  }
-                }]
-              );
-            } else {
-              (navigation as any).navigate('CreateLesson');
-            }
-          }}
-        >
-          <MaterialIcons
-            name="add"
-            size={28}
-            color={palette.text.primary}
-          />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <NotificationBell role="instructor" />
+          <TouchableOpacity
+            style={{ marginRight: spacing.md }}
+            onPress={() => {
+              console.log('[InstructorLessons] Header Add clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
+              if (user && !user.onboardingCompleted) {
+                Alert.alert(
+                  t('instructor.profileIncomplete') || 'Profiliniz Eksik',
+                  t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                  [{
+                    text: t('common.ok'),
+                    onPress: () => {
+                      // @ts-ignore
+                      navigation.navigate('InstructorOnboarding');
+                    }
+                  }]
+                );
+              } else {
+                (navigation as any).navigate('CreateLesson');
+              }
+            }}
+          >
+            <MaterialIcons
+              name="add"
+              size={28}
+              color={palette.text.primary}
+            />
+          </TouchableOpacity>
+        </View>
       ),
     });
   }, [navigation, isDarkMode, t]);

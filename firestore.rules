@@ -277,6 +277,19 @@ service cloud.firestore {
     }
     
     // ==========================================
+    // NOTIFICATIONS (BİLDİRİMLER)
+    // ==========================================
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if false; // Only created via Cloud Functions
+      // Sadece isRead alanını güncelleyebilirler (Okundu işaretlemek için)
+      allow update: if isAuthenticated() && 
+                      resource.data.userId == request.auth.uid && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'updatedAt']);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ==========================================
     // PLATFORM ACTIVITIES
     // ==========================================
     match /platform_activities/{activityId} {
@@ -313,6 +326,30 @@ service cloud.firestore {
     match /pendingUsers/{userId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
+    }
+    
+    // ==========================================
+    // ANNOUNCEMENTS (DUYURULAR)
+    // ==========================================
+    match /announcements/{announcementId} {
+      // Giriş yapmış herkes duyuruları okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Instructor veya School duyuru oluşturabilir
+      allow create: if isAuthenticated() && (isInstructor() || isSchool());
+      
+      // Duyuruyu oluşturan güncelleyebilir (reactions için tüm authenticated kullanıcılar)
+      allow update: if isAuthenticated() && (
+                      resource.data.senderId == request.auth.uid ||
+                      isAdmin() ||
+                      // Reactions güncellemesi için herkes (userReactions & reactions alanı)
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['reactions', 'userReactions', 'updatedAt'])
+                    );
+      
+      // Sadece oluşturan veya admin silebilir
+      allow delete: if isAuthenticated() && 
+                      (resource.data.senderId == request.auth.uid || isAdmin());
     }
     
     // ==========================================

@@ -70,12 +70,13 @@
     }
   },
   "navigation": {
-    "home": "Ana Sayfa",
+    "home": "Kurs Bul",
     "lessons": "Kurslar",
     "myLessons": "Kurslarım",
     "profile": "Profil",
     "notifications": "Bildirimler",
-    "chat": "Mesajlar"
+    "chat": "Mesajlar",
+    "partnerSearch": "Partner Bul"
   },
   "profile": {
     "editProfile": "Profili Düzenle",
@@ -177,8 +178,8 @@
     "noActiveLessons": "Yayında kurs bulunmuyor",
     "noInactiveLessons": "Pasif kurs bulunmuyor",
     "selectDanceType": "Dans türü seçin",
-    "activateLesson": "kursu Aktifleştir",
-    "deactivateLesson": "kursu Pasife Al",
+    "activateLesson": "Kursu Aktifleştir",
+    "deactivateLesson": "Kursu Pasife Al",
     "lessonActivated": "Kurs başarıyla aktifleştirildi",
     "lessonDeactivated": "Kurs başarıyla pasife alındı",
     "draft": "Taslak",

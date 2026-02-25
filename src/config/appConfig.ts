@@ -52,8 +52,8 @@ const brandConfigs: Record<Brand, AppConfig> = {
   feriha: {
     brand: 'feriha',
     features: {
-      chat: false,
-      notifications: false,
+      chat: true,
+      notifications: true,
     },
     integrations: {
       firebase: true,

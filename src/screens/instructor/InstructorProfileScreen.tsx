@@ -10,6 +10,7 @@ import { Card } from '../../components/common/Card';
 import { Currency } from '../../types';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { getDefaultCurrency } from '../../utils/helpers';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 interface SettingItem {
   id: string;
@@ -67,6 +68,7 @@ export const InstructorProfileScreen: React.FC = () => {
           </Text>
         </View>
       ),
+      headerRight: () => <NotificationBell role={isSchool ? 'school' : 'instructor'} />,
     });
   }, [navigation, isDarkMode, palette, t, isSchool]);
 

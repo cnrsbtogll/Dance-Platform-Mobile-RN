@@ -192,33 +192,7 @@ export const LessonDetailScreen: React.FC = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
 
-  // Announcements State
-  const [announcements, setAnnouncements] = useState<CourseAnnouncement[]>([]);
-  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
-  const [announcementMessage, setAnnouncementMessage] = useState('');
-  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
 
-  // Fetch enrollments and Announcements on focus
-  useFocusEffect(
-    React.useCallback(() => {
-      let isMounted = true;
-      if (lesson?.id) {
-        // Fetch Announcements
-        const fetchAnnouncements = async () => {
-          try {
-            const fetched = await FirestoreService.getCourseAnnouncements(lesson.id);
-            if (isMounted) {
-              setAnnouncements(fetched as CourseAnnouncement[]);
-            }
-          } catch (error) {
-            console.error('Error fetching announcements:', error);
-          }
-        };
-        fetchAnnouncements();
-      }
-      return () => { isMounted = false; };
-    }, [lesson?.id])
-  );
 
   // Fetch enrolled students if instructor viewing own lesson
   // Sync participant stats and fetch enrolled students (if instructor)
@@ -520,6 +494,11 @@ export const LessonDetailScreen: React.FC = () => {
     (navigation as any).navigate('EditLesson', { lessonId: lesson?.id });
   };
 
+  // Modal & Announcement State
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcementMessage, setAnnouncementMessage] = useState('');
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+
   const handleSendAnnouncement = async () => {
     if (!announcementMessage.trim() || !user || !lesson) return;
     setIsSendingAnnouncement(true);
@@ -532,9 +511,6 @@ export const LessonDetailScreen: React.FC = () => {
       });
       setAnnouncementMessage('');
       setShowAnnouncementModal(false);
-      // Fetch again to update the list
-      const fetched = await FirestoreService.getCourseAnnouncements(lesson.id);
-      setAnnouncements(fetched as CourseAnnouncement[]);
       Alert.alert(t('common.success'), t('lessons.announcementSentSuccess') || 'Duyuru gönderildi.');
     } catch (error) {
       console.error('Error sending announcement:', error);
@@ -544,41 +520,7 @@ export const LessonDetailScreen: React.FC = () => {
     }
   };
 
-  const handleReaction = async (announcementId: string, type: 'like' | 'heart') => {
-    if (!user) return;
 
-    // Optimistic UI update
-    setAnnouncements(prev => prev.map(a => {
-      if (a.id === announcementId) {
-        const currentReaction = a.userReactions?.[user.id];
-        const newReactions = { ...a.reactions };
-        const newUserReactions = { ...(a.userReactions || {}) };
-
-        if (currentReaction === type) {
-          // Remove reaction
-          newReactions[type] = Math.max(0, newReactions[type] - 1);
-          delete newUserReactions[user.id];
-        } else {
-          // Switch or add
-          if (currentReaction) {
-            newReactions[currentReaction as 'like' | 'heart'] = Math.max(0, newReactions[currentReaction as 'like' | 'heart'] - 1);
-          }
-          newReactions[type] = (newReactions[type] || 0) + 1;
-          newUserReactions[user.id] = type;
-        }
-
-        return { ...a, reactions: newReactions, userReactions: newUserReactions };
-      }
-      return a;
-    }));
-
-    try {
-      await FirestoreService.reactToAnnouncement(announcementId, user.id, type);
-    } catch (error) {
-      console.error('Failed to react:', error);
-      // Revert in real app
-    }
-  };
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
@@ -745,65 +687,7 @@ export const LessonDetailScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Announcements Section */}
-          <View style={styles.section}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-              <Text style={[styles.sectionTitle, { color: palette.text.primary, marginBottom: 0 }]}>{t('lessons.announcements') || 'Duyurular'}</Text>
-              {isOwnLesson && (
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: palette.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16 }}
-                  onPress={() => setShowAnnouncementModal(true)}
-                >
-                  <MaterialIcons name="campaign" size={16} color="#fff" style={{ marginRight: 4 }} />
-                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>{t('lessons.sendAnnouncement')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
 
-            {announcements.length === 0 ? (
-              <View style={[styles.infoCard, { backgroundColor: palette.card, padding: spacing.lg }]}>
-                <MaterialIcons name="notifications-none" size={32} color={palette.text.secondary} />
-                <Text style={{ color: palette.text.secondary, marginTop: spacing.sm }}>{t('lessons.noAnnouncements')}</Text>
-              </View>
-            ) : (
-              announcements.map((announcement) => (
-                <View key={announcement.id} style={[styles.infoCard, { backgroundColor: palette.card, marginBottom: spacing.sm, alignItems: 'flex-start' }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, width: '100%' }}>
-                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: palette.primary, justifyContent: 'center', alignItems: 'center', marginRight: 8 }}>
-                      <MaterialIcons name="campaign" size={20} color="#fff" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontWeight: 'bold', color: palette.text.primary, fontSize: 14 }}>{announcement.senderName}</Text>
-                      <Text style={{ color: palette.text.secondary, fontSize: 12 }}>{formatDate(announcement.createdAt)}</Text>
-                    </View>
-                  </View>
-                  <Text style={{ color: palette.text.primary, fontSize: 14, lineHeight: 20, marginBottom: 12 }}>{announcement.message}</Text>
-
-                  {/* Reactions */}
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <TouchableOpacity
-                      style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: announcement.userReactions?.[user?.id || ''] === 'heart' ? 'rgba(233, 30, 99, 0.1)' : palette.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}
-                      onPress={() => handleReaction(announcement.id, 'heart')}
-                    >
-                      <MaterialIcons name={announcement.userReactions?.[user?.id || ''] === 'heart' ? "favorite" : "favorite-border"} size={16} color="#E91E63" />
-                      <Text style={{ marginLeft: 4, fontSize: 12, color: palette.text.secondary, fontWeight: announcement.userReactions?.[user?.id || ''] === 'heart' ? 'bold' : 'normal' }}>
-                        {announcement.reactions?.heart || 0}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: announcement.userReactions?.[user?.id || ''] === 'like' ? 'rgba(33, 150, 243, 0.1)' : palette.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}
-                      onPress={() => handleReaction(announcement.id, 'like')}
-                    >
-                      <MaterialIcons name={announcement.userReactions?.[user?.id || ''] === 'like' ? "thumb-up" : "thumb-up-off-alt"} size={16} color="#2196F3" />
-                      <Text style={{ marginLeft: 4, fontSize: 12, color: palette.text.secondary, fontWeight: announcement.userReactions?.[user?.id || ''] === 'like' ? 'bold' : 'normal' }}>
-                        {announcement.reactions?.like || 0}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-          </View>
 
           {/* Bottom spacing for fixed bar */}
           <View style={{ height: 80 + insets.bottom }} />
@@ -814,18 +698,22 @@ export const LessonDetailScreen: React.FC = () => {
       {isOwnLesson ? (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
-            <View style={{ flex: 1, marginRight: spacing.sm, justifyContent: 'center' }}>
-              <Text style={[styles.priceValue, { color: palette.primary, fontSize: 20 }]}>
-                {formatPrice(lesson.price)}
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={[styles.registerButton, { flex: 1, marginLeft: 0 }]}
+              onPress={() => setShowAnnouncementModal(true)}
+            >
+              <View style={[styles.registerButtonGradient, { backgroundColor: isInstructor ? colors.instructor.secondary : colors.school.primary, borderRadius: borderRadius.full }]}>
+                <MaterialIcons name="campaign" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
+                <Text style={styles.registerButtonText}>{t('lessons.send')}</Text>
+              </View>
+            </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.registerButton, { flex: 1.2 }]}
+              style={[styles.registerButton, { flex: 1 }]}
               onPress={handleEdit}
             >
               <LinearGradient
-                colors={[palette.secondary, palette.secondary]}
+                colors={[palette.primary, palette.primary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.registerButtonGradient}
@@ -965,6 +853,75 @@ export const LessonDetailScreen: React.FC = () => {
             </View>
           </Modal>
 
+          {/* Send Announcement Modal */}
+          <Modal
+            visible={showAnnouncementModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowAnnouncementModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background, height: 'auto', padding: 24, borderRadius: 24 }]}>
+                <View style={[styles.modalHeader, { borderBottomWidth: 0, paddingHorizontal: 0 }]}>
+                  <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                    {t('lessons.sendAnnouncement')}
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowAnnouncementModal(false)} style={styles.closeButton}>
+                    <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={{ color: palette.text.secondary, marginBottom: 16 }}>
+                  {t('lessons.announcementModalDesc')}
+                </Text>
+
+                <TextInput
+                  style={{
+                    backgroundColor: palette.card,
+                    color: palette.text.primary,
+                    borderRadius: 16,
+                    padding: 16,
+                    minHeight: 120,
+                    textAlignVertical: 'top',
+                    borderWidth: 1,
+                    borderColor: palette.border,
+                    fontSize: 16,
+                    marginBottom: 24
+                  }}
+                  placeholder={t('lessons.announcementMessagePlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  multiline
+                  value={announcementMessage}
+                  onChangeText={setAnnouncementMessage}
+                />
+
+                <TouchableOpacity
+                  onPress={handleSendAnnouncement}
+                  disabled={isSendingAnnouncement || !announcementMessage.trim()}
+                  style={{
+                    backgroundColor: announcementMessage.trim() ? palette.primary : palette.border,
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {isSendingAnnouncement ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                        {t('lessons.send')}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
         </SafeAreaView>
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
@@ -1064,74 +1021,7 @@ export const LessonDetailScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Send Announcement Modal (Instructor Only) */}
-      <Modal
-        visible={showAnnouncementModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowAnnouncementModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: palette.background, height: '60%' }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
-              <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
-                {t('lessons.sendAnnouncement')}
-              </Text>
-              <TouchableOpacity onPress={() => setShowAnnouncementModal(false)} style={styles.closeButton}>
-                <MaterialIcons name="close" size={24} color={palette.text.primary} />
-              </TouchableOpacity>
-            </View>
 
-            <Text style={{ color: palette.text.secondary, marginBottom: 16 }}>
-              {t('lessons.announcementModalDesc') || 'Bu duyuru kursa kayıtlı olan tüm öğrencilere bildirim olarak iletilecektir.'}
-            </Text>
-
-            <TextInput
-              style={{
-                backgroundColor: palette.card,
-                color: palette.text.primary,
-                borderRadius: 12,
-                padding: 16,
-                minHeight: 120,
-                textAlignVertical: 'top',
-                borderWidth: 1,
-                borderColor: palette.border,
-                fontSize: 16
-              }}
-              placeholder={t('lessons.announcementMessagePlaceholder')}
-              placeholderTextColor={palette.text.secondary}
-              multiline
-              value={announcementMessage}
-              onChangeText={setAnnouncementMessage}
-            />
-
-            <TouchableOpacity
-              onPress={handleSendAnnouncement}
-              disabled={isSendingAnnouncement || !announcementMessage.trim()}
-              style={{
-                backgroundColor: announcementMessage.trim() ? palette.primary : palette.border,
-                padding: 16,
-                borderRadius: 12,
-                alignItems: 'center',
-                marginTop: 24,
-                flexDirection: 'row',
-                justifyContent: 'center'
-              }}
-            >
-              {isSendingAnnouncement ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <MaterialIcons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
-                    {t('lessons.send')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
     </View>
   );

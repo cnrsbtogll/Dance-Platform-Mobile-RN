@@ -1,0 +1,83 @@
+import React from 'react';
+import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useThemeStore } from '../../store/useThemeStore';
+import { getPalette, shadows, typography } from '../../utils/theme';
+
+interface FloatingChatButtonProps {
+    role: 'student' | 'instructor' | 'school';
+    unreadCount?: number;
+}
+
+export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, unreadCount = 0 }) => {
+    const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
+    const { user } = useAuthStore();
+    const { isDarkMode } = useThemeStore();
+    const palette = getPalette(role, isDarkMode);
+
+    const handlePress = () => {
+        if (!user) {
+            // Require login
+            // Actually we just navigate to Login via ChatScreen handling or directly
+            // Here we assume ChatScreen handles the auth guard or we handle it here
+            navigation.navigate('Login');
+            return;
+        }
+        navigation.navigate('Chat');
+    };
+
+    return (
+        <TouchableOpacity
+            style={[
+                styles.container,
+                { backgroundColor: palette.primary, bottom: insets.bottom + 80 },
+                shadows.md
+            ]}
+            onPress={handlePress}
+            activeOpacity={0.8}
+        >
+            <MaterialIcons name="chat-bubble" size={24} color="#FFFFFF" />
+            {unreadCount > 0 && (
+                <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                </View>
+            )}
+        </TouchableOpacity>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        position: 'absolute',
+        right: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999,
+    },
+    badge: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        backgroundColor: '#EF4444',
+        minWidth: 20,
+        height: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 4,
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+    },
+    badgeText: {
+        color: '#FFFFFF',
+        fontSize: typography.fontSize.xs,
+        fontWeight: typography.fontWeight.bold,
+    },
+});
