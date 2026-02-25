@@ -114,26 +114,6 @@ const MainTabs: React.FC = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="Lessons"
-                    component={SchoolLessonsScreen}
-                    options={{
-                        title: t('instructor.lessons'),
-                        headerShown: false,
-                        tabBarLabel: ({ focused, color }) => (
-                            <Text style={{
-                                fontSize: typography.fontSize.xs,
-                                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-                                color,
-                            }}>
-                                {t('instructor.lessons')}
-                            </Text>
-                        ),
-                        tabBarIcon: ({ color, size }) => (
-                            <MaterialIcons name="school" size={size} color={color} />
-                        ),
-                    }}
-                />
-                <Tab.Screen
                     name="PartnerSearch"
                     component={PartnerSearchScreen}
                     options={{
@@ -160,6 +140,26 @@ const MainTabs: React.FC = () => {
                         ),
                         tabBarIcon: ({ color, size }) => (
                             <MaterialIcons name="people" size={size} color={color} />
+                        ),
+                    }}
+                />
+                <Tab.Screen
+                    name="Lessons"
+                    component={SchoolLessonsScreen}
+                    options={{
+                        title: t('instructor.lessons'),
+                        headerShown: false,
+                        tabBarLabel: ({ focused, color }) => (
+                            <Text style={{
+                                fontSize: typography.fontSize.xs,
+                                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                                color,
+                            }}>
+                                {t('instructor.lessons')}
+                            </Text>
+                        ),
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialIcons name="school" size={size} color={color} />
                         ),
                     }}
                 />

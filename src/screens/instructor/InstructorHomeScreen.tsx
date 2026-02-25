@@ -510,39 +510,6 @@ export const InstructorHomeScreen: React.FC = () => {
         <View style={{ height: 20 }} />
       </ScrollView >
 
-      {/* Floating Action Button */}
-      < TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.instructor.primary }]}
-        onPress={() => {
-          console.log('[InstructorHome] FAB clicked. User:', user?.id, 'onboardingCompleted:', user?.onboardingCompleted);
-          if (user && !user.onboardingCompleted) {
-            Alert.alert(
-              t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-              t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
-              [{
-                text: t('common.ok'),
-                onPress: () => {
-                  // @ts-ignore
-                  navigation.navigate('InstructorOnboarding');
-                }
-              }]
-            );
-          } else {
-            (navigation as any).navigate('CreateLesson');
-          }
-        }}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={[colors.instructor.secondary, colors.instructor.secondary]}
-          style={styles.fabGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <MaterialIcons name="add" size={28} color="#ffffff" />
-          <Text style={styles.fabText}>{t('instructorHome.createNewLesson')}</Text>
-        </LinearGradient>
-      </TouchableOpacity >
     </View >
   );
 };

@@ -127,33 +127,6 @@ const MainTabs: React.FC = () => {
           }}
         />
         <Tab.Screen
-          name="Lessons"
-          component={InstructorLessonsScreen}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              if (!user) {
-                e.preventDefault();
-              }
-            },
-          })}
-          options={{
-            title: t('instructor.lessons'),
-            headerShown: false,
-            tabBarLabel: ({ focused, color }) => (
-              <Text style={{
-                fontSize: typography.fontSize.xs,
-                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
-              }}>
-                {t('instructor.lessons')}
-              </Text>
-            ),
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
-            ),
-          }}
-        />
-        <Tab.Screen
           name="PartnerSearch"
           component={PartnerSearchScreen}
           options={{
@@ -180,6 +153,33 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="people" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Lessons"
+          component={InstructorLessonsScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (!user) {
+                e.preventDefault();
+              }
+            },
+          })}
+          options={{
+            title: t('instructor.lessons'),
+            headerShown: false,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
+              }}>
+                {t('instructor.lessons')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size }) => (
+              <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
             ),
           }}
         />

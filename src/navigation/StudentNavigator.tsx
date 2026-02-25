@@ -89,6 +89,36 @@ const MainTabs: React.FC = () => {
           }}
         />
         <Tab.Screen
+          name="PartnerSearch"
+          component={PartnerSearchScreen}
+          options={{
+            title: t('navigation.partnerSearch'),
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTintColor: palette.text.primary,
+            headerRight: () => <NotificationBell role="student" />,
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color,
+              }}>
+                {t('navigation.partnerSearch')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size }) => (
+              <MaterialIcons name="people" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
           name="MyLessons"
           component={MyLessonsScreen}
           options={{
@@ -116,36 +146,6 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="school" size={size} color={color} />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PartnerSearch"
-          component={PartnerSearchScreen}
-          options={{
-            title: t('navigation.partnerSearch'),
-            headerShown: true,
-            headerStyle: {
-              backgroundColor: palette.background,
-            },
-            headerTintColor: palette.text.primary,
-            headerRight: () => <NotificationBell role="student" />,
-            headerTitleStyle: {
-              fontSize: typography.fontSize.lg,
-              fontWeight: typography.fontWeight.bold,
-              color: palette.text.primary,
-            },
-            tabBarLabel: ({ focused, color }) => (
-              <Text style={{
-                fontSize: typography.fontSize.xs,
-                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-                color,
-              }}>
-                {t('navigation.partnerSearch')}
-              </Text>
-            ),
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="people" size={size} color={color} />
             ),
           }}
         />

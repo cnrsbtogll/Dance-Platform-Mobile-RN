@@ -78,6 +78,19 @@
     "chat": "Mesajlar",
     "partnerSearch": "Partner Bul"
   },
+  "filters": {
+    "title": "Filtreler",
+    "role": "Rol",
+    "gender": "Cinsiyet",
+    "all": "Tümü",
+    "student": "Öğrenci",
+    "instructor": "Eğitmen",
+    "male": "Erkek",
+    "female": "Kadın",
+    "other": "Diğer",
+    "apply": "Uygula",
+    "reset": "Sıfırla"
+  },
   "profile": {
     "editProfile": "Profili Düzenle",
     "accountInfo": "Hesap Bilgileri",

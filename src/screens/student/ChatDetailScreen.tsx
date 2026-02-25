@@ -1,26 +1,18 @@
 import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
-import { MockDataService } from '../../services/mockDataService';
+import { FirestoreService } from '../../services/firebase/firestore';
+import { chatService, getConversationId } from '../../services/firebase/chat';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
-import { User } from '../../types';
-
-interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  lessonId?: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-}
+import { User } from '../../types/user';
+import { Message } from '../../types/message';
 
 interface HeaderTitleProps {
   partner: User | null;
@@ -37,7 +29,7 @@ const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
       </Text>
     );
   }
-  
+
   return (
     <View style={styles.headerTitleContainer}>
       <Image
@@ -49,7 +41,7 @@ const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
           {partner.name || t('chat.user')}
         </Text>
         <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-          {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
+          {partner.role === 'instructor' ? t('chat.instructor') : partner.role === 'school' ? 'Okul' : t('chat.student')}
         </Text>
       </View>
     </View>
@@ -60,71 +52,64 @@ export const ChatDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
-  const params = route.params as { conversationId?: string; userId?: string } | undefined;
+  const params = route.params as { conversationId?: string; userId?: string; targetUserId?: string; chatId?: string; } | undefined;
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('student', isDarkMode);
+  const role: 'student' | 'instructor' | 'school' = (user?.role === 'admin' || user?.role === 'draft-school' || user?.role === 'school') ? 'school' : (user?.role === 'draft-instructor' || user?.role === 'instructor') ? 'instructor' : 'student';
+  const palette = getPalette(role, isDarkMode);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
-  
-  const conversationId = params?.conversationId;
-  const partnerId = params?.userId || (conversationId ? conversationId.split('_').find(id => id !== user?.id) : null);
-  
-  console.log('[ChatDetailScreen] Route params:', {
-    conversationId,
-    userId: params?.userId,
-    partnerId,
-    currentUserId: user?.id,
-  });
-  
-  const partner = useMemo(() => {
-    const p = partnerId ? MockDataService.getUserById(partnerId) : null;
-    console.log('[ChatDetailScreen] Partner memoized:', p ? {
-      id: p.id,
-      name: p.name,
-      role: p.role,
-      avatar: p.avatar,
-      hasAvatar: !!p.avatar,
-      email: p.email,
-      bio: p.bio,
-    } : null);
-    return p;
-  }, [partnerId]);
-  
+
+  const conversationIdParam = params?.conversationId || params?.chatId;
+  const initialPartnerId = params?.userId || params?.targetUserId || (conversationIdParam ? conversationIdParam.split('_').find(id => id !== user?.id) : null);
+  const partnerId = initialPartnerId;
+  const conversationId = conversationIdParam?.startsWith('temp_') ? '' : (conversationIdParam || (user?.id && partnerId ? getConversationId(user.id, partnerId) : ''));
+
+  const [partner, setPartner] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
+  // Fetch partner info
   useEffect(() => {
-    if (!user || !partnerId) return;
+    if (partnerId) {
+      FirestoreService.getUserById(partnerId).then((fetchedUser) => {
+        if (fetchedUser) setPartner(fetchedUser as User);
+      });
+    }
+  }, [partnerId]);
 
-    // Get all messages between current user and partner
-    const allMessages = MockDataService.getMessages();
-    const conversationMessages = allMessages
-      .filter(msg => 
-        (msg.senderId === user.id && msg.receiverId === partnerId) ||
-        (msg.senderId === partnerId && msg.receiverId === user.id)
-      )
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    
-    setMessages(conversationMessages);
-  }, [user, partnerId]);
+  // Subscribe to messages
+  useEffect(() => {
+    if (!user || !conversationId) return;
+
+    setLoadingMessages(true);
+    const unsubscribe = chatService.subscribeToMessages(conversationId, (msgs) => {
+      setMessages(msgs);
+      setLoadingMessages(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, conversationId]);
+
+  // Mark as read when entering or messages update
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user && conversationId && messages.length > 0) {
+        chatService.markAsRead(conversationId, user.id);
+      }
+    }, [user, conversationId, messages.length])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: false });
-    }, 100);
-  }, [messages]);
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 200);
+  }, [messages.length]);
 
   // Update header when screen is focused or partner changes
   const updateHeader = React.useCallback(() => {
-    console.log('[ChatDetailScreen] updateHeader - Setting header options, partner:', partner ? {
-      id: partner.id,
-      name: partner.name,
-      role: partner.role,
-      hasAvatar: !!partner.avatar,
-    } : null);
-    
     navigation.setOptions({
       headerBackTitle: '',
       headerTintColor: palette.text.primary,
@@ -207,35 +192,27 @@ export const ChatDetailScreen: React.FC = () => {
 
   const shouldShowDateSeparator = (currentMessage: Message, previousMessage: Message | null): boolean => {
     if (!previousMessage) return true;
-    
+
     const currentDate = new Date(currentMessage.createdAt);
     const previousDate = new Date(previousMessage.createdAt);
-    
+
     return currentDate.toDateString() !== previousDate.toDateString();
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputText.trim() || !user || !partnerId) return;
 
-    const newMessage: Message = {
-      id: `message_${Date.now()}`,
-      senderId: user.id,
-      receiverId: partnerId,
-      message: inputText.trim(),
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages([...messages, newMessage]);
+    const messageToSend = inputText.trim();
     setInputText('');
-    
-    // Scroll to bottom
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+
+    try {
+      await chatService.sendMessage(user.id, partnerId, messageToSend);
+    } catch (e) {
+      console.error('Error sending message:', e);
+    }
   };
 
-  if (!partner) {
+  if (!partnerId) {
     return (
       <View style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
@@ -261,66 +238,70 @@ export const ChatDetailScreen: React.FC = () => {
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
         >
-        {messages.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons
-              name="chat-bubble-outline"
-              size={64}
-              color={palette.text.secondary + '80'}
-            />
-            <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {t('chat.noMessages')}
-            </Text>
-          </View>
-        ) : (
-          messages.map((message, index) => {
-            const isSent = message.senderId === user?.id;
-            const previousMessage = index > 0 ? messages[index - 1] : null;
-            const showDateSeparator = shouldShowDateSeparator(message, previousMessage);
+          {loadingMessages ? (
+            <View style={styles.emptyState}>
+              <ActivityIndicator size="large" color={palette.primary} />
+            </View>
+          ) : messages.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MaterialIcons
+                name="chat-bubble-outline"
+                size={64}
+                color={palette.text.secondary + '80'}
+              />
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
+                {t('chat.noMessages')}
+              </Text>
+            </View>
+          ) : (
+            messages.map((message, index) => {
+              const isSent = message.senderId === user?.id;
+              const previousMessage = index > 0 ? messages[index - 1] : null;
+              const showDateSeparator = shouldShowDateSeparator(message, previousMessage);
 
-            return (
-              <React.Fragment key={message.id}>
-                {showDateSeparator && (
-                  <View style={styles.dateSeparator}>
-                    <Text style={[styles.dateSeparatorText, { color: palette.text.secondary, backgroundColor: palette.background }]}>
-                      {formatMessageDate(message.createdAt)}
-                    </Text>
-                  </View>
-                )}
-                <View
-                  style={[
-                    styles.messageWrapper,
-                    isSent ? styles.messageWrapperSent : styles.messageWrapperReceived,
-                  ]}
-                >
+              return (
+                <React.Fragment key={message.id}>
+                  {showDateSeparator && (
+                    <View style={styles.dateSeparator}>
+                      <Text style={[styles.dateSeparatorText, { color: palette.text.secondary, backgroundColor: palette.background }]}>
+                        {formatMessageDate(message.createdAt)}
+                      </Text>
+                    </View>
+                  )}
                   <View
                     style={[
-                      styles.messageBubble,
-                      isSent ? { backgroundColor: palette.primary } : { backgroundColor: palette.card },
+                      styles.messageWrapper,
+                      isSent ? styles.messageWrapperSent : styles.messageWrapperReceived,
                     ]}
                   >
-                    <Text
+                    <View
                       style={[
-                        styles.messageText,
-                        isSent ? styles.messageTextSent : { color: palette.text.primary },
+                        styles.messageBubble,
+                        isSent ? { backgroundColor: palette.primary } : { backgroundColor: palette.card },
                       ]}
                     >
-                      {message.message}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.messageTime,
-                        isSent ? styles.messageTimeSent : { color: palette.text.secondary },
-                      ]}
-                    >
-                      {formatMessageTime(message.createdAt)}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.messageText,
+                          isSent ? styles.messageTextSent : { color: palette.text.primary },
+                        ]}
+                      >
+                        {message.message}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.messageTime,
+                          isSent ? styles.messageTimeSent : { color: palette.text.secondary },
+                        ]}
+                      >
+                        {formatMessageTime(message.createdAt)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </React.Fragment>
-            );
-          })
-        )}
+                </React.Fragment>
+              );
+            })
+          )}
         </ScrollView>
 
         {/* Input Area */}

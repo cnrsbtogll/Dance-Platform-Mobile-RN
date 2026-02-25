@@ -1,29 +1,18 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
-import { MockDataService } from '../../services/mockDataService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { NotificationBell } from '../../components/common/NotificationBell';
-
-interface Conversation {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  isOnline: boolean;
-  isGroup?: boolean;
-  groupName?: string;
-}
+import { chatService } from '../../services/firebase/chat';
+import { Conversation } from '../../types/message';
+import { User } from '../../types/user';
 
 export const InstructorChatScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -32,61 +21,40 @@ export const InstructorChatScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
 
-  // Get conversations for current user (instructor)
-  const conversations = useMemo(() => {
-    if (!user) return [];
+  const [conversations, setConversations] = useState<(Conversation & { partner?: User })[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const messages = MockDataService.getMessages();
-    const conversationMap = new Map<string, Conversation>();
-
-    // Get all unique conversation partners
-    messages.forEach((message) => {
-      // Only process messages where current user is sender or receiver
-      if (message.senderId !== user.id && message.receiverId !== user.id) {
-        return;
-      }
-
-      const partnerId = message.senderId === user.id ? message.receiverId : message.senderId;
-      const partner = MockDataService.getUserById(partnerId);
-
-      if (!partner) return;
-
-      const conversationId = [user.id, partnerId].sort().join('_');
-
-      if (!conversationMap.has(conversationId)) {
-        conversationMap.set(conversationId, {
-          id: conversationId,
-          userId: partnerId,
-          userName: partner.role === 'student'
-            ? `${t('chat.student')} - ${partner.name}`
-            : `${partner.name} - ${MockDataService.getLessonsByInstructor(partnerId)[0]?.category || t('chat.instructor')} ${t('chat.instructorSuffix')}`,
-          userAvatar: partner.avatar || '',
-          lastMessage: message.message,
-          lastMessageTime: message.createdAt,
-          unreadCount: 0,
-          isOnline: Math.random() > 0.5, // Mock online status
-        });
-      } else {
-        const conv = conversationMap.get(conversationId)!;
-        const messageTime = new Date(message.createdAt);
-        const lastTime = new Date(conv.lastMessageTime);
-
-        if (messageTime > lastTime) {
-          conv.lastMessage = message.message;
-          conv.lastMessageTime = message.createdAt;
-        }
-
-        if (!message.isRead && message.receiverId === user.id) {
-          conv.unreadCount++;
-        }
-      }
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    const unsubscribe = chatService.subscribeToConversations(user.id, (data) => {
+      setConversations(data);
+      setLoading(false);
     });
 
-    // Sort by last message time
-    return Array.from(conversationMap.values()).sort((a, b) => {
-      return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
-    });
-  }, [user, t]);
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleDelete = (convoId: string) => {
+    Alert.alert(
+      t('chat.deleteConfirmTitle') || 'Sohbeti Gizle',
+      t('chat.deleteConfirmDesc') || 'Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur.',
+      [
+        { text: t('common.cancel') || 'İptal', style: 'cancel' },
+        {
+          text: t('common.delete') || 'Sil',
+          style: 'destructive',
+          onPress: async () => {
+            if (user) {
+              await chatService.deleteConversation(convoId, user.id);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const formatMessageTime = (dateString: string): string => {
     return formatNotificationTime(dateString);
@@ -103,18 +71,16 @@ export const InstructorChatScreen: React.FC = () => {
         </View>
         <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <NotificationBell role="instructor" />
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => (navigation as any).navigate('NewChat')}
-          >
-            <MaterialIcons name="add-comment" size={24} color={palette.text.primary} />
-          </TouchableOpacity>
+          <NotificationBell role={user?.role === 'school' ? 'school' : 'instructor'} />
         </View>
       </View>
 
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
-        {conversations.length === 0 ? (
+        {loading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color={palette.primary} />
+          </View>
+        ) : conversations.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons
               name="chat-bubble-outline"
@@ -123,64 +89,89 @@ export const InstructorChatScreen: React.FC = () => {
             />
             <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('chat.noMessagesInstructor')}</Text>
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {t('chat.noMessagesInstructorDescription')}
+              {t('chat.noMessagesInstructorDescription') || 'Henüz kimseyle mesajlaşmadınız. Partner bul sayfasından öğrenciler veya diğer eğitmenlerle sohbete başlayabilirsiniz.'}
             </Text>
+            <TouchableOpacity
+              style={[{ backgroundColor: palette.primary, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: borderRadius.full, marginTop: spacing.md }]}
+              onPress={() => (navigation as any).navigate('PartnerSearch')}
+            >
+              <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{t('navigation.partnerSearch') || 'Kişi Bul'}</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.conversationsList}>
-            {conversations.map((conversation) => (
-              <TouchableOpacity
-                key={conversation.id}
-                style={[styles.conversationItem, { backgroundColor: palette.card }]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  (navigation as any).navigate('ChatDetail', {
-                    conversationId: conversation.id,
-                    userId: conversation.userId,
-                  });
-                }}
-              >
-                <View style={styles.conversationContent}>
-                  <View style={styles.avatarContainer}>
-                    {conversation.isGroup ? (
-                      <View style={[styles.avatar, styles.groupAvatar]}>
-                        <MaterialIcons name="groups" size={32} color="#ffffff" />
-                      </View>
-                    ) : (
-                      <>
-                        <Image
-                          source={getAvatarSource(conversation.userAvatar, conversation.userId)}
-                          style={styles.avatar}
-                        />
-                        {conversation.isOnline && (
-                          <View style={[styles.onlineIndicator, { borderColor: palette.card }]} />
-                        )}
-                      </>
-                    )}
-                  </View>
-                  <View style={styles.messageInfo}>
-                    <Text style={[styles.userName, { color: palette.text.primary }]} numberOfLines={1}>
-                      {conversation.userName}
-                    </Text>
-                    <Text style={[styles.lastMessage, { color: palette.text.secondary }]} numberOfLines={1}>
-                      {conversation.lastMessage}
-                    </Text>
-                  </View>
-                  <View style={styles.timeContainer}>
-                    <Text style={[styles.timeText, { color: palette.text.secondary }]}>
-                      {formatMessageTime(conversation.lastMessageTime)}
-                    </Text>
-                    {conversation.unreadCount > 0 && (
-                      <View style={styles.unreadBadge}>
-                        <Text style={styles.unreadBadgeText}>
-                          {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+            {conversations.map((conversation) => {
+              const partnerName = conversation.partner?.displayName || conversation.partner?.name || t('chat.user');
+              const partnerRole = conversation.partner?.role;
+              const unreadCount = conversation.unreadCount?.[user?.id || ''] || 0;
+              const isInstructor = partnerRole === 'instructor';
+
+              let roleTitle = t('chat.student');
+              if (partnerRole === 'instructor') roleTitle = t('chat.instructor');
+              if (partnerRole === 'school') roleTitle = 'Okul';
+
+              const roleColor = isInstructor ? colors.instructor.primary : palette.text.secondary;
+
+              return (
+                <TouchableOpacity
+                  key={conversation.id}
+                  style={[styles.conversationItem, { backgroundColor: palette.card }]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    const parentData = {
+                      conversationId: conversation.id,
+                      userId: conversation.partner?.id,
+                    };
+                    // Use standard navigate based on logic in InstructorChatScreen
+                    (navigation as any).navigate('ChatDetail', parentData);
+                  }}
+                  onLongPress={() => handleDelete(conversation.id)}
+                >
+                  <View style={styles.conversationContent}>
+                    <View style={styles.avatarContainer}>
+                      <Image
+                        source={getAvatarSource(conversation.partner?.avatar, conversation.partner?.id)}
+                        style={styles.avatar}
+                      />
+                    </View>
+                    <View style={styles.messageInfo}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.userName, { color: palette.text.primary }]} numberOfLines={1}>
+                          {partnerName}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: roleColor, borderWidth: 1, borderColor: roleColor, paddingHorizontal: 4, borderRadius: 4 }}>
+                          {roleTitle}
                         </Text>
                       </View>
-                    )}
+
+                      <Text
+                        style={[
+                          styles.lastMessage,
+                          { color: unreadCount > 0 ? palette.text.primary : palette.text.secondary },
+                          unreadCount > 0 && { fontWeight: typography.fontWeight.bold }
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {conversation.lastMessageSenderId === user?.id ? 'Sen: ' : ''}
+                        {conversation.lastMessage}
+                      </Text>
+                    </View>
+                    <View style={styles.timeContainer}>
+                      <Text style={[styles.timeText, { color: unreadCount > 0 ? palette.primary : palette.text.secondary }]}>
+                        {formatMessageTime(conversation.lastMessageAt)}
+                      </Text>
+                      {unreadCount > 0 && (
+                        <View style={[styles.unreadBadge, { backgroundColor: palette.primary }]}>
+                          <Text style={styles.unreadBadgeText}>
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -206,7 +197,6 @@ const styles = StyleSheet.create({
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: spacing.xs,
   },
   headerTitle: {
     flex: 1,
