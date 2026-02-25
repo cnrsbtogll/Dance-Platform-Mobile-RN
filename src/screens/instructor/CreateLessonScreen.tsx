@@ -170,7 +170,7 @@ export const CreateLessonScreen: React.FC = () => {
         if (user && !user.onboardingCompleted) {
             Alert.alert(
                 t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-                t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
                 [{
                     text: t('common.ok'),
                     onPress: () => {
@@ -292,10 +292,10 @@ export const CreateLessonScreen: React.FC = () => {
                     Alert.alert(
                         user?.role === 'draft-school'
                             ? (t('school.draftLimitReachedTitle') || 'Taslak Limitine Ulaşıldı')
-                            : (t('instructor.draftLimitTitle') || 'Taslak Ders Limiti'),
+                            : (t('instructor.draftLimitTitle') || 'Taslak Kurs Limiti'),
                         user?.role === 'draft-school'
-                            ? (t('school.draftLimitReachedDesc') || 'Hesabınız doğrulanmadan en fazla 3 taslak ders oluşturabilirsiniz. Devam etmek için lütfen belgelerinizi yükleyin.')
-                            : (t('instructor.draftLimitDesc') || 'Taslak eğitmen olarak en fazla 3 taslak ders oluşturabilirsiniz. Daha fazla ders eklemek için kimliğinizi doğrulayın.'),
+                            ? (t('school.draftLimitReachedDesc') || 'Hesabınız doğrulanmadan en fazla 3 taslak kurs oluşturabilirsiniz. Devam etmek için lütfen belgelerinizi yükleyin.')
+                            : (t('instructor.draftLimitDesc') || 'Taslak eğitmen olarak en fazla 3 taslak kurs oluşturabilirsiniz. Daha fazla kurs eklemek için kimliğinizi doğrulayın.'),
                         [{ text: t('common.ok') }]
                     );
                     return;
@@ -613,7 +613,7 @@ export const CreateLessonScreen: React.FC = () => {
                                 {/* Instructor Selector Box for Schools */}
                                 <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
                                     <View style={styles.inputGroup}>
-                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu dersi kim verecek?'}</Text>
+                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim verecek?'}</Text>
                                         <TouchableOpacity
                                             style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                             onPress={() => setShowInstructorPicker(true)}

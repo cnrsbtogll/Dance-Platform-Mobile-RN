@@ -129,7 +129,7 @@ export const InstructorLessonsScreen: React.FC = () => {
             if (user && !user.onboardingCompleted) {
               Alert.alert(
                 t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-                t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
                 [{
                   text: t('common.ok'),
                   onPress: () => {

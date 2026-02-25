@@ -165,7 +165,7 @@ export const SchoolVerificationScreen: React.FC = () => {
                 <View style={[styles.infoBadge, { backgroundColor: colors.school.primary + '10', borderColor: colors.school.primary + '30' }]}>
                     <MaterialIcons name="info-outline" size={18} color={colors.school.primary} />
                     <Text style={[styles.infoBadgeText, { color: colors.school.primary }]}>
-                        {t('school.uploadDocumentsDesc') || 'Okul olarak ders yayınlayabilmeniz için MEB veya Gençlik Spor Bakanlığı onaylı evraklarınızı yüklemeniz gerekmektedir.'}
+                        {t('school.uploadDocumentsDesc') || 'Okul olarak kurs yayınlayabilmeniz için MEB veya Gençlik Spor Bakanlığı onaylı evraklarınızı yüklemeniz gerekmektedir.'}
                     </Text>
                 </View>
 

@@ -174,7 +174,7 @@ export const LessonDetailScreen: React.FC = () => {
   );
 
 
-  // Instructor veya School için ders sahibi kontrolü
+  // Instructor veya School için kurs sahibi kontrolü
   const isOwnLesson = isInstructor && (lesson?.instructorId === user?.id || lesson?.schoolId === user?.id);
 
   // Registered Students
@@ -1077,7 +1077,7 @@ export const LessonDetailScreen: React.FC = () => {
             </View>
 
             <Text style={{ color: palette.text.secondary, marginBottom: 16 }}>
-              {t('lessons.announcementModalDesc') || 'Bu duyuru derse kayıtlı olan tüm öğrencilere bildirim olarak iletilecektir.'}
+              {t('lessons.announcementModalDesc') || 'Bu duyuru kursa kayıtlı olan tüm öğrencilere bildirim olarak iletilecektir.'}
             </Text>
 
             <TextInput

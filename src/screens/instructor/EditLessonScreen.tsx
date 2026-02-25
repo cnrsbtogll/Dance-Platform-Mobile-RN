@@ -588,7 +588,7 @@ export const EditLessonScreen: React.FC = () => {
                                 {/* Instructor Selector Box for Schools */}
                                 <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
                                     <View style={styles.inputGroup}>
-                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu dersi kim verecek?'}</Text>
+                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim verecek?'}</Text>
                                         <TouchableOpacity
                                             style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
                                             onPress={() => setShowInstructorPicker(true)}

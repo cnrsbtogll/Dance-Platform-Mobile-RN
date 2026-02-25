@@ -203,7 +203,7 @@ export const SchoolLessonsScreen: React.FC = () => {
                     <View style={styles.emptyState}>
                         <MaterialIcons name="business" size={64} color={palette.text.secondary} />
                         <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-                            {activeTab === 'active' ? (t('lessons.noActiveLessons') || 'Aktif ders bulunamadı') : (t('lessons.noInactiveLessons') || 'Geçmiş ders bulunamadı')}
+                            {activeTab === 'active' ? (t('lessons.noActiveLessons') || 'Aktif kurs bulunamadı') : (t('lessons.noInactiveLessons') || 'Geçmiş kurs bulunamadı')}
                         </Text>
                     </View>
                 )}

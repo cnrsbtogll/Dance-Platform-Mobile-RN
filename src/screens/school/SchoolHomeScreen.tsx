@@ -326,7 +326,7 @@ export const SchoolHomeScreen: React.FC = () => {
                                 if (user && !user.onboardingCompleted) {
                                     Alert.alert(
                                         t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-                                        t('school.onboardingRequiredDesc') || 'Ders oluşturmadan önce lütfen okul profilinizi tamamlayın.',
+                                        t('school.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen okul profilinizi tamamlayın.',
                                         [{ text: t('common.ok'), onPress: () => (navigation as any).navigate('SchoolOnboarding') }]
                                     );
                                 } else {
@@ -335,7 +335,7 @@ export const SchoolHomeScreen: React.FC = () => {
                             }}
                         >
                             <MaterialIcons name="add-circle-outline" size={24} color="#ffffff" />
-                            <Text style={styles.quickActionText}>{t('school.createLesson') || 'Ders Oluştur'}</Text>
+                            <Text style={styles.quickActionText}>{t('school.createLesson') || 'Kurs Oluştur'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.quickActionButton, { backgroundColor: colors.school.secondary }]}

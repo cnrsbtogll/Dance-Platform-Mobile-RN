@@ -199,7 +199,7 @@ export const InstructorHomeScreen: React.FC = () => {
               if (user && !user.onboardingCompleted) {
                 Alert.alert(
                   t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-                  t('instructor.onboardingRequiredDesc') || 'Ders oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
+                  t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
                   [{
                     text: t('common.ok'),
                     onPress: () => {
@@ -278,7 +278,7 @@ export const InstructorHomeScreen: React.FC = () => {
             </View>
 
             <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
-              {t('instructor.verificationStepDesc') || 'Eğitmen olarak ders vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
+              {t('instructor.verificationStepDesc') || 'Eğitmen olarak kurs vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
             </Text>
 
             <View style={styles.bannerActions}>
@@ -518,7 +518,7 @@ export const InstructorHomeScreen: React.FC = () => {
           if (user && !user.onboardingCompleted) {
             Alert.alert(
               t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-              t('instructor.completeProfileBeforeLesson') || 'Ders oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+              t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
               [{
                 text: t('common.ok'),
                 onPress: () => {
