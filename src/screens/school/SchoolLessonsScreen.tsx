@@ -105,7 +105,7 @@ export const SchoolLessonsScreen: React.FC = () => {
         if (user?.role !== 'school') {
             Alert.alert(
                 t('becomeSchool.underReview') || 'Başvurunuz İncelemede',
-                'Okulunuz onaylanana kadar dersleri aktifleştiremezsiniz.',
+                'Okulunuz onaylanana kadar kursları aktifleştiremezsiniz.',
                 [{ text: t('common.ok') }]
             );
             return;

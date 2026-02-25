@@ -335,7 +335,7 @@ export const EditLessonScreen: React.FC = () => {
         if (isActivating && user?.role !== 'instructor') {
             Alert.alert(
                 t('instructor.verificationRequired') || 'Kimlik Doğrulaması Gerekiyor',
-                t('instructor.verificationDesc') || 'Derslerinizi yayınlayabilmek için kimlik doğrulaması yapmanız gerekmektedir.',
+                t('instructor.verificationDesc') || 'Kurslarınızı yayınlayabilmek için kimlik doğrulaması yapmanız gerekmektedir.',
                 [
                     { text: t('common.cancel'), style: 'cancel' },
                     {

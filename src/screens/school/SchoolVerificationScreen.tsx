@@ -81,7 +81,7 @@ export const SchoolVerificationScreen: React.FC = () => {
 
             Alert.alert(
                 t('school.verificationPendingTitle') || 'Belgeler İnceleniyor',
-                t('school.verificationPendingDesc') || 'Yüklediğiniz belgeler kontrol ediliyor. Onaylandıktan sonra derslerinizi yayına alabilirsiniz.',
+                t('school.verificationPendingDesc') || 'Yüklediğiniz belgeler kontrol ediliyor. Onaylandıktan sonra kurslarınızı yayına alabilirsiniz.',
                 [{
                     text: t('common.ok'),
                     onPress: () => navigation.goBack()

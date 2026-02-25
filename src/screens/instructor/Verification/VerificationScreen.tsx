@@ -74,7 +74,7 @@ export const VerificationScreen: React.FC = () => {
 
             Alert.alert(
                 'Başvurunuz Alındı 🎉',
-                'Belgeleriniz incelemeye alındı. Onaylandığında dersleriniz yayınlanacak.',
+                'Belgeleriniz incelemeye alındı. Onaylandığında kurslarınız yayınlanacak.',
                 [{
                     text: t('common.ok'),
                     onPress: () => {

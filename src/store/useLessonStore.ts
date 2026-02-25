@@ -21,7 +21,7 @@ interface LessonState {
 }
 
 export const useLessonStore = create<LessonState>((set, get) => {
-  // Store'u başlatırken dersleri yükle
+  // Store'u başlatırken kursları yükle
   // Async initialization
   dataService.getLessons()
     .then((lessons) => {

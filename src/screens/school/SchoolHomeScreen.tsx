@@ -303,7 +303,7 @@ export const SchoolHomeScreen: React.FC = () => {
                 {/* Stats Cards */}
                 <View style={styles.statsContainer}>
                     <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-                        <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('school.activeLessons') || 'Aktif Dersler'}</Text>
+                        <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('school.activeLessons') || 'Aktif Kurslar'}</Text>
                         <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.activeLessons}</Text>
                     </Card>
                     <Card style={[styles.statCard, { backgroundColor: palette.card }]}>

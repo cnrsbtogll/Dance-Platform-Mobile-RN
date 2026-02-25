@@ -438,7 +438,7 @@ export const CreateLessonScreen: React.FC = () => {
                 <View style={[styles.warningBanner, { backgroundColor: '#FEF3C7', borderBottomColor: '#FDE68A' }]}>
                     <MaterialIcons name="info-outline" size={20} color="#D97706" />
                     <Text style={[styles.warningText, { color: '#D97706' }]}>
-                        {t('lessons.unverifiedWarning') || 'Hesabınız henüz onaylanmadı. Oluşturduğunuz dersler "Taslak" olarak kaydedilecektir.'}
+                        {t('lessons.unverifiedWarning') || 'Hesabınız henüz onaylanmadı. Oluşturduğunuz kurslar "Taslak" olarak kaydedilecektir.'}
                     </Text>
                 </View>
             )}

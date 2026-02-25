@@ -165,7 +165,7 @@ export const InstructorLessonsScreen: React.FC = () => {
     if (user?.role !== 'instructor') {
       Alert.alert(
         t('instructor.verificationRequired') || 'Kimlik Doğrulaması Gerekiyor',
-        t('instructor.verificationDesc') || 'Derslerinizi yayınlayabilmek için onaylanmış bir eğitmen olmanız gerekmektedir. Şimdi belge yüklemek ister misiniz?',
+        t('instructor.verificationDesc') || 'Kurslarınızı yayınlayabilmek için onaylanmış bir eğitmen olmanız gerekmektedir. Şimdi belge yüklemek ister misiniz?',
         [{
           text: t('common.cancel'),
           style: 'cancel'
