@@ -49,8 +49,8 @@ module.exports = {
   expo: {
     name: currentBrand.name,
     slug: currentBrand.slug,
-    version: "1.0.1",
-    runtimeVersion: "1.0.1",
+    version: "1.0.2",
+    runtimeVersion: "1.0.2",
     orientation: 'portrait',
     icon: currentBrand.icon,
     userInterfaceStyle: 'light',
