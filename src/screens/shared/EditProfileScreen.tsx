@@ -104,7 +104,7 @@ export const EditProfileScreen: React.FC = () => {
               style={styles.avatar}
             />
             <TouchableOpacity
-              style={[styles.changeAvatarButton, { backgroundColor: palette.primary }]}
+              style={[styles.changeAvatarButton, { backgroundColor: palette.secondary }]}
               onPress={() => setAvatarModalVisible(true)}
             >
               <Text style={styles.changeAvatarButtonText}>{t('profile.selectAvatar')}</Text>
@@ -200,7 +200,7 @@ export const EditProfileScreen: React.FC = () => {
             <Text style={[styles.cancelText, { color: palette.text.primary }]}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, styles.saveButton, { backgroundColor: palette.primary }]}
+            style={[styles.actionButton, styles.saveButton, { backgroundColor: palette.secondary }]}
             onPress={handleSave}
             disabled={saving}
           >

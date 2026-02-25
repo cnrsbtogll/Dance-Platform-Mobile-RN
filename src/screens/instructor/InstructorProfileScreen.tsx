@@ -107,7 +107,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={notificationsEnabled}
           onValueChange={setNotificationsEnabled}
-          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: palette.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -156,7 +156,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={isDarkMode}
           onValueChange={setDarkMode}
-          trackColor={{ false: palette.border, true: isSchool ? colors.school.primary : colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: palette.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -210,14 +210,14 @@ export const InstructorProfileScreen: React.FC = () => {
                   ? '#e53e3e20'
                   : item.iconColor
                     ? `${item.iconColor}20`
-                    : `${isSchool ? colors.school.primary : colors.instructor.primary}20`,
+                    : `${palette.secondary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || (isSchool ? colors.school.primary : colors.instructor.primary)}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || palette.secondary}
             />
           </View>
           <Text
@@ -266,7 +266,7 @@ export const InstructorProfileScreen: React.FC = () => {
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: isSchool ? colors.school.primary : colors.instructor.primary }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.editProfileLink, { color: isSchool ? colors.school.primary : colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -300,27 +300,29 @@ export const InstructorProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* Switch to Student Mode Button */}
-        <TouchableOpacity
-          style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
-          activeOpacity={0.8}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          onPress={() => {
-            // Navigate to Student mode using CommonActions
-            // Get root navigator to navigate between Student and Instructor
-            const rootNavigation = navigation.getParent()?.getParent();
-            if (rootNavigation) {
-              rootNavigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Student' }],
-                })
-              );
-            }
-          }}
-        >
-          <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
-        </TouchableOpacity>
+        {/* Switch to Student Mode Button - Only show for instructors, hide for schools */}
+        {!isSchool && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              // Navigate to Student mode using CommonActions
+              // Get root navigator to navigate between Student and Instructor
+              const rootNavigation = navigation.getParent()?.getParent();
+              if (rootNavigation) {
+                rootNavigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Student' }],
+                  })
+                );
+              }
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Account Settings - Only show when authenticated */}
         {user && renderSettingsCard(t('profile.accountSettings'), accountSettings)}

@@ -27,11 +27,17 @@ export const LessonDetailScreen: React.FC = () => {
   const isInstructor = params?.isInstructor || false;
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('student', isDarkMode);
+  const { user, isAuthenticated, setUser } = useAuthStore();
+
+  // Determine role for palette
+  const role = user?.role === 'school' || user?.role === 'draft-school'
+    ? 'school'
+    : (isInstructor ? 'instructor' : 'student');
+
+  const palette = getPalette(role, isDarkMode);
 
   const { toggleFavorite, favoriteLessons, lessons } = useLessonStore();
   const { createBooking, pendingRegistrationLessonId, setPendingRegistrationLessonId } = useBookingStore();
-  const { user, isAuthenticated, setUser } = useAuthStore();
 
   const [lesson, setLesson] = useState<any>(lessons.find(l => l.id === lessonId) || null);
   const [loadingLesson, setLoadingLesson] = useState(!lesson);
@@ -809,7 +815,7 @@ export const LessonDetailScreen: React.FC = () => {
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
             <View style={{ flex: 1, marginRight: spacing.sm, justifyContent: 'center' }}>
-              <Text style={[styles.priceValue, { color: colors.instructor.primary, fontSize: 20 }]}>
+              <Text style={[styles.priceValue, { color: palette.primary, fontSize: 20 }]}>
                 {formatPrice(lesson.price)}
               </Text>
             </View>
@@ -819,7 +825,7 @@ export const LessonDetailScreen: React.FC = () => {
               onPress={handleEdit}
             >
               <LinearGradient
-                colors={[colors.instructor.secondary, colors.instructor.secondary]}
+                colors={[palette.secondary, palette.secondary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.registerButtonGradient}
@@ -849,7 +855,7 @@ export const LessonDetailScreen: React.FC = () => {
                 </View>
 
                 {loadingStudents ? (
-                  <ActivityIndicator size="large" color={colors.instructor.primary} style={{ marginTop: 20 }} />
+                  <ActivityIndicator size="large" color={palette.primary} style={{ marginTop: 20 }} />
                 ) : enrolledStudents.length === 0 ? (
                   <View style={styles.emptyContainer}>
                     <Text style={[styles.emptyText, { color: palette.text.secondary }]}>
