@@ -28,5 +28,6 @@ export interface User {
   contactPerson?: string;
   instagramHandle?: string;
   verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
+  pushTokens?: string[];
 }
 

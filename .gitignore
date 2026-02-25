@@ -19,3 +19,8 @@ web-build/
 
 # Google Play Key
 google-play-key.json
+
+google-services.json
+GoogleService-Info.plist
+/android
+/ios

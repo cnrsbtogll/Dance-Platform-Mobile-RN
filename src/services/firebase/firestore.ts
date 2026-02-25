@@ -31,6 +31,7 @@ const COLLECTIONS = {
   BOOKINGS: 'bookings',
   INSTRUCTOR_REQUESTS: 'instructorRequests',
   SCHOOL_REQUESTS: 'schoolRequests',
+  ANNOUNCEMENTS: 'announcements',
 };
 
 // Helper to convert Firestore doc to typed object
@@ -599,6 +600,80 @@ export class FirestoreService {
       });
     } catch (error) {
       console.error('Error updating booking status:', error);
+      throw error;
+    }
+  }
+
+  // Announcements
+  static async createCourseAnnouncement(data: {
+    courseId: string;
+    senderId: string;
+    senderName: string;
+    message: string;
+  }): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, COLLECTIONS.ANNOUNCEMENTS), {
+        ...data,
+        reactions: { like: 0, heart: 0 },
+        userReactions: {},
+        createdAt: new Date().toISOString()
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      throw error;
+    }
+  }
+
+  static async getCourseAnnouncements(courseId: string): Promise<any[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.ANNOUNCEMENTS),
+        where('courseId', '==', courseId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc(doc));
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      return [];
+    }
+  }
+
+  static async reactToAnnouncement(announcementId: string, userId: string, reactionType: 'like' | 'heart'): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.ANNOUNCEMENTS, announcementId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return;
+      
+      const data = docSnap.data();
+      const userReactions = data.userReactions || {};
+      const currentReaction = userReactions[userId];
+      
+      const newReactions = { ...data.reactions };
+      const newUserReactions = { ...userReactions };
+
+      if (currentReaction === reactionType) {
+        // Remove reaction
+        newReactions[reactionType] = Math.max(0, (newReactions[reactionType] || 0) - 1);
+        delete newUserReactions[userId];
+      } else {
+        // Change or add reaction
+        if (currentReaction) {
+          newReactions[currentReaction] = Math.max(0, (newReactions[currentReaction] || 0) - 1);
+        }
+        newReactions[reactionType] = (newReactions[reactionType] || 0) + 1;
+        newUserReactions[userId] = reactionType;
+      }
+
+      await updateDoc(docRef, {
+        reactions: newReactions,
+        userReactions: newUserReactions
+      });
+      
+    } catch (error) {
+      console.error('Error reacting to announcement:', error);
       throw error;
     }
   }

@@ -107,6 +107,13 @@ module.exports = {
           "merchantIdentifier": `merchant.${currentBrand.bundleIdentifier}`,
           "enableGooglePay": true
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": currentBrand.icon,
+          "color": "#ffffff"
+        }
       ]
     ],
   },

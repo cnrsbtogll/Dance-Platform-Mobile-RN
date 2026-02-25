@@ -16,14 +16,13 @@ interface AuthState {
   setUser: (user: User | null) => void;
   updateCurrency: (currency: Currency) => void;
   refreshProfile: () => Promise<void>;
-  initialize: () => void;
+  initialize: (pushToken?: string | null) => void;
 }
-
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
   
-  initialize: () => {
+  initialize: (pushToken?: string | null) => {
     // Listen for auth state changes
     console.log('[AuthStore] Initialize called');
     if (auth) {
@@ -51,6 +50,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               await FirestoreService.updateUser(userProfile.id, updatedUser);
               get().setUser(updatedUser);
             } else {
+              // Ensure the push token is saved
+              if (pushToken) {
+                const updatedTokens = userProfile.pushTokens ? [...userProfile.pushTokens] : [];
+                if (!updatedTokens.includes(pushToken)) {
+                  updatedTokens.push(pushToken);
+                  await FirestoreService.updateUser(userProfile.id, { pushTokens: updatedTokens });
+                  userProfile.pushTokens = updatedTokens;
+                }
+              }
               get().setUser(userProfile);
             }
           } else {
@@ -74,7 +82,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               photoURL: firebaseUser.photoURL || AVATARS[Math.floor(Math.random() * AVATARS.length)],
               avatar: firebaseUser.photoURL || AVATARS[Math.floor(Math.random() * AVATARS.length)],
               phoneNumber: firebaseUser.phoneNumber || null,
-              createdAt: new Date().toISOString()
+              createdAt: new Date().toISOString(),
+              pushTokens: pushToken ? [pushToken] : [],
             };
             
             console.log('[AuthStore] Creating new user in Firestore:', minimalUser.id);
