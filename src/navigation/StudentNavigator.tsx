@@ -14,6 +14,7 @@ import { ChatScreen } from '../screens/student/ChatScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NewChatScreen } from '../screens/student/NewChatScreen';
 import { PartnerSearchScreen } from '../screens/student/PartnerSearchScreen';
+import { PartnerDetailScreen } from '../screens/shared/PartnerDetailScreen';
 import { ProfileScreen } from '../screens/student/ProfileScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { BecomeInstructorScreen } from '../screens/shared/BecomeInstructorScreen';
@@ -210,6 +211,11 @@ export const StudentNavigator: React.FC = () => {
         name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PartnerDetail"
+        component={PartnerDetailScreen}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="LessonDetail"

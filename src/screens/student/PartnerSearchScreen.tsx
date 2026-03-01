@@ -131,7 +131,9 @@ export const PartnerSearchScreen: React.FC = () => {
                     }
                 ]}
                 activeOpacity={0.8}
-                onPress={() => handleOpenChat(item)}
+                onPress={() => {
+                    (navigation as any).navigate('PartnerDetail', { partner: item });
+                }}
             >
                 {/* Role badge */}
                 <View style={[
@@ -164,15 +166,9 @@ export const PartnerSearchScreen: React.FC = () => {
                     </Text>
                 ) : (
                     <Text style={[styles.userBio, { color: palette.text.secondary }]}>
-                        {item.role === 'instructor' ? t('chat.instructor') : t('chat.student')}
+                        {item.role === 'instructor' ? t('chat.instructor') : item.role === 'school' ? 'Okul' : t('chat.student')}
                     </Text>
                 )}
-
-                {/* Message CTA */}
-                <View style={[styles.messageCta, { backgroundColor: palette.primary }]}>
-                    <MaterialIcons name="chat-bubble-outline" size={14} color="#fff" />
-                    <Text style={styles.messageCtaText}>{t('chat.sendMessage') || 'Mesaj At'}</Text>
-                </View>
             </TouchableOpacity>
         );
     };

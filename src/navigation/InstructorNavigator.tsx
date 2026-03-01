@@ -15,6 +15,7 @@ import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen
 import { VerificationScreen } from '../screens/instructor/Verification/VerificationScreen';
 import { InstructorNewChatScreen } from '../screens/instructor/NewChatScreen';
 import { PartnerSearchScreen } from '../screens/student/PartnerSearchScreen';
+import { PartnerDetailScreen } from '../screens/shared/PartnerDetailScreen';
 import { CreateLessonScreen } from '../screens/instructor/CreateLessonScreen';
 import { EditLessonScreen } from '../screens/instructor/EditLessonScreen';
 import { EarningsDetailsScreen } from '../screens/instructor/EarningsDetailsScreen';
@@ -243,6 +244,11 @@ export const InstructorNavigator: React.FC = () => {
         name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PartnerDetail"
+        component={PartnerDetailScreen}
+        options={{ headerShown: false, presentation: 'card' }}
       />
       <Stack.Screen
         name="LessonDetail"

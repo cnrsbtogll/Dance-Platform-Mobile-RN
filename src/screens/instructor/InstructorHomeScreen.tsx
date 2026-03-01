@@ -227,8 +227,8 @@ export const InstructorHomeScreen: React.FC = () => {
           >
             <View style={{ position: 'relative' }}>
               <MaterialIcons
-                name="notifications"
-                size={28}
+                name="notifications-none"
+                size={24}
                 color={palette.text.primary}
               />
               {unreadCount > 0 && (

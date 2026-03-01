@@ -12,6 +12,7 @@ import { SchoolHomeScreen } from '../screens/school/SchoolHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
 import { PartnerSearchScreen } from '../screens/student/PartnerSearchScreen';
+import { PartnerDetailScreen } from '../screens/shared/PartnerDetailScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
@@ -224,6 +225,11 @@ export const SchoolNavigator: React.FC = () => {
                 name="MainTabs"
                 component={MainTabs}
                 options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="PartnerDetail"
+                component={PartnerDetailScreen}
+                options={{ headerShown: false, presentation: 'card' }}
             />
             {appConfig.features.chat && (
                 <>

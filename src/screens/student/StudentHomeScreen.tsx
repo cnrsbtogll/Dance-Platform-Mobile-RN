@@ -133,7 +133,7 @@ export const StudentHomeScreen: React.FC = () => {
         >
           <View style={{ position: 'relative' }}>
             <MaterialIcons
-              name="notifications"
+              name="notifications-none"
               size={24}
               color={palette.text.primary}
             />
