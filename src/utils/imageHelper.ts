@@ -129,9 +129,9 @@ export const getAvatarSource = (avatar?: string | null, seed?: string): { uri: s
     return { uri: avatar };
   }
   
-  // Return the first avatar from AVATARS array as default
+  // Use seed to get a deterministic avatar if no avatar provided
   return { 
-    uri: AVATARS[0] || 'https://api.dicebear.com/7.x/adventurer/png?seed=default'
+    uri: `https://api.dicebear.com/7.x/adventurer/png?seed=${seed || 'default'}`
   };
 };
 

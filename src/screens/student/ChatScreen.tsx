@@ -94,7 +94,7 @@ export const ChatScreen: React.FC = () => {
 
               let roleTitle = t('chat.student');
               if (partnerRole === 'instructor') roleTitle = t('chat.instructor');
-              if (partnerRole === 'school') roleTitle = 'Okul';
+              if (partnerRole === 'school') roleTitle = t('chat.school');
 
               const roleBadgeColor = partnerRole === 'instructor'
                 ? colors.instructor.primary

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, FlatList, Image, TouchableOpacity,
-    RefreshControl, TextInput, Modal, ScrollView, Platform, Dimensions,
+    RefreshControl, TextInput, Modal, ScrollView, Platform, Dimensions, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,8 @@ export const PartnerSearchScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
     const { isDarkMode } = useThemeStore();
-    const { user: currentUser } = useAuthStore();
+    const { user: currentUser, isAuthenticated } = useAuthStore();
+    const [pendingPartner, setPendingPartner] = useState<User | null>(null);
     const role = currentUser?.role === 'admin' || currentUser?.role === 'draft-instructor' || currentUser?.role === 'draft-school' ? 'student' : currentUser?.role || 'student';
     const palette = getPalette(role, isDarkMode);
 
@@ -64,6 +65,12 @@ export const PartnerSearchScreen: React.FC = () => {
                         photoURL: data.photoURL || null,
                         bio: data.bio || '',
                         gender: data.gender || undefined,
+                        age: data.age || undefined,
+                        height: data.height || undefined,
+                        weight: data.weight || undefined,
+                        experience: data.experience || undefined,
+                        city: data.city || undefined,
+                        danceStyles: data.danceStyles || [],
                         rating: data.rating || undefined,
                         schoolName: data.schoolName || undefined,
                         instagramHandle: data.instagramHandle || undefined,
@@ -84,7 +91,14 @@ export const PartnerSearchScreen: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [currentUser?.id]);
+
+    useEffect(() => {
+        if (isAuthenticated && pendingPartner) {
+            navigation.navigate('PartnerDetail', { partner: pendingPartner });
+            setPendingPartner(null);
+        }
+    }, [isAuthenticated, pendingPartner]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -148,7 +162,24 @@ export const PartnerSearchScreen: React.FC = () => {
                 ]}
                 activeOpacity={0.8}
                 onPress={() => {
-                    (navigation as any).navigate('PartnerDetail', { partner: item });
+                    if (!isAuthenticated) {
+                        Alert.alert(
+                            t('partner.loginRequired'),
+                            t('partner.loginRequiredDesc'),
+                            [
+                                { text: t('common.cancel'), style: 'cancel' },
+                                {
+                                    text: t('partner.login'),
+                                    onPress: () => {
+                                        setPendingPartner(item);
+                                        navigation.navigate('Login');
+                                    }
+                                }
+                            ]
+                        );
+                    } else {
+                        navigation.navigate('PartnerDetail', { partner: item });
+                    }
                 }}
             >
                 {/* Role badge */}

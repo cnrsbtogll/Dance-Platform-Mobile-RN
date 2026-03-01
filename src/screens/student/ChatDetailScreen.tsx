@@ -21,14 +21,8 @@ interface HeaderTitleProps {
 }
 
 // Create HeaderTitle component outside ChatDetailScreen to avoid closure issues
-const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
-  if (!partner) {
-    return (
-      <Text style={[styles.headerName, { color: palette.text.primary }]}>
-        {t('chat.user')}
-      </Text>
-    );
-  }
+const HeaderTitle: React.FC<HeaderTitleProps> = ({ partner, palette, t }) => {
+  if (!partner) return <Text style={[styles.headerName, { color: palette.text.primary }]}>{t('chat.user')}</Text>;
 
   return (
     <View style={styles.headerTitleContainer}>
@@ -46,7 +40,7 @@ const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
       </View>
     </View>
   );
-});
+};
 
 export const ChatDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -132,8 +126,17 @@ export const ChatDetailScreen: React.FC = () => {
       headerTintColor: palette.text.primary,
       headerStyle: {
         backgroundColor: palette.background,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: palette.border,
       },
       headerTitle: () => <HeaderTitle partner={partner} palette={palette} t={t} />,
+      headerTitleAlign: 'left',
+      headerTitleContainerStyle: {
+        marginLeft: Platform.OS === 'ios' ? 0 : -10,
+        flex: 1
+      },
     });
   }, [navigation, partner, palette, t]);
 
@@ -246,8 +249,8 @@ export const ChatDetailScreen: React.FC = () => {
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -331,7 +334,7 @@ export const ChatDetailScreen: React.FC = () => {
               </Text>
             </View>
           )}
-          <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+          <View style={styles.inputContainer}>
             <TouchableOpacity style={styles.attachButton} disabled={isMessageBlocked}>
               <MaterialIcons
                 name="attach-file"
@@ -388,8 +391,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    width: '100%',
-    maxWidth: '100%',
+    flex: 1,
+    paddingBottom: 8,
   },
   headerAvatar: {
     width: 40,
@@ -398,9 +401,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   headerTitleText: {
-    flex: 1,
-    minWidth: 0,
-    maxWidth: '100%',
+    justifyContent: 'center',
+    flexShrink: 1,
   },
   headerName: {
     fontSize: typography.fontSize.base,
@@ -434,7 +436,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesContent: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.xl,
   },
   dateSeparator: {
@@ -485,6 +488,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
   attachButton: {
@@ -497,11 +501,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minHeight: 40,
-    maxHeight: 100,
-    borderRadius: borderRadius.full,
+    maxHeight: 120,
+    borderRadius: 20,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   sendButton: {
     width: 40,

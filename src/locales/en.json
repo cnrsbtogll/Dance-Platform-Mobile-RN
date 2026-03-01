@@ -79,6 +79,11 @@
     "chat": "Messages",
     "partnerSearch": "Find Partner"
   },
+  "partner": {
+    "loginRequired": "View Partner Details",
+    "loginRequiredDesc": "You must log in to view detailed information about partners and contact them.",
+    "login": "Login"
+  },
   "profile": {
     "editProfile": "Edit Profile",
     "accountInfo": "Account Information",

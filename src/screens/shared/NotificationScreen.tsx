@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollViewContent: {
-    paddingTop: 0,
+    paddingTop: spacing.sm,
   },
   section: {
     paddingHorizontal: spacing.md,

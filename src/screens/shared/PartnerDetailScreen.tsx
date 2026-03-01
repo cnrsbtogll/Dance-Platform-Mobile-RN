@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useThemeStore } from '../../store/useThemeStore';
-import { getPalette, typography, spacing, borderRadius } from '../../utils/theme';
+import { colors, getPalette, typography, spacing, borderRadius } from '../../utils/theme';
 import { User } from '../../types/user';
 import { getAvatarSource } from '../../utils/imageHelper';
 
@@ -51,7 +51,11 @@ export const PartnerDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header Profile Area */}
         <View style={[styles.headerArea, { backgroundColor: palette.card, borderColor: palette.border }]}>
           <Image
@@ -61,8 +65,26 @@ export const PartnerDetailScreen: React.FC = () => {
           <Text style={[styles.nameText, { color: palette.text.primary }]}>
             {partner.displayName || partner.name}
           </Text>
-          <View style={[styles.roleBadge, { backgroundColor: palette.primary + '15' }]}>
-            <Text style={[styles.roleText, { color: palette.primary }]}>{roleText}</Text>
+          <View style={[
+            styles.roleBadge,
+            {
+              backgroundColor: partner.role === 'instructor'
+                ? colors.instructor.primary + '15'
+                : partner.role === 'school'
+                  ? colors.school.primary + '15'
+                  : colors.student.primary + '15'
+            }
+          ]}>
+            <Text style={[
+              styles.roleText,
+              {
+                color: partner.role === 'instructor'
+                  ? colors.instructor.primary
+                  : partner.role === 'school'
+                    ? colors.school.primary
+                    : colors.student.primary
+              }
+            ]}>{roleText}</Text>
           </View>
         </View>
 
@@ -185,8 +207,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 100, // Space for bottom fixed footer
+    paddingBottom: spacing.xl,
   },
   headerArea: {
     alignItems: 'center',
@@ -270,11 +295,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: spacing.md,
+    paddingBottom: Platform.OS === 'android' ? spacing.lg : spacing.md,
     borderTopWidth: 1,
   },
   ctaButton: {

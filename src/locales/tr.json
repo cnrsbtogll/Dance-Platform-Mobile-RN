@@ -79,6 +79,11 @@
     "chat": "Mesajlar",
     "partnerSearch": "Partner Bul"
   },
+  "partner": {
+    "loginRequired": "Partner Detaylarını Gör",
+    "loginRequiredDesc": "Partnerlerin detaylı bilgilerini görebilmek ve onlarla iletişime geçebilmek için giriş yapmalısınız.",
+    "login": "Giriş Yap"
+  },
   "filters": {
     "title": "Filtreler",
     "role": "Rol",
