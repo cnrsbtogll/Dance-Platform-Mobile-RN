@@ -1,5 +1,6 @@
 {
   "common": {
+    "justNow": "Şimdi",
     "loading": "Yükleniyor...",
     "error": "Hata",
     "success": "Başarılı",

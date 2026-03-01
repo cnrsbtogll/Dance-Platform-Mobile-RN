@@ -74,18 +74,8 @@ export const InstructorChatScreen: React.FC = () => {
             />
             <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>{t('chat.noMessagesInstructor')}</Text>
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {t('chat.noMessagesInstructorDescription') || 'Henüz kimseyle mesajlaşmadınız. Partner bul sayfasından öğrenciler veya diğer eğitmenlerle sohbete başlayabilirsiniz.'}
+              {t('chat.noChatsDescription') || 'Herhangi bir mesajınız bulunmamaktadır.'}
             </Text>
-            <TouchableOpacity
-              style={[{ backgroundColor: palette.primary, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: borderRadius.full, marginTop: spacing.md }]}
-              onPress={() => {
-                const parent = (navigation as any).getParent();
-                if (parent) parent.navigate('PartnerSearch');
-                else (navigation as any).navigate('PartnerSearch');
-              }}
-            >
-              <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{t('navigation.partnerSearch') || 'Kişi Bul'}</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.conversationsList}>
@@ -128,9 +118,29 @@ export const InstructorChatScreen: React.FC = () => {
                         <Text style={[styles.userName, { color: palette.text.primary }]} numberOfLines={1}>
                           {partnerName}
                         </Text>
-                        <Text style={{ fontSize: 10, color: roleColor, borderWidth: 1, borderColor: roleColor, paddingHorizontal: 4, borderRadius: 4 }}>
-                          {roleTitle}
-                        </Text>
+                        <View style={[
+                          styles.roleBadge,
+                          {
+                            backgroundColor: partnerRole === 'instructor'
+                              ? colors.instructor.primary + '20'
+                              : partnerRole === 'school'
+                                ? colors.school.primary + '20'
+                                : colors.student.primary + '20',
+                          }
+                        ]}>
+                          <Text style={[
+                            styles.roleBadgeText,
+                            {
+                              color: partnerRole === 'instructor'
+                                ? colors.instructor.primary
+                                : partnerRole === 'school'
+                                  ? colors.school.primary
+                                  : colors.student.primary,
+                            }
+                          ]}>
+                            {roleTitle}
+                          </Text>
+                        </View>
                       </View>
 
                       <Text
@@ -252,6 +262,15 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.bold,
     color: '#ffffff',
+  },
+  roleBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: '700' as const,
   },
   emptyState: {
     flex: 1,

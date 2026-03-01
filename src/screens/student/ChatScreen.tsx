@@ -91,13 +91,16 @@ export const ChatScreen: React.FC = () => {
                 t('chat.user');
               const partnerRole = conversation.partner?.role;
               const unreadCount = conversation.unreadCount?.[user?.id || ''] || 0;
-              const isInstructor = partnerRole === 'instructor';
 
               let roleTitle = t('chat.student');
               if (partnerRole === 'instructor') roleTitle = t('chat.instructor');
               if (partnerRole === 'school') roleTitle = 'Okul';
 
-              const roleColor = isInstructor ? colors.instructor.primary : palette.text.secondary;
+              const roleBadgeColor = partnerRole === 'instructor'
+                ? colors.instructor.primary
+                : partnerRole === 'school'
+                  ? colors.school.primary
+                  : colors.student.primary;
 
               return (
                 <TouchableOpacity
@@ -130,18 +133,11 @@ export const ChatScreen: React.FC = () => {
                         >
                           {partnerName}
                         </Text>
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            color: roleColor,
-                            borderWidth: 1,
-                            borderColor: roleColor,
-                            paddingHorizontal: 4,
-                            borderRadius: 4,
-                          }}
-                        >
-                          {roleTitle}
-                        </Text>
+                        <View style={[styles.roleBadge, { backgroundColor: roleBadgeColor + '20' }]}>
+                          <Text style={[styles.roleBadgeText, { color: roleBadgeColor }]}>
+                            {roleTitle}
+                          </Text>
+                        </View>
                       </View>
 
                       <Text
@@ -278,5 +274,14 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     color: '#ffffff',
+  },
+  roleBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: '700' as const,
   },
 });
