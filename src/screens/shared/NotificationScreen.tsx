@@ -159,7 +159,7 @@ export const NotificationScreen: React.FC = () => {
 
   if (notifications.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
         <View style={styles.emptyState}>
           <MaterialIcons
             name="notifications-none"
@@ -178,7 +178,7 @@ export const NotificationScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}

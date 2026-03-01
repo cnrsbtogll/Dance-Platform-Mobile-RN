@@ -432,6 +432,22 @@
     "unread": "Okunmamış",
     "earlier": "Daha Önce"
   },
+  "detail": {
+    "contact": "İletişime Geç",
+    "about": "Hakkında",
+    "gender": "Cinsiyet",
+    "male": "Erkek",
+    "female": "Kadın",
+    "other": "Diğer",
+    "age": "Yaş",
+    "height": "Boy",
+    "weight": "Kilo",
+    "rating": "Puan",
+    "experience": "Deneyim",
+    "city": "Şehir",
+    "danceStyles": "Dans Stilleri",
+    "school": "Okul"
+  },
   "chat": {
     "title": "Sohbetler",
     "newChat": "Yeni Sohbet",
@@ -451,6 +467,7 @@
     "online": "Çevrimiçi",
     "instructor": "Eğitmen",
     "student": "Öğrenci",
+    "school": "Okul",
     "user": "Kullanıcı",
     "userNotFound": "Kullanıcı bulunamadı",
     "goBack": "Geri Dön",

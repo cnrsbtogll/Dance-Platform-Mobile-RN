@@ -38,10 +38,10 @@ const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
       />
       <View style={styles.headerTitleText}>
         <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-          {partner.name || t('chat.user')}
+          {partner.displayName || partner.name || t('chat.user')}
         </Text>
         <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-          {partner.role === 'instructor' ? t('chat.instructor') : partner.role === 'school' ? 'Okul' : t('chat.student')}
+          {partner.role === 'instructor' ? t('chat.instructor') : partner.role === 'school' ? t('chat.school') : t('chat.student')}
         </Text>
       </View>
     </View>

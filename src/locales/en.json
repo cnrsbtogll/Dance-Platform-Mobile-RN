@@ -415,6 +415,22 @@
     "unread": "Unread",
     "earlier": "Earlier"
   },
+  "detail": {
+    "contact": "Contact",
+    "about": "About",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "age": "Age",
+    "height": "Height",
+    "weight": "Weight",
+    "rating": "Rating",
+    "experience": "Experience",
+    "city": "City",
+    "danceStyles": "Dance Styles",
+    "school": "School"
+  },
   "chat": {
     "title": "Chats",
     "newChat": "New Chat",
@@ -434,6 +450,7 @@
     "online": "Online",
     "instructor": "Instructor",
     "student": "Student",
+    "school": "School",
     "user": "User",
     "userNotFound": "User not found",
     "goBack": "Go Back",

@@ -46,7 +46,7 @@ export const PartnerDetailScreen: React.FC = () => {
   const roleText = partner.role === 'instructor'
     ? t('chat.instructor')
     : partner.role === 'school'
-      ? 'Okul'
+      ? t('chat.school')
       : t('chat.student');
 
   return (
@@ -68,48 +68,92 @@ export const PartnerDetailScreen: React.FC = () => {
 
         {/* Details Section */}
         <View style={styles.detailsArea}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>Hakkında</Text>
-          <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
-            <Text style={[styles.bioText, { color: partner.bio ? palette.text.primary : palette.text.secondary }]}>
-              {partner.bio || 'Henüz bir biyografi eklenmemiş.'}
-            </Text>
-          </View>
+          {/* Bio */}
+          {partner.bio ? (
+            <>
+              <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('detail.about')}</Text>
+              <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+                <Text style={[styles.bioText, { color: palette.text.primary }]}>
+                  {partner.bio}
+                </Text>
+              </View>
+            </>
+          ) : null}
 
-          {(partner.gender || partner.rating || false) ? (
-            <View style={[styles.statsRow, { borderColor: palette.border }]}>
-              {partner.gender ? (
-                <View style={styles.statItem}>
-                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>Cinsiyet</Text>
-                  <Text style={[styles.statValue, { color: palette.text.primary }]}>
-                    {partner.gender === 'male' ? 'Erkek' : partner.gender === 'female' ? 'Kadın' : 'Diğer'}
-                  </Text>
-                </View>
-              ) : null}
-              {partner.rating ? (
-                <View style={styles.statItem}>
-                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>Puan</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <MaterialIcons name="star" size={16} color="#FFD700" />
-                    <Text style={[styles.statValue, { color: palette.text.primary }]}>
-                      {partner.rating}
-                    </Text>
+          {/* Stats Grid */}
+          {(() => {
+            const stats: { label: string; value: string; icon?: string }[] = [];
+            if (partner.gender) {
+              stats.push({
+                label: t('detail.gender') || 'Cinsiyet',
+                value: partner.gender === 'male' ? (t('detail.male') || 'Erkek') : partner.gender === 'female' ? (t('detail.female') || 'Kadın') : (t('detail.other') || 'Diğer'),
+                icon: 'person',
+              });
+            }
+            if (partner.age) {
+              stats.push({ label: t('detail.age') || 'Yaş', value: `${partner.age}`, icon: 'cake' });
+            }
+            if (partner.height) {
+              stats.push({ label: t('detail.height') || 'Boy', value: `${partner.height} cm`, icon: 'height' });
+            }
+            if (partner.weight) {
+              stats.push({ label: t('detail.weight') || 'Kilo', value: `${partner.weight} kg`, icon: 'fitness-center' });
+            }
+            if (partner.rating) {
+              stats.push({ label: t('detail.rating') || 'Puan', value: `${partner.rating}`, icon: 'star' });
+            }
+            if (partner.experience) {
+              stats.push({ label: t('detail.experience') || 'Deneyim', value: partner.experience, icon: 'timeline' });
+            }
+            if (partner.city) {
+              stats.push({ label: t('detail.city') || 'Şehir', value: partner.city, icon: 'location-on' });
+            }
+
+            if (stats.length === 0) return null;
+
+            return (
+              <View style={[styles.statsGrid, { marginTop: spacing.md }]}>
+                {stats.map((stat, index) => (
+                  <View key={index} style={[styles.statsGridItem, { backgroundColor: palette.card, borderColor: palette.border }]}>
+                    <MaterialIcons name={stat.icon as any} size={18} color={stat.icon === 'star' ? '#FFD700' : palette.primary} />
+                    <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{stat.label}</Text>
+                    <Text style={[styles.statValue, { color: palette.text.primary }]}>{stat.value}</Text>
                   </View>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+                ))}
+              </View>
+            );
+          })()}
 
-          {partner.schoolName ? (
+          {/* Dance Styles */}
+          {partner.danceStyles && partner.danceStyles.length > 0 ? (
             <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border, marginTop: spacing.md }]}>
-              <Text style={[styles.statLabel, { color: palette.text.secondary, marginBottom: 4 }]}>Okulu</Text>
-              <Text style={[styles.statValue, { color: palette.text.primary }]}>{partner.schoolName}</Text>
+              <Text style={[styles.statLabel, { color: palette.text.secondary, marginBottom: 8 }]}>{t('detail.danceStyles') || 'Dans Stilleri'}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {partner.danceStyles.map((style, idx) => (
+                  <View key={idx} style={[styles.danceStyleTag, { backgroundColor: palette.primary + '15' }]}>
+                    <Text style={{ color: palette.primary, fontSize: typography.fontSize.sm, fontWeight: '600' as any }}>{style}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           ) : null}
 
+          {/* School */}
+          {partner.schoolName ? (
+            <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border, marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
+              <MaterialIcons name="school" size={20} color={palette.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.statLabel, { color: palette.text.secondary, marginBottom: 2 }]}>{t('detail.school') || 'Okul'}</Text>
+                <Text style={[styles.statValue, { color: palette.text.primary }]}>{partner.schoolName}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {/* Instagram */}
           {partner.instagramHandle ? (
-            <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border, marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+            <View style={[styles.infoCard, { backgroundColor: palette.card, borderColor: palette.border, marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 10 }]}>
               <AntDesign name="instagram" size={20} color={palette.primary} />
-              <Text style={[styles.statValue, { color: palette.text.primary }]}>{partner.instagramHandle}</Text>
+              <Text style={[styles.statValue, { color: palette.text.primary }]}>@{partner.instagramHandle.replace('@', '')}</Text>
             </View>
           ) : null}
         </View>
@@ -130,7 +174,7 @@ export const PartnerDetailScreen: React.FC = () => {
           }}
         >
           <MaterialIcons name="chat" size={20} color="#ffffff" />
-          <Text style={styles.ctaButtonText}>{t('detail.contact') || 'İletişime Geç'}</Text>
+          <Text style={styles.ctaButtonText}>{t('detail.contact')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -206,6 +250,24 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: typography.fontSize.base,
     fontWeight: '600',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  statsGridItem: {
+    width: '47%',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  danceStyleTag: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   footer: {
     position: 'absolute',

@@ -27,6 +27,12 @@ export interface User {
   contactNumber?: string;
   contactPerson?: string;
   instagramHandle?: string;
+  height?: number | string;
+  weight?: number | string;
+  age?: number;
+  danceStyles?: string[];
+  experience?: string;
+  city?: string;
   verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
   pushTokens?: string[];
 }

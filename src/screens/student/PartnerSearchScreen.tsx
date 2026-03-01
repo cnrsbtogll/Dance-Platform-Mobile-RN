@@ -50,10 +50,26 @@ export const PartnerSearchScreen: React.FC = () => {
             const querySnapshot = await getDocs(q);
 
             const fetchedUsers: User[] = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data() as User;
-                if (data.id !== currentUser?.id) {
-                    fetchedUsers.push({ ...data, id: doc.id });
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.id !== currentUser?.id && docSnap.id !== currentUser?.id) {
+                    fetchedUsers.push({
+                        ...data,
+                        id: docSnap.id,
+                        name: data.displayName || '',
+                        displayName: data.displayName || '',
+                        email: data.email || '',
+                        role: data.role || 'student',
+                        avatar: data.photoURL || data.avatar || null,
+                        photoURL: data.photoURL || null,
+                        bio: data.bio || '',
+                        gender: data.gender || undefined,
+                        rating: data.rating || undefined,
+                        schoolName: data.schoolName || undefined,
+                        instagramHandle: data.instagramHandle || undefined,
+                        phoneNumber: data.phoneNumber || null,
+                        createdAt: data.createdAt?.toDate?.()?.toISOString?.() || data.createdAt?.toString?.() || new Date().toISOString(),
+                    } as User);
                 }
             });
 
@@ -138,19 +154,19 @@ export const PartnerSearchScreen: React.FC = () => {
                 {/* Role badge */}
                 <View style={[
                     styles.roleBadge,
-                    { backgroundColor: item.role === 'instructor' ? colors.instructor.primary + '20' : palette.primary + '20' }
+                    { backgroundColor: item.role === 'instructor' ? colors.instructor.primary + '20' : item.role === 'school' ? colors.school.primary + '20' : colors.student.primary + '20' }
                 ]}>
                     <Text style={[
                         styles.roleBadgeText,
-                        { color: item.role === 'instructor' ? colors.instructor.primary : palette.primary }
+                        { color: item.role === 'instructor' ? colors.instructor.primary : item.role === 'school' ? colors.school.primary : colors.student.primary }
                     ]}>
-                        {item.role === 'instructor' ? t('chat.instructor') : t('chat.student')}
+                        {item.role === 'instructor' ? t('chat.instructor') : item.role === 'school' ? t('chat.school') : t('chat.student')}
                     </Text>
                 </View>
 
                 {/* Avatar */}
                 <Image
-                    source={getAvatarSource(item.avatar)}
+                    source={getAvatarSource(item.avatar, item.id)}
                     style={styles.avatar}
                 />
 
@@ -164,11 +180,7 @@ export const PartnerSearchScreen: React.FC = () => {
                     <Text style={[styles.userBio, { color: palette.text.secondary }]} numberOfLines={2}>
                         {item.bio}
                     </Text>
-                ) : (
-                    <Text style={[styles.userBio, { color: palette.text.secondary }]}>
-                        {item.role === 'instructor' ? t('chat.instructor') : item.role === 'school' ? 'Okul' : t('chat.student')}
-                    </Text>
-                )}
+                ) : null}
             </TouchableOpacity>
         );
     };
