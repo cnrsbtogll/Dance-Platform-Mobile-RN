@@ -94,12 +94,6 @@ export const SchoolLessonsScreen: React.FC = () => {
             headerRight: () => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <NotificationBell role="school" />
-                    <TouchableOpacity
-                        style={{ marginRight: spacing.md }}
-                        onPress={() => (navigation as any).navigate('CreateLesson')}
-                    >
-                        <MaterialIcons name="add" size={28} color={palette.text.primary} />
-                    </TouchableOpacity>
                 </View>
             ),
         });

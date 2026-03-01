@@ -459,7 +459,12 @@
     "minutesAgo": "{{count}} dk önce",
     "hoursAgo": "{{count}} saat önce",
     "instructorSuffix": "Eğitmeni",
-    "remove": "kaldır"
+    "remove": "kaldır",
+    "sendMessage": "Mesaj At",
+    "messageLimit": "3 mesaj gönderdiniz ve yanıt bekliyorsunuz. Karşı taraf yanıt verince yazabilirsiniz.",
+    "waitingReply": "Yanıt bekleniyor...",
+    "deleteConfirmTitle": "Sohbeti Gizle",
+    "deleteConfirmDesc": "Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur."
   },
   "payment": {
     "title": "Ödeme Ekranı",

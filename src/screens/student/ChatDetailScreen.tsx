@@ -70,6 +70,23 @@ export const ChatDetailScreen: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(true);
 
+  // Count consecutive sent messages at the end without a partner reply
+  const consecutiveUnreplied = useMemo(() => {
+    if (!user) return 0;
+    let count = 0;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderId === user.id) {
+        count++;
+      } else {
+        // Partner replied — reset streak
+        break;
+      }
+    }
+    return count;
+  }, [messages, user]);
+
+  const isMessageBlocked = consecutiveUnreplied >= 3;
+
   // Fetch partner info
   useEffect(() => {
     if (partnerId) {
@@ -200,7 +217,7 @@ export const ChatDetailScreen: React.FC = () => {
   };
 
   const handleSend = async () => {
-    if (!inputText.trim() || !user || !partnerId) return;
+    if (!inputText.trim() || !user || !partnerId || isMessageBlocked) return;
 
     const messageToSend = inputText.trim();
     setInputText('');
@@ -306,35 +323,51 @@ export const ChatDetailScreen: React.FC = () => {
 
         {/* Input Area */}
         <SafeAreaView edges={['bottom']} style={[styles.inputSafeArea, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
+          {isMessageBlocked && (
+            <View style={[styles.blockedBanner, { backgroundColor: palette.primary + '18', borderBottomColor: palette.border }]}>
+              <MaterialIcons name="info-outline" size={16} color={palette.primary} />
+              <Text style={[styles.blockedBannerText, { color: palette.primary }]}>
+                {t('chat.messageLimit') || '3 mesaj gönderdiniz ve yanıt bekliyorsunuz. Karşı taraf yanıt verince yazabilirsiniz.'}
+              </Text>
+            </View>
+          )}
           <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-            <TouchableOpacity style={styles.attachButton}>
+            <TouchableOpacity style={styles.attachButton} disabled={isMessageBlocked}>
               <MaterialIcons
                 name="attach-file"
                 size={24}
-                color={palette.text.secondary}
+                color={isMessageBlocked ? palette.text.secondary + '40' : palette.text.secondary}
               />
             </TouchableOpacity>
             <TextInput
-              style={[styles.input, { backgroundColor: palette.card, color: palette.text.primary }]}
-              placeholder={t('chat.typeMessage')}
+              style={[
+                styles.input,
+                { backgroundColor: palette.card, color: palette.text.primary },
+                isMessageBlocked && { opacity: 0.5 }
+              ]}
+              placeholder={isMessageBlocked
+                ? (t('chat.waitingReply') || 'Yanıt bekleniyor...')
+                : t('chat.typeMessage')
+              }
               placeholderTextColor={palette.text.secondary}
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
+              editable={!isMessageBlocked}
             />
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                { backgroundColor: inputText.trim() ? palette.primary : palette.card },
+                { backgroundColor: (!isMessageBlocked && inputText.trim()) ? palette.primary : palette.card },
               ]}
               onPress={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isMessageBlocked}
             >
               <MaterialIcons
                 name="send"
                 size={24}
-                color={inputText.trim() ? '#ffffff' : palette.text.secondary}
+                color={(!isMessageBlocked && inputText.trim()) ? '#ffffff' : palette.text.secondary + '60'}
               />
             </TouchableOpacity>
           </View>
@@ -503,6 +536,20 @@ const styles = StyleSheet.create({
   backButton: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
+  },
+  blockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  blockedBannerText: {
+    flex: 1,
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    lineHeight: 16,
   },
 });
 

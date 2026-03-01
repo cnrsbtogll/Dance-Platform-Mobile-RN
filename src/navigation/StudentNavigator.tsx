@@ -229,10 +229,20 @@ export const StudentNavigator: React.FC = () => {
           <Stack.Screen
             name="Chat"
             component={ChatScreen}
-            options={{
-              headerShown: false,
+            options={({ navigation: nav }) => ({
+              headerShown: true,
+              headerTitle: t('navigation.chat'),
+              headerBackTitle: '',
+              headerStyle: { backgroundColor: palette.background },
+              headerTintColor: palette.text.primary,
+              headerTitleStyle: {
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.bold,
+                color: palette.text.primary,
+              },
+              headerRight: () => <NotificationBell role="student" />,
               presentation: 'card',
-            }}
+            })}
           />
           <Stack.Screen
             name="ChatDetail"

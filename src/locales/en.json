@@ -75,7 +75,8 @@
     "myLessons": "My Lessons",
     "profile": "Profile",
     "notifications": "Notifications",
-    "chat": "Messages"
+    "chat": "Messages",
+    "partnerSearch": "Find Partner"
   },
   "profile": {
     "editProfile": "Edit Profile",
@@ -441,7 +442,12 @@
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} hours ago",
     "instructorSuffix": "Instructor",
-    "remove": "remove"
+    "remove": "remove",
+    "sendMessage": "Message",
+    "messageLimit": "You have sent 3 messages without a reply. Please wait for the other person to respond before sending more.",
+    "waitingReply": "Waiting for reply...",
+    "deleteConfirmTitle": "Hide Chat",
+    "deleteConfirmDesc": "Are you sure you want to hide this chat? It will reappear if the other person sends a new message."
   },
   "payment": {
     "title": "Payment Screen",

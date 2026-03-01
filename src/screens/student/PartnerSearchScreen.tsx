@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshControl, TextInput, Modal, ScrollView, Platform } from 'react-native';
+import {
+    View, Text, StyleSheet, FlatList, Image, TouchableOpacity,
+    RefreshControl, TextInput, Modal, ScrollView, Platform, Dimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -11,6 +14,11 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { User } from '../../types';
 import { getAvatarSource } from '../../utils/imageHelper';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_MARGIN = spacing.sm;
+const NUM_COLUMNS = 2;
+const CARD_WIDTH = (SCREEN_WIDTH - spacing.md * 2 - CARD_MARGIN * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
 export const PartnerSearchScreen: React.FC = () => {
     const { t } = useTranslation();
@@ -38,15 +46,12 @@ export const PartnerSearchScreen: React.FC = () => {
     const fetchUsers = async () => {
         try {
             const usersRef = collection(db, 'users');
-            // Fetch students and instructors. 
-            // Firestore 'in' query works for up to 10 values.
             const q = query(usersRef, where('role', 'in', ['student', 'instructor']));
             const querySnapshot = await getDocs(q);
 
             const fetchedUsers: User[] = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data() as User;
-                // Don't show current user
                 if (data.id !== currentUser?.id) {
                     fetchedUsers.push({ ...data, id: doc.id });
                 }
@@ -70,14 +75,12 @@ export const PartnerSearchScreen: React.FC = () => {
         fetchUsers();
     };
 
-    const handleStartChat = (targetUser: User) => {
+    const handleOpenChat = (targetUser: User) => {
         if (!currentUser) {
             navigation.navigate('Login');
             return;
         }
-        // Navigate to ChatDetail with target user params
         navigation.navigate('ChatDetail', {
-            chatId: `temp_${Date.now()}`, // Temporary or let ChatDetail create it
             targetUserId: targetUser.id,
             targetUserName: targetUser.displayName || targetUser.name,
             targetUserAvatar: targetUser.avatar,
@@ -86,18 +89,14 @@ export const PartnerSearchScreen: React.FC = () => {
     };
 
     const filteredUsers = users.filter(u => {
-        // Search Query
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             const name = (u.displayName || u.name || '').toLowerCase();
             const bio = (u.bio || '').toLowerCase();
             if (!name.includes(q) && !bio.includes(q)) return false;
         }
-
-        // Filters
         if (activeRole !== 'all' && u.role !== activeRole) return false;
         if (activeGender !== 'all' && u.gender !== activeGender) return false;
-
         return true;
     });
 
@@ -118,86 +117,122 @@ export const PartnerSearchScreen: React.FC = () => {
         setTempGender('all');
     };
 
-    const renderUserItem = ({ item }: { item: User }) => {
+    const renderUserCard = ({ item, index }: { item: User; index: number }) => {
+        const isLeftColumn = index % 2 === 0;
         return (
-            <View style={[styles.userCard, { backgroundColor: palette.card, borderColor: palette.border }]}>
+            <TouchableOpacity
+                style={[
+                    styles.userCard,
+                    {
+                        backgroundColor: palette.card,
+                        borderColor: palette.border,
+                        marginRight: isLeftColumn ? CARD_MARGIN / 2 : 0,
+                        marginLeft: isLeftColumn ? 0 : CARD_MARGIN / 2,
+                    }
+                ]}
+                activeOpacity={0.8}
+                onPress={() => handleOpenChat(item)}
+            >
+                {/* Role badge */}
+                <View style={[
+                    styles.roleBadge,
+                    { backgroundColor: item.role === 'instructor' ? colors.instructor.primary + '20' : palette.primary + '20' }
+                ]}>
+                    <Text style={[
+                        styles.roleBadgeText,
+                        { color: item.role === 'instructor' ? colors.instructor.primary : palette.primary }
+                    ]}>
+                        {item.role === 'instructor' ? t('chat.instructor') : t('chat.student')}
+                    </Text>
+                </View>
+
+                {/* Avatar */}
                 <Image
                     source={getAvatarSource(item.avatar)}
                     style={styles.avatar}
                 />
-                <View style={styles.userInfo}>
-                    <Text style={[styles.userName, { color: palette.text.primary }]}>
-                        {item.displayName || item.name}
+
+                {/* Name */}
+                <Text style={[styles.userName, { color: palette.text.primary }]} numberOfLines={1}>
+                    {item.displayName || item.name}
+                </Text>
+
+                {/* Bio */}
+                {item.bio ? (
+                    <Text style={[styles.userBio, { color: palette.text.secondary }]} numberOfLines={2}>
+                        {item.bio}
                     </Text>
-                    <Text style={[styles.userRole, { color: palette.text.secondary }]}>
-                        {item.role === 'instructor' ? 'Eğitmen' : 'Öğrenci'}
+                ) : (
+                    <Text style={[styles.userBio, { color: palette.text.secondary }]}>
+                        {item.role === 'instructor' ? t('chat.instructor') : t('chat.student')}
                     </Text>
-                    {item.bio ? (
-                        <Text style={[styles.userBio, { color: palette.text.secondary }]} numberOfLines={2}>
-                            {item.bio}
-                        </Text>
-                    ) : null}
+                )}
+
+                {/* Message CTA */}
+                <View style={[styles.messageCta, { backgroundColor: palette.primary }]}>
+                    <MaterialIcons name="chat-bubble-outline" size={14} color="#fff" />
+                    <Text style={styles.messageCtaText}>{t('chat.sendMessage') || 'Mesaj At'}</Text>
                 </View>
-                <TouchableOpacity
-                    style={[styles.chatBtn, { backgroundColor: palette.primary }]}
-                    onPress={() => handleStartChat(item)}
-                >
-                    <MaterialIcons name="chat-bubble-outline" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
         );
     };
+
+    const hasActiveFilters = activeRole !== 'all' || activeGender !== 'all';
 
     return (
         <View style={[styles.container, { backgroundColor: palette.background }]}>
             {/* Search Bar */}
             <View style={styles.searchRowContainer}>
                 <View style={[styles.searchContainer, { backgroundColor: palette.card, borderColor: palette.border }]}>
-                    <MaterialIcons name="search" size={24} color={palette.text.secondary} />
+                    <MaterialIcons name="search" size={22} color={palette.text.secondary} />
                     <TextInput
                         style={[styles.searchInput, { color: palette.text.primary }]}
-                        placeholder={t('navigation.partnerSearch') + "..."}
+                        placeholder={t('partnerSearch.searchPlaceholder') || 'Partner ara...'}
                         placeholderTextColor={palette.text.secondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <MaterialIcons name="close" size={20} color={palette.text.secondary} />
+                            <MaterialIcons name="close" size={18} color={palette.text.secondary} />
                         </TouchableOpacity>
                     )}
                 </View>
 
-                {/* Filter Button */}
                 <TouchableOpacity
                     style={[
                         styles.filterButton,
                         { backgroundColor: palette.card, borderColor: palette.border },
-                        (activeRole !== 'all' || activeGender !== 'all') && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
+                        hasActiveFilters && { borderColor: palette.primary, backgroundColor: palette.primary + '15' }
                     ]}
                     onPress={openFilters}
                 >
                     <MaterialIcons
                         name="tune"
-                        size={24}
-                        color={(activeRole !== 'all' || activeGender !== 'all') ? palette.primary : palette.text.primary}
+                        size={22}
+                        color={hasActiveFilters ? palette.primary : palette.text.primary}
                     />
+                    {hasActiveFilters && <View style={[styles.filterDot, { backgroundColor: palette.primary }]} />}
                 </TouchableOpacity>
             </View>
 
+            {/* Grid List */}
             <FlatList
                 data={filteredUsers}
                 keyExtractor={(item) => item.id}
-                renderItem={renderUserItem}
-                contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
+                renderItem={renderUserCard}
+                numColumns={NUM_COLUMNS}
+                columnWrapperStyle={styles.columnWrapper}
+                contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 100 }]}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[palette.primary]} tintColor={palette.primary} />
                 }
                 ListEmptyComponent={
                     !loading ? (
                         <View style={styles.emptyContainer}>
+                            <MaterialIcons name="people-outline" size={48} color={palette.text.secondary + '60'} />
                             <Text style={[styles.emptyText, { color: palette.text.secondary }]}>
-                                Kimse bulunamadı.
+                                {t('partnerSearch.noResults') || 'Kimse bulunamadı.'}
                             </Text>
                         </View>
                     ) : null
@@ -233,15 +268,15 @@ export const PartnerSearchScreen: React.FC = () => {
                                 {t('filters.role')}
                             </Text>
                             <View style={styles.filterOptionsContainer}>
-                                {['all', 'student', 'instructor'].map((status) => (
+                                {(['all', 'student', 'instructor'] as const).map((status) => (
                                     <TouchableOpacity
                                         key={status}
                                         style={[
                                             styles.filterOptionButton,
                                             { backgroundColor: palette.card, borderColor: palette.border },
-                                            tempRole === status && [styles.filterOptionActive, { backgroundColor: palette.primary, borderColor: palette.primary }]
+                                            tempRole === status && { backgroundColor: palette.primary, borderColor: palette.primary }
                                         ]}
-                                        onPress={() => setTempRole(status as any)}
+                                        onPress={() => setTempRole(status)}
                                     >
                                         <Text
                                             style={[
@@ -261,15 +296,15 @@ export const PartnerSearchScreen: React.FC = () => {
                                 {t('filters.gender')}
                             </Text>
                             <View style={styles.filterOptionsContainer}>
-                                {['all', 'male', 'female'].map((g) => (
+                                {(['all', 'male', 'female'] as const).map((g) => (
                                     <TouchableOpacity
                                         key={g}
                                         style={[
                                             styles.filterOptionButton,
                                             { backgroundColor: palette.card, borderColor: palette.border },
-                                            tempGender === g && [styles.filterOptionActive, { backgroundColor: palette.primary, borderColor: palette.primary }]
+                                            tempGender === g && { backgroundColor: palette.primary, borderColor: palette.primary }
                                         ]}
-                                        onPress={() => setTempGender(g as any)}
+                                        onPress={() => setTempGender(g)}
                                     >
                                         <Text
                                             style={[
@@ -315,76 +350,106 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: spacing.md,
-        height: 48,
+        paddingHorizontal: spacing.sm,
+        height: 46,
         borderRadius: borderRadius.md,
         borderWidth: 1,
         marginRight: spacing.sm,
-    },
-    filterButton: {
-        width: 48,
-        height: 48,
-        borderRadius: borderRadius.md,
-        borderWidth: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     searchInput: {
         flex: 1,
         height: '100%',
         marginLeft: spacing.sm,
-        fontSize: typography.fontSize.base,
+        fontSize: typography.fontSize.sm,
+    },
+    filterButton: {
+        width: 46,
+        height: 46,
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    filterDot: {
+        position: 'absolute',
+        top: 6,
+        right: 6,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
     },
     listContent: {
         paddingHorizontal: spacing.md,
-        paddingBottom: spacing.xl,
+        paddingTop: spacing.xs,
     },
+    columnWrapper: {
+        marginBottom: CARD_MARGIN,
+    },
+    // GRID CARD
     userCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: spacing.md,
-        marginBottom: spacing.md,
-        borderRadius: borderRadius.lg,
+        width: CARD_WIDTH,
+        borderRadius: borderRadius.xl,
         borderWidth: 1,
+        padding: spacing.md,
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    roleBadge: {
+        alignSelf: 'flex-end',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: borderRadius.full,
+        marginBottom: spacing.sm,
+    },
+    roleBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: spacing.md,
-    },
-    userInfo: {
-        flex: 1,
-        marginRight: spacing.sm,
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        marginBottom: spacing.sm,
     },
     userName: {
-        fontSize: typography.fontSize.base,
-        fontWeight: typography.fontWeight.bold,
-    },
-    userRole: {
-        fontSize: typography.fontSize.xs,
-        marginTop: 2,
+        fontSize: typography.fontSize.sm,
+        fontWeight: '700',
+        textAlign: 'center',
         marginBottom: 4,
     },
     userBio: {
-        fontSize: typography.fontSize.sm,
+        fontSize: typography.fontSize.xs,
+        textAlign: 'center',
+        lineHeight: 16,
+        marginBottom: spacing.sm,
+        minHeight: 32,
     },
-    chatBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
+    messageCta: {
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 4,
+        paddingVertical: 6,
+        paddingHorizontal: spacing.sm,
+        borderRadius: borderRadius.full,
+        marginTop: 'auto',
+    },
+    messageCtaText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '700',
     },
     emptyContainer: {
-        padding: spacing.xl,
+        paddingTop: 80,
         alignItems: 'center',
         justifyContent: 'center',
+        gap: spacing.md,
     },
     emptyText: {
         fontSize: typography.fontSize.base,
+        textAlign: 'center',
     },
-    // Modal Styles
+    // Modal
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -428,9 +493,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.md,
         borderRadius: borderRadius.full,
         borderWidth: 1,
-    },
-    filterOptionActive: {
-        // Active color specific styles are applied inline
     },
     filterOptionText: {
         fontSize: typography.fontSize.sm,

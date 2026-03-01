@@ -309,7 +309,17 @@ export const InstructorNavigator: React.FC = () => {
             name="Chat"
             component={InstructorChatScreen}
             options={{
-              headerShown: false,
+              headerShown: true,
+              headerTitle: t('chat.title'),
+              headerBackTitle: '',
+              headerStyle: { backgroundColor: palette.background },
+              headerTintColor: palette.text.primary,
+              headerTitleStyle: {
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.bold,
+                color: palette.text.primary,
+              },
+              headerRight: () => <NotificationBell role="instructor" />,
               presentation: 'card',
             }}
           />

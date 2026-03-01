@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +8,6 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
-import { NotificationBell } from '../../components/common/NotificationBell';
 import { chatService } from '../../services/firebase/chat';
 import { Conversation } from '../../types/message';
 import { User } from '../../types/user';
@@ -61,20 +59,7 @@ export const InstructorChatScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      {/* Custom Header */}
-      <View style={[styles.header, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color={palette.text.primary} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.headerTitle, { color: palette.text.primary }]}>{t('chat.title')}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <NotificationBell role={user?.role === 'school' ? 'school' : 'instructor'} />
-        </View>
-      </View>
-
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.emptyState}>
@@ -93,7 +78,11 @@ export const InstructorChatScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={[{ backgroundColor: palette.primary, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: borderRadius.full, marginTop: spacing.md }]}
-              onPress={() => (navigation as any).navigate('PartnerSearch')}
+              onPress={() => {
+                const parent = (navigation as any).getParent();
+                if (parent) parent.navigate('PartnerSearch');
+                else (navigation as any).navigate('PartnerSearch');
+              }}
             >
               <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>{t('navigation.partnerSearch') || 'Kişi Bul'}</Text>
             </TouchableOpacity>
@@ -175,35 +164,13 @@ export const InstructorChatScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    paddingTop: spacing.xs,
-    borderBottomWidth: 1,
-  },
-  headerButton: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    textAlign: 'center',
-    letterSpacing: -0.015,
   },
   scrollView: {
     flex: 1,
