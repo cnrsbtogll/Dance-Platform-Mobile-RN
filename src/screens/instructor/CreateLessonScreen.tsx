@@ -366,7 +366,6 @@ export const CreateLessonScreen: React.FC = () => {
                 }
             }
 
-            console.log('Saving lesson:', lessonData);
 
             if (editingLesson) {
                 await FirestoreService.updateLesson(editingLesson.id, lessonData);

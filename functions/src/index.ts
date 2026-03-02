@@ -100,8 +100,6 @@ export const generateUploadUrl = onRequest(
         unsignableHeaders: new Set(['content-type', 'x-amz-checksum-algorithm']),
         unhoistableHeaders: new Set(['content-type', 'x-amz-checksum-algorithm']),
       });
-      console.log('[CF] presigned uploadUrl:', uploadUrl);
-      console.log('[CF] MINIO_ACCESS_KEY loaded:', (process.env.MINIO_ACCESS_KEY || '').length > 0);
 
       const result: Record<string, string> = { uploadUrl };
       if (isPublic) {

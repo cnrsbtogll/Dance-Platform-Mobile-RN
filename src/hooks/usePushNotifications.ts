@@ -48,7 +48,6 @@ export function usePushNotifications() {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('Notification tapped!', response);
       // Here you can handle deep linking routing
       // const data = response.notification.request.content.data;
       // if (data?.courseId) { router.push(`/course/${data.courseId}`) }

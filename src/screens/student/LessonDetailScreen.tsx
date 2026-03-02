@@ -220,7 +220,6 @@ export const LessonDetailScreen: React.FC = () => {
 
           // Check consistency
           if (currentTotal !== realTotal || !lesson.participantStats) {
-            console.log('Syncing participant stats for lesson:', lesson.id);
             let male = 0, female = 0, other = 0;
 
             activeBookings.forEach(b => {
@@ -262,13 +261,6 @@ export const LessonDetailScreen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       if (pendingRegistrationLessonId) {
-        console.log('[LessonDetail] useFocusEffect Pending Check', {
-          pendingRegistrationLessonId,
-          currentLessonId: lesson?.id,
-          isAuthenticated,
-          hasUser: !!user,
-          gender: user?.gender
-        });
       }
       if (pendingRegistrationLessonId === lesson?.id && isAuthenticated && user && lesson) {
         // Check Gender before proceeding
@@ -460,11 +452,6 @@ export const LessonDetailScreen: React.FC = () => {
   };
 
   const handleRegister = () => {
-    console.log('[LessonDetail] handleRegister called', {
-      isAuthenticated,
-      userId: user?.id,
-      gender: user?.gender
-    });
 
     if (booking || isRegistered) {
       handleUnsubscribe();
@@ -479,13 +466,10 @@ export const LessonDetailScreen: React.FC = () => {
     }
 
     // Check Gender
-    console.log('[LessonDetail] Checking gender:', user?.gender);
     if (!user.gender || user.gender === 'other') {
-      console.log('[LessonDetail] Gender missing or other, showing modal');
       setShowGenderModal(true);
       return;
     }
-    console.log('[LessonDetail] Proceeding to payment');
 
     handleDirectRegistration();
   };

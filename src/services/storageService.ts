@@ -120,79 +120,51 @@ async function uploadWithPresignedUrl(
   contentType: string,
   onProgress?: (p: UploadProgress) => void
 ): Promise<UploadResult> {
-  console.log('[Storage] ▶ uploadWithPresignedUrl START');
-  console.log('[Storage]   localUri:', localUri?.substring(0, 60));
-  console.log('[Storage]   remotePath:', remotePath);
-  console.log('[Storage]   contentType:', contentType);
-  console.log('[Storage]   functionsUrl:', FUNCTIONS_BASE_URL);
-
   const user = auth.currentUser;
-  console.log('[Storage]   currentUser uid:', user?.uid ?? 'NULL — NOT LOGGED IN');
-
   const idToken = await getIdToken();
-  console.log('[Storage]   idToken acquired (length):', idToken?.length);
 
   // Step 1: Get presigned URL from Cloud Function
-  const cfPayload = { path: remotePath, contentType };
-  console.log('[Storage]   CF request body:', JSON.stringify(cfPayload));
-
   const cfRes = await fetch(`${FUNCTIONS_BASE_URL}/generateUploadUrl`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${idToken}`,
     },
-    body: JSON.stringify(cfPayload),
+    body: JSON.stringify({ path: remotePath, contentType }),
   });
-
-  console.log('[Storage]   CF response status:', cfRes.status);
 
   if (!cfRes.ok) {
     const errText = await cfRes.text();
-    console.error('[Storage]   CF error body:', errText);
     let errJson: any = {};
     try { errJson = JSON.parse(errText); } catch { errJson = { error: errText }; }
     throw new Error(`URL alınamadı: ${errJson.error || cfRes.statusText}`);
   }
 
-  const cfJson = await cfRes.json();
-  console.log('[Storage]   CF response keys:', Object.keys(cfJson));
-  const { uploadUrl, publicUrl } = cfJson;
-  // Log full URL to verify presigned query params
-  console.log('[Storage]   uploadUrl FULL:', uploadUrl);
+  const { uploadUrl, publicUrl } = await cfRes.json();
 
-  // Step 2: Read local file as Uint8Array via fetch
-  console.log('[Storage]   Fetching local file...');
+  // Step 2: Read local file as ArrayBuffer
   const fileRes = await fetch(localUri);
   const arrayBuffer = await fileRes.arrayBuffer();
-  console.log('[Storage]   ArrayBuffer byteLength:', arrayBuffer.byteLength);
 
-  // Step 3: PUT directly to MinIO using fetch (more reliable than XHR in Expo Go)
-  console.log('[Storage]   Starting PUT to MinIO...');
+  // Step 3: PUT directly to MinIO using fetch
   onProgress?.({ loaded: 0, total: arrayBuffer.byteLength, percent: 0 });
 
   const putRes = await fetch(uploadUrl, {
     method: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
+    headers: { 'Content-Type': contentType },
     body: arrayBuffer,
   });
 
-  console.log('[Storage]   MinIO PUT status:', putRes.status);
-
   if (!putRes.ok) {
     const errText = await putRes.text();
-    console.error('[Storage]   MinIO PUT error body:', errText);
+    console.error('[Storage] MinIO PUT error:', errText.substring(0, 200));
     throw new Error(`Upload başarısız (HTTP ${putRes.status})`);
   }
 
-  console.log('[Storage] ✅ Upload success');
   onProgress?.({ loaded: arrayBuffer.byteLength, total: arrayBuffer.byteLength, percent: 100 });
 
   const isPublic = remotePath.startsWith('public/');
   const finalUrl = publicUrl ?? `${minioConfig.publicBaseUrl}/${remotePath}`;
-  console.log('[Storage]   finalUrl:', finalUrl);
   return { url: finalUrl, isPublic };
 }
 
@@ -208,21 +180,16 @@ export async function uploadAvatar(
   localUri: string,
   onProgress?: (p: UploadProgress) => void
 ): Promise<string> {
-  console.log('[Storage] uploadAvatar — userId:', userId);
   await checkFileSize(localUri, MAX_IMAGE_SIZE_MB);
-
   const compressed = await compressImage(localUri);
-  console.log('[Storage] uploadAvatar — compressed uri:', compressed?.substring(0, 60));
   const remotePath = `public/avatars/${userId}/avatar.jpg`;
-  console.log('[Storage] uploadAvatar — remotePath:', remotePath);
-
   const result = await uploadWithPresignedUrl(compressed, remotePath, 'image/jpeg', onProgress);
   return result.url;
 }
 
 /**
  * Upload a course cover image.
- * Compresses the image, uploads to public/course-covers/{courseId}/cover.jpg
+ * Compresses the image, uploads to public/course-covers/{userId}/{courseId}/cover.jpg
  * Returns the permanent public URL.
  */
 export async function uploadCourseCover(
@@ -231,14 +198,9 @@ export async function uploadCourseCover(
   localUri: string,
   onProgress?: (p: UploadProgress) => void
 ): Promise<string> {
-  console.log('[Storage] uploadCourseCover — courseId:', courseId, 'userId:', userId);
   await checkFileSize(localUri, MAX_IMAGE_SIZE_MB);
-
   const compressed = await compressImage(localUri, 0.85);
-  console.log('[Storage] uploadCourseCover — compressed uri:', compressed?.substring(0, 60));
   const remotePath = `public/course-covers/${userId}/${courseId}/cover.jpg`;
-  console.log('[Storage] uploadCourseCover — remotePath:', remotePath);
-
   const result = await uploadWithPresignedUrl(compressed, remotePath, 'image/jpeg', onProgress);
   return result.url;
 }

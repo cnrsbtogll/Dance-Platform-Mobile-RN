@@ -92,8 +92,5 @@ export const isBrand = (checkBrand: Brand): boolean => {
 
 // Log configuration in development
 if (__DEV__) {
-  console.log('[AppConfig] Current brand:', appConfig.brand);
-  console.log('[AppConfig] Features:', appConfig.features);
-  console.log('[AppConfig] Integrations:', appConfig.integrations);
 }
 

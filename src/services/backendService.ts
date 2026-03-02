@@ -29,10 +29,8 @@ export const authService = {
     if (firebaseEnabled) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        console.log('[AuthService] Firebase login success');
         return { success: true };
       } catch (error) {
-        console.log('[AuthService] Firebase login error:', error);
         return { success: false, error };
       }
     }
@@ -59,7 +57,6 @@ export const authService = {
         }
         return { success: true };
       } catch (error) {
-        console.log('[AuthService] Firebase register error:', error);
         return { success: false, error };
       }
     }
@@ -69,19 +66,15 @@ export const authService = {
   logout: async (): Promise<void> => {
     if (firebaseEnabled) {
       await customSignOut();
-      console.log('[AuthService] Firebase logout');
     } else {
       // Mock logout (no-op)
-      console.log('[AuthService] Mock logout');
     }
   },
 
   deleteAccount: async (): Promise<void> => {
     if (firebaseEnabled) {
       await customDeleteAccount();
-      console.log('[AuthService] Firebase delete account');
     } else {
-      console.log('[AuthService] Mock delete account');
     }
   },
 };
@@ -91,11 +84,9 @@ export const authService = {
  */
 export const dataService = {
   getLessons: async () => {
-    console.log('[BackendService] getLessons called. Firebase enabled:', firebaseEnabled);
     if (firebaseEnabled) {
       try {
         const lessons = await FirestoreService.getLessons();
-        console.log('[BackendService] Firestore returned lessons count:', lessons.length);
         return lessons;
       } catch (error) {
         console.error('[BackendService] Error fetching from Firestore, falling back to empty array:', error);
@@ -129,14 +120,12 @@ export const paymentService = {
         //   amount: amount * 100, // Convert to cents
         //   currency: currency.toLowerCase(),
         // });
-        console.log('[PaymentService] Using Stripe payment');
         return { success: false, error: 'Stripe not yet implemented' };
       } catch (error: any) {
         return { success: false, error: error.message || 'Payment failed' };
       }
     } else {
       // Mock payment
-      console.log('[PaymentService] Using mock payment');
       return {
         success: true,
         transactionId: `mock_${Date.now()}`,

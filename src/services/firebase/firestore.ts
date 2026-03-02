@@ -114,7 +114,6 @@ export class FirestoreService {
     try {
       const docRef = doc(db, COLLECTIONS.USERS, id);
       await deleteDoc(docRef);
-      console.log(`[FirestoreService] User ${id} deleted successfully`);
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
@@ -386,10 +385,7 @@ export class FirestoreService {
         updatedAt: new Date().toISOString(),
         status: lessonData.status ?? 'active',
       };
-      console.log('[FirestoreService] createLesson - incoming status:', lessonData.status);
-      console.log('[FirestoreService] createLesson - writing status:', dataToWrite.status);
       const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), dataToWrite);
-      console.log('[FirestoreService] createLesson - saved with id:', docRef.id, 'status:', dataToWrite.status);
       return docRef.id;
     } catch (error) {
       console.error('Error creating lesson:', error);

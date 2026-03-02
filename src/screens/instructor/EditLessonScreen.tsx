@@ -200,28 +200,23 @@ export const EditLessonScreen: React.FC = () => {
                         }
 
                         // Handle image
-                        console.log('Loading image for category:', data.category, 'imageUrl:', data.imageUrl);
                         if (data.category || data.danceStyle) {
                             const category = data.category || data.danceStyle;
                             // Capitalize first letter to match LESSON_IMAGES keys
                             const categoryKey = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
                             const availableImages = LESSON_IMAGES[categoryKey] || [];
-                            console.log('Available images for', categoryKey, ':', availableImages.length);
 
                             if (data.imageUrl) {
                                 if (typeof data.imageUrl === 'number') {
-                                    console.log('Setting image from number:', data.imageUrl);
                                     setSelectedImage(data.imageUrl);
                                 } else {
                                     // Fallback to first image of category
                                     const fallbackImage = availableImages[0];
-                                    console.log('Setting fallback image:', fallbackImage);
                                     setSelectedImage(fallbackImage);
                                 }
                             } else {
                                 // No imageUrl, use first available image
                                 const fallbackImage = availableImages[0];
-                                console.log('No imageUrl, using first available:', fallbackImage);
                                 setSelectedImage(fallbackImage);
                             }
                         }
@@ -318,7 +313,6 @@ export const EditLessonScreen: React.FC = () => {
                             : lessonData?.location; // Fallback to existing location
                 }
 
-                console.log('Updating lesson with:', updateData);
                 await FirestoreService.updateLesson(lessonId, updateData);
                 updateLesson(lessonId, updateData);
                 Alert.alert(t('common.success'), t('lessons.lessonUpdated'), [

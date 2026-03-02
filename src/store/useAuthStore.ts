@@ -25,10 +25,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   initialize: (pushToken?: string | null) => {
     // Listen for auth state changes
-    console.log('[AuthStore] Initialize called');
     if (auth) {
       onAuthStateChanged(auth, async (firebaseUser) => {
-        console.log('[AuthStore] AuthStateChanged:', firebaseUser ? `User ${firebaseUser.uid}` : 'No User');
         if (firebaseUser) {
           // User is signed in, fetch profile
           const userProfile = await FirestoreService.getUserById(firebaseUser.uid);
@@ -38,7 +36,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 firebaseUser.displayName && 
                 firebaseUser.displayName !== 'Misafir Dansçı') {
               
-              console.log('[AuthStore] Upgrading user from Misafir to:', firebaseUser.displayName);
               const updatedUser = {
                 ...userProfile,
                 name: firebaseUser.displayName,
@@ -87,7 +84,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               pushTokens: pushToken ? [pushToken] : [],
             };
             
-            console.log('[AuthStore] Creating new user in Firestore:', minimalUser.id);
             try {
               await FirestoreService.createUser(minimalUser.id, minimalUser);
               get().setUser(minimalUser);
@@ -114,7 +110,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       updatedTokens.push(token);
       await FirestoreService.updateUser(user.id, { pushTokens: updatedTokens });
       get().setUser({ ...user, pushTokens: updatedTokens });
-      console.log('[AuthStore] Associated new push token with user:', user.id);
     }
   },
 
@@ -137,21 +132,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   logout: async () => {
-    console.log('[AuthStore] Logout called');
     try {
       await authService.logout();
-      console.log('[AuthStore] Logout successful');
     } catch (error) {
       console.error('[AuthStore] Logout error:', error);
     } finally {
-      console.log('[AuthStore] Clearing auth state');
       set({ user: null, isAuthenticated: false });
     }
   },
   
   deleteAccount: async () => {
     const user = get().user;
-    console.log('[AuthStore] deleteAccount called for:', user?.id);
     if (!user || !user.id) return false;
 
     try {
@@ -161,7 +152,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 2. Delete Firebase Auth account
       await authService.deleteAccount();
       
-      console.log('[AuthStore] Account deletion successful');
       set({ user: null, isAuthenticated: false });
       return true;
     } catch (error) {
@@ -171,7 +161,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   setUser: (user: User | null) => {
-    console.log('[AuthStore] setUser called with:', user ? `${user.name} (${user.role})` : 'null');
     // Set default currency for instructors if not set
     if (user && (user.role === 'instructor' || user.role === 'draft-instructor') && !user.currency) {
       user.currency = 'TRY';
@@ -179,7 +168,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Set default avatar if not set
     if (user && (!user.avatar || user.avatar.trim() === '')) {
       user.avatar = AVATARS[0] || '';
-      console.log('[AuthStore] setUser: Set default avatar', user.avatar);
     }
     set({ user, isAuthenticated: !!user });
   },
@@ -203,7 +191,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = get().user;
     if (!user || !user.id) return;
     
-    console.log('[AuthStore] Refreshing profile for:', user.id);
     try {
       const updatedProfile = await FirestoreService.getUserById(user.id);
       if (updatedProfile) {
