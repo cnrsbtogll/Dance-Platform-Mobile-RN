@@ -53,7 +53,10 @@ export const StudentHomeScreen: React.FC = () => {
     }
 
     // Arama
-    const instructorName = lesson.instructorName || MockDataService.getInstructorForLesson(lesson.id)?.name || '';
+    const instructorName =
+      (lesson.instructorNames && lesson.instructorNames.length > 0
+        ? lesson.instructorNames.join(', ')
+        : lesson.instructorName) || '';
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       if (!(lesson.title || '').toLowerCase().includes(query) &&
@@ -201,7 +204,10 @@ export const StudentHomeScreen: React.FC = () => {
         {/* Lessons List */}
         <View style={styles.lessonsContainer}>
           {filteredLessons.map((lesson) => {
-            const instructorName = lesson.instructorName || MockDataService.getInstructorForLesson(lesson.id)?.name;
+            const instructorName =
+              (lesson.instructorNames && lesson.instructorNames.length > 0
+                ? lesson.instructorNames.join(', ')
+                : lesson.instructorName) || '';
             const isFavorite = favoriteLessons.includes(lesson.id);
 
             return (

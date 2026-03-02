@@ -212,52 +212,8 @@ export class FirestoreService {
     try {
       const q = query(collection(db, COLLECTIONS.COURSES), where('status', '==', 'active'));
       const querySnapshot = await getDocs(q);
-      
-      const lessons = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          // Spread data first
-          ...data,
-          // Then override with required fields to ensure consistency
-          id: doc.id, // IMPORTANT: Document ID must be the source of truth
-          title: data.name || data.title || '',
-          name: data.name || '',
-          description: data.description || '',
-          category: data.danceStyle || 'Other',
-          danceStyle: data.danceStyle || 'Other',
-          instructorId: data.instructorId || '',
-          price: data.price || 0,
-          currency: data.currency,
-          duration: data.duration || 60,
-          time: data.time,
-          daysOfWeek: data.daysOfWeek || [],
-          imageUrl: data.imageUrl,
-          // Map other fields
-          isActive: data.status === 'active',
-          status: data.status,
-          rating: data.rating || 0,
-          reviewCount: data.reviewCount || 0,
-          favoriteCount: data.favoriteCount || 0,
-          createdAt: data.createdAt?.toString(),
-        } as Lesson;
-      });
-      
-      return lessons;
-    } catch (error) {
-      console.error('[FirestoreService] Error getting lessons:', error);
-      return [];
-    }
-  }
 
-  static async getLessonsByInstructor(instructorId: string): Promise<Lesson[]> {
-    try {
-      const q = query(
-        collection(db, COLLECTIONS.COURSES), 
-        where('instructorId', '==', instructorId)
-      );
-      const querySnapshot = await getDocs(q);
-      
-      const lessons = querySnapshot.docs.map(doc => {
+      return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           ...data,
@@ -268,6 +224,65 @@ export class FirestoreService {
           category: data.danceStyle || 'Other',
           danceStyle: data.danceStyle || 'Other',
           instructorId: data.instructorId || '',
+          instructorName: data.instructorName || '',
+          instructorIds: data.instructorIds || [],
+          instructorNames: data.instructorNames || [],
+          price: data.price || 0,
+          currency: data.currency,
+          duration: data.duration || 60,
+          time: data.time,
+          daysOfWeek: data.daysOfWeek || [],
+          imageUrl: data.imageUrl,
+          isActive: data.status === 'active',
+          status: data.status,
+          rating: data.rating || 0,
+          reviewCount: data.reviewCount || 0,
+          favoriteCount: data.favoriteCount || 0,
+          createdAt: data.createdAt?.toString(),
+        } as Lesson;
+      });
+    } catch (error) {
+      console.error('[FirestoreService] Error getting lessons:', error);
+      return [];
+    }
+  }
+
+  static async getLessonsByInstructor(instructorId: string): Promise<Lesson[]> {
+    try {
+      // Dual query: legacy single-instructor field + new multi-instructor array
+      const [snap1, snap2] = await Promise.all([
+        getDocs(query(
+          collection(db, COLLECTIONS.COURSES),
+          where('instructorId', '==', instructorId)
+        )),
+        getDocs(query(
+          collection(db, COLLECTIONS.COURSES),
+          where('instructorIds', 'array-contains', instructorId)
+        )),
+      ]);
+
+      // Merge, deduplicate by doc ID
+      const seen = new Set<string>();
+      const allDocs = [...snap1.docs, ...snap2.docs].filter(doc => {
+        if (seen.has(doc.id)) return false;
+        seen.add(doc.id);
+        return true;
+      });
+
+      return allDocs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          title: data.name || data.title || '',
+          name: data.name || '',
+          description: data.description || '',
+          category: data.danceStyle || 'Other',
+          danceStyle: data.danceStyle || 'Other',
+          instructorId: data.instructorId || '',
+          instructorName: data.instructorName || '',
+          instructorIds: data.instructorIds || [],
+          instructorNames: data.instructorNames || [],
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
@@ -276,19 +291,14 @@ export class FirestoreService {
           imageUrl: data.imageUrl,
           level: data.level || 'Beginner',
           maxStudents: data.maxStudents || 10,
-          schedule: data.schedule || [],
-          location: data.location || '',
           isActive: data.status === 'active',
           status: data.status || (data.isActive ? 'active' : 'inactive'),
           rating: data.rating || 0,
-          totalReviews: data.totalReviews || 0,
           reviewCount: data.reviewCount || 0,
           favoriteCount: data.favoriteCount || 0,
           createdAt: data.createdAt?.toString() || new Date().toISOString(),
         } as Lesson;
       });
-      
-      return lessons;
     } catch (error) {
       console.error('Error fetching instructor lessons:', error);
       return [];
@@ -303,7 +313,7 @@ export class FirestoreService {
       );
       const querySnapshot = await getDocs(q);
       
-      const lessons = querySnapshot.docs.map(doc => {
+      return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           ...data,
@@ -314,6 +324,9 @@ export class FirestoreService {
           category: data.danceStyle || 'Other',
           danceStyle: data.danceStyle || 'Other',
           instructorId: data.instructorId || '',
+          instructorName: data.instructorName || '',
+          instructorIds: data.instructorIds || [],
+          instructorNames: data.instructorNames || [],
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
@@ -322,19 +335,14 @@ export class FirestoreService {
           imageUrl: data.imageUrl,
           level: data.level || 'Beginner',
           maxStudents: data.maxStudents || 10,
-          schedule: data.schedule || [],
-          location: data.location || '',
           isActive: data.status === 'active',
           status: data.status || (data.isActive ? 'active' : 'inactive'),
           rating: data.rating || 0,
-          totalReviews: data.totalReviews || 0,
           reviewCount: data.reviewCount || 0,
           favoriteCount: data.favoriteCount || 0,
           createdAt: data.createdAt?.toString() || new Date().toISOString(),
         } as Lesson;
       });
-      
-      return lessons;
     } catch (error) {
       console.error('Error fetching school lessons:', error);
       return [];
@@ -348,12 +356,17 @@ export class FirestoreService {
       if (docSnap.exists()) {
         const data = docSnap.data();
         return {
-          title: data.name || '',
+          ...data,
+          id: docSnap.id,
+          title: data.name || data.title || '',
           name: data.name || '',
           description: data.description || '',
           category: data.danceStyle || 'Other',
           danceStyle: data.danceStyle || 'Other',
           instructorId: data.instructorId || '',
+          instructorName: data.instructorName || '',
+          instructorIds: data.instructorIds || [],
+          instructorNames: data.instructorNames || [],
           price: data.price || 0,
           currency: data.currency,
           duration: data.duration || 60,
@@ -362,12 +375,10 @@ export class FirestoreService {
           imageUrl: data.imageUrl,
           isActive: data.status === 'active',
           status: data.status,
-          rating: 0,
-          reviewCount: 0,
-          favoriteCount: 0,
+          rating: data.rating || 0,
+          reviewCount: data.reviewCount || 0,
+          favoriteCount: data.favoriteCount || 0,
           createdAt: data.createdAt?.toString(),
-          ...data,
-          id: docSnap.id // Ensure ID comes from document ID, overriding any empty ID in data
         } as Lesson;
       }
       return null;
