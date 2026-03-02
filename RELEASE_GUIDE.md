@@ -111,3 +111,6 @@ Eğer build alırken veya geliştirme yaparken native modül hataları alırsan�
 # iOS için temiz kurulum
 rm -rf node_modules ios/Pods ios/build && yarn install && cd ios && pod install && cd ..
 ```
+eas build:version:get
+eas build:version:set
+eas build:version:sync
