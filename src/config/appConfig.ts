@@ -18,6 +18,7 @@ export interface AppConfig {
   integrations: {
     firebase: boolean;
     stripe: boolean;
+    minio: boolean;
   };
   appName: string;
   appNameShort: string;
@@ -45,6 +46,7 @@ const brandConfigs: Record<Brand, AppConfig> = {
     integrations: {
       firebase: false,
       stripe: false,
+      minio: false,
     },
     appName: 'Dancer Community',
     appNameShort: 'Dancer',
@@ -58,6 +60,7 @@ const brandConfigs: Record<Brand, AppConfig> = {
     integrations: {
       firebase: true,
       stripe: true,
+      minio: true,
     },
     appName: 'Feriha',
     appNameShort: 'Feriha',
@@ -75,6 +78,13 @@ export const isFeatureEnabled = (feature: keyof AppConfig['features']): boolean 
 export const isIntegrationEnabled = (integration: keyof AppConfig['integrations']): boolean => {
   return appConfig.integrations[integration];
 };
+
+// MinIO config - reads from env at runtime
+export const minioConfig = {
+  endpoint: process.env.EXPO_PUBLIC_MINIO_ENDPOINT || '',
+  bucket: process.env.EXPO_PUBLIC_MINIO_BUCKET || '',
+  publicBaseUrl: `${process.env.EXPO_PUBLIC_MINIO_ENDPOINT || ''}/${process.env.EXPO_PUBLIC_MINIO_BUCKET || ''}`,
+} as const;
 
 export const isBrand = (checkBrand: Brand): boolean => {
   return appConfig.brand === checkBrand;

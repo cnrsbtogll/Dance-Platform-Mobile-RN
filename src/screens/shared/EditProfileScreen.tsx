@@ -6,6 +6,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { Card } from '../../components/common/Card';
@@ -13,6 +14,7 @@ import { AVATARS } from '../../utils/avatars';
 import { useProfileStore } from '../../store/useProfileStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { uploadAvatar, UploadProgress } from '../../services/storageService';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -31,6 +33,8 @@ export const EditProfileScreen: React.FC = () => {
 
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
   const { isDarkMode } = useThemeStore();
 
   // @ts-ignore
@@ -58,6 +62,30 @@ export const EditProfileScreen: React.FC = () => {
       Alert.alert(t('common.error'), String(e));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePickAvatarFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    if (!user?.id) return;
+    setAvatarModalVisible(false);
+    setUploadingAvatar(true);
+    setAvatarUploadProgress(0);
+    try {
+      const onProgress = (p: UploadProgress) => setAvatarUploadProgress(p.percent);
+      const publicUrl = await uploadAvatar(user.id, result.assets[0].uri, onProgress);
+      setTempAvatar(publicUrl);
+    } catch (err: any) {
+      Alert.alert('Yukleme Hatasi', err.message || 'Profil fotografi yuklenemedi.');
+    } finally {
+      setUploadingAvatar(false);
+      setAvatarUploadProgress(0);
     }
   };
 
@@ -99,16 +127,35 @@ export const EditProfileScreen: React.FC = () => {
             {t('profile.profileInfo')}
           </Text>
           <View style={styles.avatarRow}>
-            <Image
-              source={getAvatarSource(tempAvatar, useAuthStore.getState().user?.id || undefined)}
-              style={styles.avatar}
-            />
-            <TouchableOpacity
-              style={[styles.changeAvatarButton, { backgroundColor: palette.secondary }]}
-              onPress={() => setAvatarModalVisible(true)}
-            >
-              <Text style={styles.changeAvatarButtonText}>{t('profile.selectAvatar')}</Text>
-            </TouchableOpacity>
+            <View>
+              <Image
+                source={getAvatarSource(tempAvatar, useAuthStore.getState().user?.id || undefined)}
+                style={styles.avatar}
+              />
+              {uploadingAvatar && (
+                <View style={[styles.avatarUploadOverlay]}>
+                  <ActivityIndicator size="small" color="#ffffff" />
+                </View>
+              )}
+            </View>
+            <View style={styles.avatarButtons}>
+              <TouchableOpacity
+                style={[styles.changeAvatarButton, { backgroundColor: palette.secondary }]}
+                onPress={() => setAvatarModalVisible(true)}
+                disabled={uploadingAvatar}
+              >
+                <Text style={styles.changeAvatarButtonText}>{t('profile.selectAvatar')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.changeAvatarButton, { backgroundColor: palette.border, marginTop: spacing.xs }]}
+                onPress={handlePickAvatarFromGallery}
+                disabled={uploadingAvatar}
+              >
+                <Text style={[styles.changeAvatarButtonText, { color: palette.text.primary }]}>
+                  {uploadingAvatar ? `Yukleniyor ${avatarUploadProgress}%` : 'Galeriden Yukle'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Display Name */}
@@ -264,9 +311,27 @@ const styles = StyleSheet.create({
   },
   avatarRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.md,
     marginBottom: spacing.lg,
+  },
+  avatarButtons: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  avatarUploadOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: 36,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarUploadText: {
+    color: '#ffffff',
+    fontSize: 10,
+    marginTop: 2,
   },
   avatar: {
     width: 72,

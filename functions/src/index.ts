@@ -1,8 +1,181 @@
 import { onDocumentCreated, onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// ─── MinIO config (values resolved at runtime from Secret Manager) ────────
+// S3Client is created lazily inside each function to ensure secrets are loaded
+const getS3Client = () => new S3Client({
+  endpoint: `https://${process.env.MINIO_ENDPOINT || 'minio-sdk.cnrsbtogll.store'}`,
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY || '',
+    secretAccessKey: process.env.MINIO_SECRET_KEY || '',
+  },
+  forcePathStyle: true,
+  // Disable AWS SDK v3 automatic checksum (not supported by MinIO)
+  requestChecksumCalculation: 'WHEN_REQUIRED' as any,
+  responseChecksumValidation: 'WHEN_REQUIRED' as any,
+});
+
+const getBucket = () => process.env.MINIO_BUCKET || 'feriha-danceapp';
+const getMinioPublicBase = () =>
+  `https://${process.env.MINIO_ENDPOINT || 'minio-sdk.cnrsbtogll.store'}/${getBucket()}`;
+
+
+// ─── CORS helper ─────────────────────────────────────────────────────────
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+};
+
+/**
+ * Generates a presigned PUT URL for direct client→MinIO upload.
+ * Body: { path: 'public/avatars/userId/avatar.jpg', contentType: 'image/jpeg' }
+ * Returns: { uploadUrl, publicUrl } for public paths, or { uploadUrl } for private paths.
+ */
+export const generateUploadUrl = onRequest(
+  {
+    cors: true,
+    secrets: ['MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_ENDPOINT', 'MINIO_BUCKET'],
+  },
+  async (req, res) => {
+    // Handle preflight
+    Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+    if (req.method === 'OPTIONS') { res.status(204).send(''); return; }
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+
+    try {
+      // Verify Firebase Auth token
+      const authHeader = req.headers.authorization || '';
+      if (!authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+      const token = authHeader.split('Bearer ')[1];
+      const decoded = await admin.auth().verifyIdToken(token);
+      const uid = decoded.uid;
+
+      const { path, contentType } = req.body as { path?: string; contentType?: string };
+
+      if (!path || !contentType) {
+        res.status(400).json({ error: 'path and contentType are required' });
+        return;
+      }
+
+      // Security: ensure user can only upload to their own paths
+      const isPublic = path.startsWith('public/');
+      const isPrivate = path.startsWith('private/');
+
+      if (!isPublic && !isPrivate) {
+        res.status(400).json({ error: 'Path must start with public/ or private/' });
+        return;
+      }
+
+      // Validate the path contains the user's UID (prevent overwriting others' files)
+      if (!path.includes(uid)) {
+        res.status(403).json({ error: 'Cannot upload to another user\'s path' });
+        return;
+      }
+
+      // Validate content type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(contentType)) {
+        res.status(400).json({ error: `Content type ${contentType} not allowed` });
+        return;
+      }
+
+      const command = new PutObjectCommand({
+        Bucket: getBucket(),
+        Key: path,
+      });
+
+      const uploadUrl = await getSignedUrl(getS3Client(), command, {
+        expiresIn: 900,
+        unsignableHeaders: new Set(['content-type', 'x-amz-checksum-algorithm']),
+        unhoistableHeaders: new Set(['content-type', 'x-amz-checksum-algorithm']),
+      });
+      console.log('[CF] presigned uploadUrl:', uploadUrl);
+      console.log('[CF] MINIO_ACCESS_KEY loaded:', (process.env.MINIO_ACCESS_KEY || '').length > 0);
+
+      const result: Record<string, string> = { uploadUrl };
+      if (isPublic) {
+        result.publicUrl = `${getMinioPublicBase()}/${path}`;
+      }
+
+      res.status(200).json(result);
+    } catch (err: any) {
+      console.error('[generateUploadUrl] Error:', err);
+      res.status(500).json({ error: err.message || 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * Generates a presigned GET URL for private file access.
+ * Body: { path: 'private/instructor-docs/userId/verification.pdf' }
+ * Returns: { downloadUrl } with 1h expiry.
+ */
+export const generateDownloadUrl = onRequest(
+  {
+    cors: true,
+    secrets: ['MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_ENDPOINT', 'MINIO_BUCKET'],
+  },
+  async (req, res) => {
+    Object.entries(corsHeaders).forEach(([k, v]) => res.setHeader(k, v));
+    if (req.method === 'OPTIONS') { res.status(204).send(''); return; }
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+
+    try {
+      const authHeader = req.headers.authorization || '';
+      if (!authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+      const token = authHeader.split('Bearer ')[1];
+      const decoded = await admin.auth().verifyIdToken(token);
+
+      // Only admins or the file owner can get download URLs
+      const uid = decoded.uid;
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userRole = userDoc.data()?.role || '';
+
+      const { path } = req.body as { path?: string };
+
+      if (!path) {
+        res.status(400).json({ error: 'path is required' });
+        return;
+      }
+
+      if (!path.startsWith('private/')) {
+        res.status(400).json({ error: 'Path must start with private/' });
+        return;
+      }
+
+      // Only the file owner or admin can access
+      const isOwner = path.includes(uid);
+      const isAdmin = userRole === 'admin';
+      if (!isOwner && !isAdmin) {
+        res.status(403).json({ error: 'Access denied' });
+        return;
+      }
+
+      const command = new GetObjectCommand({ Bucket: getBucket(), Key: path });
+      const downloadUrl = await getSignedUrl(getS3Client(), command, { expiresIn: 3600 });
+
+      res.status(200).json({ downloadUrl });
+    } catch (err: any) {
+      console.error('[generateDownloadUrl] Error:', err);
+      res.status(500).json({ error: err.message || 'Internal server error' });
+    }
+  }
+);
+
 
 // Use dynamic import for ESM module support in CJS compile target
 const getExpo = async (): Promise<any> => {

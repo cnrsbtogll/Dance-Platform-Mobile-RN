@@ -10,6 +10,12 @@ import { FirestoreService } from './firebase/firestore';
 import { auth, storage as firebaseStorage } from './firebase/config';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { signOut as customSignOut, deleteAccount as customDeleteAccount } from './firebase/auth';
+import {
+  uploadAvatar,
+  uploadCourseCover,
+  uploadInstructorDocument,
+  getDocumentDownloadUrl,
+} from './storageService';
 
 // Define stripeModule as null for now since it's not yet integrated
 const stripeModule: any = null;
@@ -144,24 +150,15 @@ export const paymentService = {
 };
 
 /**
- * Storage Service
+ * Storage Service — delegates to MinIO storageService
  */
 export const storageService = {
-  uploadImage: async (uri: string, path: string): Promise<string> => {
-    if (appConfig.integrations.firebase && firebaseStorage) {
-      // Use Firebase Storage
-      // const ref = firebaseStorage.ref(path);
-      // await ref.putFile(uri);
-      // return await ref.getDownloadURL();
-      console.log('[StorageService] Using Firebase Storage');
-      return uri; // Placeholder
-    } else {
-      // Mock storage (return original URI)
-      console.log('[StorageService] Using mock storage');
-      return uri;
-    }
-  },
+  uploadAvatar,
+  uploadCourseCover,
+  uploadInstructorDocument,
+  getDocumentDownloadUrl,
 };
+
 
 // Export service availability flags
 export const isFirebaseEnabled = (): boolean => {

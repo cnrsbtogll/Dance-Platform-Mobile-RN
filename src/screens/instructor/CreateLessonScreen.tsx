@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -12,6 +13,7 @@ import { Card } from '../../components/common/Card';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { CURRENCY_SYMBOLS } from '../../utils/helpers';
 import { Lesson } from '../../types';
+import { uploadCourseCover } from '../../services/storageService';
 
 // Helper function to get image source (supports both local assets and URLs)
 const getImageSource = (image: any) => {
@@ -109,6 +111,8 @@ export const CreateLessonScreen: React.FC = () => {
     });
     const [selectedImage, setSelectedImage] = useState<any>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const [coverUploadProgress, setCoverUploadProgress] = useState(0);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showDanceTypePicker, setShowDanceTypePicker] = useState(false);
@@ -302,13 +306,9 @@ export const CreateLessonScreen: React.FC = () => {
                 }
             }
 
-            let finalImageUrl = selectedImage; // Assuming selectedImage is already a URL or base64
-            // If selectedImage is a local asset reference (e.g., from require), it might be a number.
-            // For simplicity, we'll assume it's a string URL or base64 for now.
-            // If it's a local asset, it would typically be uploaded first.
-            // This part might need more robust handling depending on how `selectedImage` is managed.
-            // For example, if `selectedImage` is a local file URI, it needs to be uploaded to storage.
-            // For this change, we'll assume `selectedImage` is ready to be stored as a string URL.
+            // If selectedImage is a string starting with 'http', it's already a MinIO URL.
+            // If it's a number (require()), convert to a local URI before storing — we store as-is for static assets.
+            let finalImageUrl = selectedImage;
 
             // Base lesson object
             const now = new Date();
@@ -757,6 +757,62 @@ export const CreateLessonScreen: React.FC = () => {
                                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
+
+                        {/* Gallery Upload Option */}
+                        <TouchableOpacity
+                            style={[
+                                styles.galleryUploadBtn,
+                                { backgroundColor: palette.secondary + '15', borderColor: palette.secondary }
+                            ]}
+                            disabled={uploadingCover}
+                            onPress={async () => {
+                                const result = await ImagePicker.launchImageLibraryAsync({
+                                    mediaTypes: ['images'],
+                                    allowsEditing: true,
+                                    aspect: [16, 9],
+                                    quality: 1,
+                                });
+                                if (result.canceled || !result.assets?.[0] || !user?.id) return;
+                                setShowImagePicker(false);
+                                setUploadingCover(true);
+                                setCoverUploadProgress(0);
+                                try {
+                                    // Use a temp courseId placeholder; real courseId assigned on save
+                                    const tempId = `temp-${Date.now()}`;
+                                    const url = await uploadCourseCover(
+                                        tempId,
+                                        user.id,
+                                        result.assets[0].uri,
+                                        (p) => setCoverUploadProgress(p.percent)
+                                    );
+                                    setSelectedImage(url);
+                                } catch (err: any) {
+                                    Alert.alert('Yukleme Hatasi', err.message || 'Gorsel yuklenemedi.');
+                                } finally {
+                                    setUploadingCover(false);
+                                    setCoverUploadProgress(0);
+                                }
+                            }}
+                        >
+                            {uploadingCover ? (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <ActivityIndicator size="small" color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Yukleniyor {coverUploadProgress}%
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialIcons name="photo-library" size={20} color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Telefondan Gorsel Yukle
+                                    </Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+
+                        <Text style={[styles.orDivider, { color: palette.text.secondary }]}>— veya hazir gorseller —</Text>
+
                         <FlatList
                             data={availableImages}
                             numColumns={2}
@@ -1441,6 +1497,25 @@ const styles = StyleSheet.create({
     locationTypeText: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
+    },
+    galleryUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderRadius: borderRadius.md,
+        paddingVertical: spacing.md,
+        marginHorizontal: spacing.md,
+        marginTop: spacing.md,
+    },
+    galleryUploadText: {
+        fontSize: typography.fontSize.sm,
+        fontWeight: typography.fontWeight.medium,
+    },
+    orDivider: {
+        textAlign: 'center',
+        fontSize: typography.fontSize.xs,
+        marginVertical: spacing.md,
     },
 });
 

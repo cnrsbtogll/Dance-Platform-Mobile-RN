@@ -4,10 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../../utils/theme';
 import { useThemeStore } from '../../../store/useThemeStore';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { FirestoreService } from '../../../services/firebase/firestore';
+import { uploadInstructorDocument, UploadProgress } from '../../../services/storageService';
 
 export const VerificationScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -17,26 +19,42 @@ export const VerificationScreen: React.FC = () => {
     const palette = getPalette('instructor', isDarkMode);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [idDocument, setIdDocument] = useState<string | null>(null);       // Kimlik / Ehliyet / Pasaport
-    const [certDocument, setCertDocument] = useState<string | null>(null);   // Eğitmen Sertifikası
+    const [uploadProgress, setUploadProgress] = useState<{ id?: number; cert?: number }>({});
+    const [idDocument, setIdDocument] = useState<string | null>(null);       // MinIO object path
+    const [certDocument, setCertDocument] = useState<string | null>(null);   // MinIO object path
 
-    const handleSelectDocument = (type: 'id' | 'cert') => {
-        Alert.alert(
-            type === 'id' ? 'Kimlik Belgesi Seç' : 'Sertifika Seç',
-            type === 'id'
-                ? 'Kimlik kartı, ehliyet veya pasaportunuzdan birini seçin.'
-                : 'Eğitmenlik sertifikanızı seçin.',
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: 'Seç',
-                    onPress: () => {
-                        if (type === 'id') setIdDocument('dummy-id-document.jpg');
-                        else setCertDocument('dummy-cert-document.jpg');
-                    }
-                }
-            ]
-        );
+    const handleSelectDocument = async (type: 'id' | 'cert') => {
+        if (!user?.id) return;
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false,
+            quality: 1,
+            // Also allow PDFs via camera roll — user can pick any file
+        });
+
+        if (result.canceled || !result.assets?.[0]) return;
+
+        const asset = result.assets[0];
+        const docType = type === 'id' ? 'id-front' : 'certificate';
+
+        const onProgress = (p: UploadProgress) => {
+            setUploadProgress(prev =>
+                type === 'id' ? { ...prev, id: p.percent } : { ...prev, cert: p.percent }
+            );
+        };
+
+        try {
+            setIsSubmitting(true);
+            const objectPath = await uploadInstructorDocument(user.id, asset.uri, docType, onProgress);
+            if (type === 'id') setIdDocument(objectPath);
+            else setCertDocument(objectPath);
+        } catch (err: any) {
+            Alert.alert('Yükleme Hatası', err.message || 'Belge yüklenemedi. Lütfen tekrar deneyin.');
+        } finally {
+            setIsSubmitting(false);
+            setUploadProgress({});
+        }
     };
 
     const handleSubmit = async () => {
@@ -119,6 +137,12 @@ export const VerificationScreen: React.FC = () => {
                     <View style={styles.uploadedText}>
                         <Text style={[styles.uploadedTitle, { color: palette.text.primary }]}>{title}</Text>
                         <Text style={[styles.uploadedSub, { color: colors.instructor.secondary }]}>Yüklendi ✓</Text>
+                        {/* Show upload progress if in progress for this type */}
+                        {uploadProgress[type] !== undefined && uploadProgress[type]! < 100 && (
+                            <Text style={[styles.uploadedSub, { color: palette.text.secondary }]}>
+                                %{uploadProgress[type]} yükleniyor...
+                            </Text>
+                        )}
                     </View>
                     <TouchableOpacity onPress={onRemove} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <MaterialIcons name="close" size={20} color={palette.text.secondary} />

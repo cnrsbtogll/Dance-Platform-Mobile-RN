@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, Modal, FlatList, Platform, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -15,6 +16,7 @@ import { useLessonStore } from '../../store/useLessonStore';
 import { Lesson } from '../../types';
 import { CURRENCY_SYMBOLS, normalizeDaysOfWeek } from '../../utils/helpers';
 import { getImageSource } from '../../utils/imageHelper';
+import { uploadCourseCover } from '../../services/storageService';
 
 // Predefined lesson images for each dance type
 const LESSON_IMAGES: { [key: string]: any[] } = {
@@ -87,6 +89,8 @@ export const EditLessonScreen: React.FC = () => {
     // Image selection state
     const [selectedImage, setSelectedImage] = useState<any>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const [coverUploadProgress, setCoverUploadProgress] = useState(0);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showDanceTypePicker, setShowDanceTypePicker] = useState(false);
@@ -738,6 +742,60 @@ export const EditLessonScreen: React.FC = () => {
                                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
                             </TouchableOpacity>
                         </View>
+
+                        {/* Gallery Upload Option */}
+                        <TouchableOpacity
+                            style={[
+                                styles.galleryUploadBtn,
+                                { backgroundColor: palette.secondary + '15', borderColor: palette.secondary }
+                            ]}
+                            disabled={uploadingCover}
+                            onPress={async () => {
+                                const result = await ImagePicker.launchImageLibraryAsync({
+                                    mediaTypes: ['images'],
+                                    allowsEditing: true,
+                                    aspect: [16, 9],
+                                    quality: 1,
+                                });
+                                if (result.canceled || !result.assets?.[0] || !user?.id) return;
+                                setShowImagePicker(false);
+                                setUploadingCover(true);
+                                setCoverUploadProgress(0);
+                                try {
+                                    const url = await uploadCourseCover(
+                                        lessonId || `temp-${Date.now()}`,
+                                        user.id,
+                                        result.assets[0].uri,
+                                        (p) => setCoverUploadProgress(p.percent)
+                                    );
+                                    setSelectedImage(url);
+                                } catch (err: any) {
+                                    Alert.alert('Yukleme Hatasi', err.message || 'Gorsel yuklenemedi.');
+                                } finally {
+                                    setUploadingCover(false);
+                                    setCoverUploadProgress(0);
+                                }
+                            }}
+                        >
+                            {uploadingCover ? (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <ActivityIndicator size="small" color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Yukleniyor {coverUploadProgress}%
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialIcons name="photo-library" size={20} color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Telefondan Gorsel Yukle
+                                    </Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+
+                        <Text style={[styles.orDivider, { color: palette.text.secondary }]}>— veya hazir gorseller —</Text>
+
                         <FlatList
                             data={availableImages}
                             numColumns={2}
@@ -766,7 +824,7 @@ export const EditLessonScreen: React.FC = () => {
                         />
                     </View>
                 </View>
-            </Modal >
+            </Modal>
 
 
 
@@ -1434,6 +1492,25 @@ const styles = StyleSheet.create({
     locationTypeText: {
         fontSize: typography.fontSize.sm,
         fontWeight: typography.fontWeight.medium,
+    },
+    galleryUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderRadius: borderRadius.md,
+        paddingVertical: spacing.md,
+        marginHorizontal: spacing.md,
+        marginTop: spacing.md,
+    },
+    galleryUploadText: {
+        fontSize: typography.fontSize.sm,
+        fontWeight: typography.fontWeight.medium,
+    },
+    orDivider: {
+        textAlign: 'center',
+        fontSize: typography.fontSize.xs,
+        marginVertical: spacing.md,
     },
 });
 
