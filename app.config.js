@@ -94,6 +94,13 @@ module.exports = {
       "expo-apple-authentication",
       "@react-native-google-signin/google-signin",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Profil fotoğrafınızı seçmek için galeri erişimi gerekiyor.",
+          "cameraPermission": "Fotoğraf çekmek için kamera erişimi gerekiyor."
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {

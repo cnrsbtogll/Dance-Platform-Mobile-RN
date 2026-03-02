@@ -143,6 +143,7 @@ async function uploadWithPresignedUrl(
   const { uploadUrl, publicUrl } = await cfRes.json();
 
   // Step 2: Read local file as ArrayBuffer
+  // Note: localUri is always a file:// URI here because callers run compressImage() first
   const fileRes = await fetch(localUri);
   const arrayBuffer = await fileRes.arrayBuffer();
 
@@ -182,7 +183,8 @@ export async function uploadAvatar(
 ): Promise<string> {
   await checkFileSize(localUri, MAX_IMAGE_SIZE_MB);
   const compressed = await compressImage(localUri);
-  const remotePath = `public/avatars/${userId}/avatar.jpg`;
+  // Dosya ismini dinamik yaparak her yuklemede yeni bir dosya olusmasini sagliyoruz
+  const remotePath = `public/avatars/${userId}/avatar_${Date.now()}.jpg`;
   const result = await uploadWithPresignedUrl(compressed, remotePath, 'image/jpeg', onProgress);
   return result.url;
 }

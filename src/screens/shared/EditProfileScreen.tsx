@@ -66,6 +66,15 @@ export const EditProfileScreen: React.FC = () => {
   };
 
   const handlePickAvatarFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        t('common.permissionRequired') || 'İzin Gerekli',
+        'Galeri erişimi için izin vermeniz gerekiyor.'
+      );
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
