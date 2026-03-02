@@ -123,7 +123,16 @@ export const InstructorLessonsScreen: React.FC = () => {
         </View>
       ),
       headerRight: () => (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <TouchableOpacity
+            onPress={() => (navigation as any).navigate('CreateLesson')}
+            style={{
+              padding: spacing.xs,
+              marginRight: -spacing.xs,
+            }}
+          >
+            <MaterialIcons name="add" size={26} color={palette.text.primary} />
+          </TouchableOpacity>
           <NotificationBell role="instructor" />
         </View>
       ),

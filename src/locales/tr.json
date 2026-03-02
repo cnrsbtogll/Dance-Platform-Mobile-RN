@@ -287,7 +287,14 @@
     "registrationFailed": "Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.",
     "cancelSuccess": "Kayıt başarıyla iptal edildi.",
     "cancelFailed": "Kayıt iptali başarısız oldu.",
-    "addressNotAvailable": "Adres bilgisi mevcut değil"
+    "addressNotAvailable": "Adres bilgisi mevcut değil",
+    "selectInstructors": "Eğitmen Seç",
+    "lockedInstructor": "Kurucu Eğitmen",
+    "noInstructorSelected": "Henüz eğitmen seçilmedi.",
+    "searchInstructor": "İsimle eğitmen ara (en az 2 harf)",
+    "typeToSearch": "Eğitmen aramak için en az 2 harf yazın.",
+    "noInstructorFound": "Eğitmen bulunamadı.",
+    "instructors": "Eğitmenler"
   },
   "instructor": {
     "profileIncomplete": "Profiliniz Eksik",

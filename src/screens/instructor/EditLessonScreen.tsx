@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
+import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
 import { MockDataService } from '../../services/mockDataService';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { useLessonStore } from '../../store/useLessonStore';
@@ -110,23 +111,34 @@ export const EditLessonScreen: React.FC = () => {
 
     // Fetch dance schools or instructors from Firebase
     useEffect(() => {
-        if (isSchool) {
-            const fetchInstructors = async () => {
-                setLoadingInstructors(true);
-                try {
-                    const instructorsData = await FirestoreService.getInstructors();
-                    setInstructors(instructorsData.map(inst => ({
-                        id: inst.id,
-                        name: inst.displayName || 'İsimsiz Eğitmen'
-                    })));
-                } catch (error) {
-                    console.error('Error fetching instructors:', error);
-                } finally {
-                    setLoadingInstructors(false);
+        const fetchInstructors = async () => {
+            setLoadingInstructors(true);
+            try {
+                const instructorsData = await FirestoreService.getInstructors();
+                const mappedInstructors = instructorsData.map((inst: any) => ({
+                    id: inst.id,
+                    name: inst.displayName || (inst.firstName ? inst.firstName + (inst.lastName ? ' ' + inst.lastName : '') : 'İsimsiz Eğitmen')
+                }));
+                // Make sure the current instructor is also in the list if applicable
+                if (!isSchool && user) {
+                    const currentInstructor = {
+                        id: user.id,
+                        name: user.displayName || (user.firstName ? user.firstName + (user.lastName ? ' ' + user.lastName : '') : 'Eğitmen')
+                    };
+                    if (!mappedInstructors.some(i => i.id === user.id)) {
+                        mappedInstructors.push(currentInstructor);
+                    }
                 }
-            };
-            fetchInstructors();
-        } else {
+                setInstructors(mappedInstructors);
+            } catch (error) {
+                console.error('Error fetching instructors:', error);
+            } finally {
+                setLoadingInstructors(false);
+            }
+        };
+        fetchInstructors();
+
+        if (!isSchool) {
             const fetchDanceSchools = async () => {
                 setLoadingSchools(true);
                 try {
@@ -141,10 +153,9 @@ export const EditLessonScreen: React.FC = () => {
                     setLoadingSchools(false);
                 }
             };
-
             fetchDanceSchools();
         }
-    }, [isSchool]);
+    }, [isSchool, user]);
 
     // Fetch lesson data on mount
     useEffect(() => {
@@ -187,16 +198,19 @@ export const EditLessonScreen: React.FC = () => {
                         }
 
                         // Instructor setup
-                        if (isSchool) {
-                            if (data.instructorIds && data.instructorIds.length > 0) {
-                                const mapped = data.instructorIds.map((id, index) => ({
-                                    id,
-                                    name: data.instructorNames?.[index] || ''
-                                }));
-                                setSelectedInstructors(mapped);
-                            } else if (data.instructorId) {
-                                setSelectedInstructors([{ id: data.instructorId, name: data.instructorName || '' }]);
-                            }
+                        if (data.instructorIds && data.instructorIds.length > 0) {
+                            const mapped = data.instructorIds.map((id, index) => ({
+                                id,
+                                name: data.instructorNames?.[index] || ''
+                            }));
+                            setSelectedInstructors(mapped);
+                        } else if (data.instructorId) {
+                            setSelectedInstructors([{ id: data.instructorId, name: data.instructorName || '' }]);
+                        } else if (!isSchool && user) {
+                            setSelectedInstructors([{
+                                id: user.id,
+                                name: user.firstName + (user.lastName ? ' ' + user.lastName : '') || 'Eğitmen'
+                            }]);
                         }
 
                         // Handle image
@@ -291,26 +305,34 @@ export const EditLessonScreen: React.FC = () => {
                     updateData.imageUrl = selectedImage;
                 }
 
+                // Update instructors for BOTH
+                updateData.instructorIds = selectedInstructors.map(i => i.id);
+                updateData.instructorNames = selectedInstructors.map(i => i.name);
+
                 if (isSchool) {
-                    // Update instructors
-                    updateData.instructorIds = selectedInstructors.map(i => i.id);
-                    updateData.instructorNames = selectedInstructors.map(i => i.name);
                     updateData.instructorId = selectedInstructors.length > 0 ? selectedInstructors[0].id : '';
                     updateData.instructorName = selectedInstructors.length > 0 ? selectedInstructors[0].name : '';
                 } else {
+                    updateData.instructorId = user?.id || '';
+                    updateData.instructorName = user?.displayName || (user?.firstName ? user.firstName + (user.lastName ? ' ' + user.lastName : '') : 'Eğitmen');
+
                     // Update location
-                    updateData.location = locationType === 'school' && selectedSchool
-                        ? {
+                    if (locationType === 'school' && selectedSchool) {
+                        updateData.schoolId = selectedSchool.id;
+                        updateData.schoolName = selectedSchool.name;
+                        updateData.location = {
                             type: 'school',
                             schoolId: selectedSchool.id,
                             schoolName: selectedSchool.name,
-                        }
-                        : locationType === 'custom' && customAddress
-                            ? {
-                                type: 'custom',
-                                customAddress: customAddress,
-                            }
-                            : lessonData?.location; // Fallback to existing location
+                        };
+                    } else if (locationType === 'custom' && customAddress) {
+                        updateData.location = {
+                            type: 'custom',
+                            customAddress: customAddress,
+                        };
+                    } else if (lessonData?.location) {
+                        updateData.location = lessonData.location; // Fallback to existing location
+                    }
                 }
 
                 await FirestoreService.updateLesson(lessonId, updateData);
@@ -579,33 +601,36 @@ export const EditLessonScreen: React.FC = () => {
                 {/* Location or Instructor Selection depending on User Role */}
                 <View style={styles.section}>
                     <Card style={styles.formCard}>
-                        {isSchool ? (
-                            <>
-                                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructorSelection') || 'Eğitmen Seçimi'}</Text>
+                        {/* Instructor Selection (Always visible) */}
+                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructorSelection') || 'Eğitmen Seçimi'}</Text>
+                        <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim verecek?'}</Text>
+                                <TouchableOpacity
+                                    style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                    onPress={() => setShowInstructorPicker(true)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[styles.selectInputText, { color: selectedInstructors.length > 0 ? palette.text.primary : palette.text.secondary }]}>
+                                        {selectedInstructors.length > 0
+                                            ? (selectedInstructors.length > 1
+                                                ? `${selectedInstructors[0].name} ve +${selectedInstructors.length - 1} diğer eğitmen`
+                                                : selectedInstructors[0].name)
+                                            : (t('lessons.selectInstructorPlaceholder') || 'Bir eğitmen seçin')}
+                                    </Text>
+                                    <MaterialIcons
+                                        name="keyboard-arrow-down"
+                                        size={24}
+                                        color={palette.text.secondary}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
 
-                                {/* Instructor Selector Box for Schools */}
-                                <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
-                                    <View style={styles.inputGroup}>
-                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim verecek?'}</Text>
-                                        <TouchableOpacity
-                                            style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                            onPress={() => setShowInstructorPicker(true)}
-                                            activeOpacity={0.7}
-                                        >
-                                            <Text style={[styles.selectInputText, { color: selectedInstructors.length > 0 ? palette.text.primary : palette.text.secondary }]}>
-                                                {selectedInstructors.length > 0 ? selectedInstructors.map(i => i.name).join(', ') : (t('lessons.selectInstructorPlaceholder') || 'Bir eğitmen seçin')}
-                                            </Text>
-                                            <MaterialIcons
-                                                name="keyboard-arrow-down"
-                                                size={24}
-                                                color={palette.text.secondary}
-                                            />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </>
-                        ) : (
+                        {/* Location Selection (Hidden for Schools) */}
+                        {!isSchool && (
                             <>
+                                <View style={{ height: spacing.lg }} />
                                 <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
 
                                 {/* Location Type Toggle */}
@@ -997,69 +1022,19 @@ export const EditLessonScreen: React.FC = () => {
             </Modal>
 
             {/* Instructor Picker Modal */}
-            <Modal
+            <InstructorMultiSelectModal
                 visible={showInstructorPicker}
-                animationType="slide"
-                transparent={true}
-                onRequestClose={() => setShowInstructorPicker(false)}
-            >
-                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
-                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
-                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
-                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('school.instructorSelection') || 'Eğitmen Seçimi'}</Text>
-                            <TouchableOpacity onPress={() => setShowInstructorPicker(false)}>
-                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={instructors}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => {
-                                const isSelected = selectedInstructors.some(i => i.id === item.id);
-                                return (
-                                    <TouchableOpacity
-                                        style={[
-                                            styles.pickerOption,
-                                            { borderBottomColor: palette.border },
-                                            isSelected && styles.pickerOptionSelected,
-                                        ]}
-                                        onPress={() => {
-                                            if (isSelected) {
-                                                setSelectedInstructors(prev => prev.filter(i => i.id !== item.id));
-                                            } else {
-                                                setSelectedInstructors(prev => [...prev, item]);
-                                            }
-                                        }}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.pickerOptionText,
-                                                { color: palette.text.primary },
-                                                isSelected && styles.pickerOptionTextSelected,
-                                            ]}
-                                        >
-                                            {item.name}
-                                        </Text>
-                                        {isSelected && (
-                                            <MaterialIcons
-                                                name="check"
-                                                size={24}
-                                                color={colors.school.primary}
-                                            />
-                                        )}
-                                    </TouchableOpacity>
-                                )
-                            }}
-                            contentContainerStyle={styles.pickerListContent}
-                            ListEmptyComponent={
-                                <View style={{ padding: spacing.xl, alignItems: 'center' }}>
-                                    <Text style={{ color: palette.text.secondary }}>{'Listelenecek eğitmen bulunamadı.'}</Text>
-                                </View>
-                            }
-                        />
-                    </View>
-                </View>
-            </Modal>
+                onClose={() => setShowInstructorPicker(false)}
+                instructors={instructors}
+                selectedInstructors={selectedInstructors}
+                onSave={(selected) => {
+                    setSelectedInstructors(selected);
+                    setShowInstructorPicker(false);
+                }}
+                palette={palette}
+                isDarkMode={isDarkMode}
+                lockedInstructorId={!isSchool && user?.id ? user.id : undefined}
+            />
 
             {/* School Picker Modal */}
             <Modal

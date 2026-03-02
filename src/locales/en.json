@@ -274,7 +274,14 @@
     "registrationFailed": "Registration failed. Please try again.",
     "cancelSuccess": "Registration cancelled successfully.",
     "cancelFailed": "Registration cancellation failed.",
-    "addressNotAvailable": "Address not available"
+    "addressNotAvailable": "Address not available",
+    "selectInstructors": "Select Instructors",
+    "lockedInstructor": "Founding Instructor",
+    "noInstructorSelected": "No instructor selected yet.",
+    "searchInstructor": "Search instructor by name (min. 2 letters)",
+    "typeToSearch": "Type at least 2 letters to search for an instructor.",
+    "noInstructorFound": "No instructor found.",
+    "instructors": "Instructors"
   },
   "instructor": {
     "profileIncomplete": "Profile Incomplete",

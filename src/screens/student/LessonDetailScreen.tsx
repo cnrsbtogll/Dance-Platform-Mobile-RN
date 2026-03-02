@@ -529,7 +529,11 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.titleOverlay}>
             <Text style={styles.heroTitle}>{lesson.title || lesson.name}</Text>
             <Text style={styles.heroInstructor}>
-              {t('lessons.instructor')}: {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
+              {t('lessons.instructor')}: {
+                lesson.instructorNames && lesson.instructorNames.length > 1
+                  ? `${lesson.instructorNames[0]} ve +${lesson.instructorNames.length - 1} diğer`
+                  : (lesson.instructorNames?.[0] || instructor?.displayName || lesson.instructorName || t('studentHome.unknown'))
+              }
             </Text>
           </View>
         </View>
@@ -641,34 +645,70 @@ export const LessonDetailScreen: React.FC = () => {
 
           {/* Instructor Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructor')}</Text>
-            <TouchableOpacity
-              style={[styles.instructorCard, { backgroundColor: palette.card }]}
-              onPress={() => {
-                // Navigate to instructor profile if needed
-                // (navigation as any).navigate('InstructorProfile', { instructorId: instructor?.id });
-              }}
-              activeOpacity={0.9}
-            >
-              <Image
-                source={getAvatarSource(instructor?.photoURL, instructor?.displayName)}
-                style={styles.instructorAvatar}
-              />
-              <View style={styles.instructorInfo}>
-                <Text style={[styles.instructorName, { color: palette.text.primary }]}>
-                  {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
-                </Text>
-                <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
-                  {t('profile.instructor')}
-                </Text>
-              </View>
-              <View style={styles.ratingContainer}>
-                <MaterialIcons name="star" size={20} color={colors.student.rating} />
-                <Text style={[styles.ratingText, { color: palette.text.primary }]}>
-                  {instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+              {lesson.instructorNames && lesson.instructorNames.length > 1
+                ? t('lessons.instructors')
+                : t('lessons.instructor')}
+            </Text>
+
+            {lesson.instructorIds && lesson.instructorIds.length > 1 ? (
+              // Multiple instructors: render separate cards
+              lesson.instructorIds.map((instrId: string, index: number) => {
+                const instrName = lesson.instructorNames?.[index] || t('studentHome.unknown');
+                return (
+                  <TouchableOpacity
+                    key={instrId}
+                    style={[styles.instructorCard, { backgroundColor: palette.card, marginBottom: index < lesson.instructorIds!.length - 1 ? 8 : 0 }]}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={getAvatarSource(index === 0 ? instructor?.photoURL : null, instrName)}
+                      style={styles.instructorAvatar}
+                    />
+                    <View style={styles.instructorInfo}>
+                      <Text style={[styles.instructorName, { color: palette.text.primary }]}>
+                        {instrName}
+                      </Text>
+                      <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
+                        {index === 0 ? t('lessons.lockedInstructor') : t('profile.instructor')}
+                      </Text>
+                    </View>
+                    <View style={styles.ratingContainer}>
+                      <MaterialIcons name="star" size={20} color={colors.student.rating} />
+                      <Text style={[styles.ratingText, { color: palette.text.primary }]}>
+                        {/* Not: Diğer eğitmen verileri henüz çekilmediği için geçici olarak ana eğitmen rating'i veya 5.0 gösteriyoruz */}
+                        {index === 0 && instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            ) : (
+              // Single instructor card
+              <TouchableOpacity
+                style={[styles.instructorCard, { backgroundColor: palette.card }]}
+                activeOpacity={0.9}
+              >
+                <Image
+                  source={getAvatarSource(instructor?.photoURL, instructor?.displayName)}
+                  style={styles.instructorAvatar}
+                />
+                <View style={styles.instructorInfo}>
+                  <Text style={[styles.instructorName, { color: palette.text.primary }]}>
+                    {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
+                  </Text>
+                  <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
+                    {t('profile.instructor')}
+                  </Text>
+                </View>
+                <View style={styles.ratingContainer}>
+                  <MaterialIcons name="star" size={20} color={colors.student.rating} />
+                  <Text style={[styles.ratingText, { color: palette.text.primary }]}>
+                    {instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
 
 
