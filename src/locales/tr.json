@@ -73,6 +73,8 @@
   },
   "navigation": {
     "home": "Kurs Bul",
+    "schoolHome": "Anasayfa",
+    "instructorHome": "Anasayfa",
     "lessons": "Kurslar",
     "myLessons": "Kurslarım",
     "profile": "Profil",
@@ -161,6 +163,7 @@
     "cityPlaceholder": "Örn. İstanbul",
     "requiredFieldsError": "Cinsiyet, konum ve dans türleri zorunludur.",
     "requiredFieldsBanner": "Doğru partnerlerle eşleşmek ve iletişime geçmek için bu bilgiler gereklidir.",
+    "requiredFieldsBannerSchool": "Lütfen kırmızı ile işaretli tüm zorunlu alanları doldurun.",
     "requiredFieldsTitle": "Profil alanlarını tamamla",
     "completeProfile": "Profili Tamamla"
   },
@@ -801,7 +804,8 @@
     "draftLimitReachedTitle": "Taslak Limitine Ulaşıldı",
     "draftLimitReachedDesc": "Hesabınız doğrulanmadan en fazla 3 taslak kurs oluşturabilirsiniz. Devam etmek için lütfen belgelerinizi yükleyin.",
     "activateLessonVerificationTitle": "Doğrulama Gerekiyor",
-    "activateLessonVerificationDesc": "kursu yayına alabilmek için okulunuzun doğrulanmış olması gerekmektedir."
+    "activateLessonVerificationDesc": "kursu yayına alabilmek için okulunuzun doğrulanmış olması gerekmektedir.",
+    "completeProfileBeforeLesson": "Kurs oluşturabilmek için okul profilinizdeki zorunlu alanları (Okul Adı, Adres, Telefon vb.) doldurmalısınız."
   },
   "emailVerification": {
     "title": "E-postanı Doğrula",

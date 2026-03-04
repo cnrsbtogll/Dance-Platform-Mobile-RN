@@ -73,6 +73,8 @@
   },
   "navigation": {
     "home": "Home",
+    "schoolHome": "Home",
+    "instructorHome": "Home",
     "lessons": "Lessons",
     "myLessons": "My Lessons",
     "profile": "Profile",
@@ -161,6 +163,7 @@
     "cityPlaceholder": "e.g. Istanbul",
     "requiredFieldsError": "Gender, location and dance styles are required.",
     "requiredFieldsBanner": "These details are required to match with the right partners and get in touch.",
+    "requiredFieldsBannerSchool": "Please fill in all required fields marked in red.",
     "requiredFieldsTitle": "Complete your profile",
     "completeProfile": "Complete Profile"
   },
@@ -778,7 +781,8 @@
     "draftLimitReachedTitle": "Draft Limit Reached",
     "draftLimitReachedDesc": "As an unverified school, you can create up to 3 draft lessons. Please upload your documents to continue.",
     "activateLessonVerificationTitle": "Verification Required",
-    "activateLessonVerificationDesc": "Your school must be verified to publish the lesson."
+    "activateLessonVerificationDesc": "Your school must be verified before you can activate a lesson.",
+    "completeProfileBeforeLesson": "To create a lesson, you must fill in the mandatory fields in your school profile (School Name, Address, Phone, etc.)."
   },
   "privacyPolicy": {
     "title": "Privacy Policy",

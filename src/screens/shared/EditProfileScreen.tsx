@@ -51,6 +51,7 @@ export const EditProfileScreen: React.FC = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
   const { isDarkMode } = useThemeStore();
+  const [highlightErrors, setHighlightErrors] = useState<boolean>((route.params as any)?.highlightErrors || false);
 
   // @ts-ignore
   const mode = route.params?.mode || user?.role || 'student';
@@ -70,9 +71,16 @@ export const EditProfileScreen: React.FC = () => {
 
   const handleSave = async () => {
     // Validate required fields for matching
-    if (!isSchool) {
+    if (isSchool) {
+      if (!tempSchoolName.trim() || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) {
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
+        return;
+      }
+    } else {
       if (!tempGender || !tempCity || tempDanceStyles.length === 0) {
-        Alert.alert(t('common.error'), t('profile.requiredFieldsError'));
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
         return;
       }
     }
@@ -88,28 +96,36 @@ export const EditProfileScreen: React.FC = () => {
   };
 
   const handlePickAvatarFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(t('common.permissionRequired') || 'İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
-    if (!user?.id) return;
-    setAvatarModalVisible(false);
-    setUploadingAvatar(true);
-    setAvatarUploadProgress(0);
+    if (!user) return;
+
     try {
-      const onProgress = (p: UploadProgress) => setAvatarUploadProgress(p.percent);
-      const publicUrl = await uploadAvatar(user.id, result.assets[0].uri, onProgress);
-      setTempAvatar(publicUrl);
-    } catch (err: any) {
-      Alert.alert('Yükleme Hatası', err.message || 'Profil fotoğrafı yüklenemedi.');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setUploadingAvatar(true);
+        setAvatarUploadProgress(0);
+
+        try {
+          const downloadUrl = await uploadAvatar(
+            user.id,
+            result.assets[0].uri,
+            (progressInfo: UploadProgress) => {
+              setAvatarUploadProgress(Math.round(progressInfo.percent));
+            }
+          );
+          setTempAvatar(downloadUrl);
+          setAvatarModalVisible(false);
+        } catch (error) {
+          Alert.alert(t('common.error'), t('profile.uploadError') || 'Profil fotoğrafı yüklenemedi.');
+        }
+      }
+    } catch (error) {
+      // Ignored
     } finally {
       setUploadingAvatar(false);
       setAvatarUploadProgress(0);
@@ -131,32 +147,37 @@ export const EditProfileScreen: React.FC = () => {
     professional: 'profile.levelProfessional',
   };
 
-  const InputGroup = ({
-    label, value, onChangeText, placeholder, multiline = false, keyboardType = 'default' as any,
-  }: {
-    label: string; value: string; onChangeText: (v: string) => void;
-    placeholder?: string; multiline?: boolean; keyboardType?: any;
-  }) => (
-    <View style={styles.inputGroup}>
-      <Text style={[styles.label, { color: palette.text.secondary }]}>{label}</Text>
-      <TextInput
-        style={[
-          styles.input,
-          { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary },
-          multiline && styles.inputMultiline,
-        ]}
-        placeholder={placeholder || label}
-        placeholderTextColor={palette.text.secondary}
-        value={value}
-        onChangeText={onChangeText}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
-        keyboardType={keyboardType}
-        autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
-        textAlignVertical={multiline ? 'top' : 'center'}
-      />
-    </View>
-  );
+  // InputGroup as a separate function, memoized if possible, but actually it's fine just being a normal helper inside, wait!
+  // If it's a Component inside a Component, React unmounts it on every render.
+  // Converting it to a simple function that returns JSX
+  const renderInputGroup = (
+    label: string, value: string, onChangeText: (v: string) => void, placeholder?: string, multiline = false, keyboardType = 'default' as any, isRequired = false
+  ) => {
+    const hasError = highlightErrors && isRequired && !value.trim();
+    return (
+      <View style={styles.inputGroup}>
+        <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>
+          {label} {isRequired && <Text style={{ color: '#ef4444' }}>*</Text>}
+        </Text>
+        <TextInput
+          style={[
+            styles.input,
+            { borderColor: hasError ? '#ef4444' : palette.border, backgroundColor: palette.card, color: palette.text.primary },
+            multiline && styles.inputMultiline,
+          ]}
+          placeholder={placeholder || label}
+          placeholderTextColor={palette.text.secondary}
+          value={value}
+          onChangeText={onChangeText}
+          multiline={multiline}
+          numberOfLines={multiline ? 4 : 1}
+          keyboardType={keyboardType}
+          autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
+          textAlignVertical={multiline ? 'top' : 'center'}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
@@ -199,26 +220,39 @@ export const EditProfileScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <InputGroup
-            label={t('auth.firstName')}
-            value={tempName}
-            onChangeText={setTempName}
-            placeholder={t('profile.usernamePlaceholder')}
-          />
+          {renderInputGroup(
+            isSchool ? (t('becomeSchool.schoolNamePlaceholder') || 'Okul Adı') : t('auth.firstName'),
+            isSchool ? tempSchoolName : tempName,
+            isSchool ? setTempSchoolName : setTempName,
+            isSchool ? (t('becomeSchool.schoolNamePlaceholder') || 'Okul Adı') : t('profile.usernamePlaceholder'),
+            false,
+            'default',
+            isSchool
+          )}
         </Card>
 
         {/* — School Fields — */}
         {isSchool && (
           <Card style={[styles.card, { backgroundColor: palette.card }]}>
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-              {t('school.onboardingTitle')}
+              {t('school.onboardingTitle') || 'Okul Profili'}
             </Text>
-            <InputGroup label={t('becomeSchool.schoolNamePlaceholder').replace(' *', '')} value={tempSchoolName} onChangeText={setTempSchoolName} placeholder={t('becomeSchool.schoolNamePlaceholder')} />
-            <InputGroup label={t('becomeSchool.schoolAddressPlaceholder').replace(' *', '')} value={tempSchoolAddress} onChangeText={setTempSchoolAddress} placeholder={t('becomeSchool.schoolAddressPlaceholder')} />
-            <InputGroup label={t('becomeSchool.contactNumberPlaceholder').replace(' *', '')} value={tempContactNumber} onChangeText={setTempContactNumber} placeholder={t('becomeSchool.contactNumberPlaceholder')} keyboardType="phone-pad" />
-            <InputGroup label={t('becomeSchool.contactPersonPlaceholder').replace(' *', '')} value={tempContactPerson} onChangeText={setTempContactPerson} placeholder={t('becomeSchool.contactPersonPlaceholder')} />
-            <InputGroup label={t('becomeSchool.instagramPlaceholder').replace(' (Opsiyonel)', '').replace(' (Optional)', '')} value={tempInstagramHandle} onChangeText={setTempInstagramHandle} placeholder={t('becomeSchool.instagramPlaceholder')} />
-            <InputGroup label={t('onboarding.bioLabel')} value={tempBio} onChangeText={setTempBio} placeholder={t('school.bioPlaceholder')} multiline />
+
+            {/* Motivation banner for missing fields */}
+            {highlightErrors && (!tempSchoolName.trim() || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) && (
+              <View style={[styles.motivationBanner, { backgroundColor: '#fef2f2', borderColor: '#fecaca', marginBottom: spacing.md }]}>
+                <MaterialIcons name="error-outline" size={18} color="#ef4444" />
+                <Text style={[styles.motivationText, { color: '#ef4444' }]}>
+                  {t('profile.requiredFieldsBannerSchool') || 'Lütfen kırmızı ile işaretli eksik alanları doldurun.'}
+                </Text>
+              </View>
+            )}
+
+            {renderInputGroup((t('becomeSchool.schoolAddressPlaceholder') || 'Adres').replace(' *', ''), tempSchoolAddress, setTempSchoolAddress, t('becomeSchool.schoolAddressPlaceholder') || 'Adres *', false, 'default', true)}
+            {renderInputGroup(t('becomeSchool.contactNumberPlaceholder').replace(' *', ''), tempContactNumber, setTempContactNumber, t('becomeSchool.contactNumberPlaceholder'), false, 'phone-pad', true)}
+            {renderInputGroup(t('becomeSchool.contactPersonPlaceholder').replace(' *', ''), tempContactPerson, setTempContactPerson, t('becomeSchool.contactPersonPlaceholder'), false, 'default', true)}
+            {renderInputGroup(t('becomeSchool.instagramPlaceholder').replace(' (Opsiyonel)', '').replace(' (Optional)', ''), tempInstagramHandle, setTempInstagramHandle, t('becomeSchool.instagramPlaceholder'), false, 'default', false)}
+            {renderInputGroup(t('onboarding.bioLabel'), tempBio, setTempBio, t('school.bioPlaceholder'), true)}
           </Card>
         )}
 
@@ -228,8 +262,8 @@ export const EditProfileScreen: React.FC = () => {
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('onboarding.basicInfoTitle')}
             </Text>
-            <InputGroup label={t('onboarding.phoneLabel')} value={tempPhoneNumber} onChangeText={setTempPhoneNumber} placeholder={t('onboarding.phonePlaceholder')} keyboardType="phone-pad" />
-            <InputGroup label={t('onboarding.bioLabel')} value={tempBio} onChangeText={setTempBio} placeholder={t('onboarding.bioPlaceholder')} multiline />
+            {renderInputGroup(t('onboarding.phoneLabel'), tempPhoneNumber, setTempPhoneNumber, t('onboarding.phonePlaceholder'), false, 'phone-pad')}
+            {renderInputGroup(t('onboarding.bioLabel'), tempBio, setTempBio, t('onboarding.bioPlaceholder'), true)}
           </Card>
         )}
 
@@ -262,7 +296,7 @@ export const EditProfileScreen: React.FC = () => {
                     style={[
                       styles.chip,
                       {
-                        borderColor: !tempGender ? '#ef4444' : palette.border,
+                        borderColor: (highlightErrors && !tempGender) ? '#ef4444' : palette.border,
                         backgroundColor: palette.card,
                       },
                       selected && { backgroundColor: palette.primary, borderColor: palette.primary },
@@ -287,7 +321,7 @@ export const EditProfileScreen: React.FC = () => {
                   styles.input,
                   styles.pickerButton,
                   {
-                    borderColor: !tempCountry ? '#ef4444' : palette.border,
+                    borderColor: (highlightErrors && (!tempCountry || !tempCity)) ? '#ef4444' : palette.border,
                     backgroundColor: palette.card,
                   },
                 ]}
@@ -307,37 +341,22 @@ export const EditProfileScreen: React.FC = () => {
             </View>
 
             {/* Age input */}
-            <InputGroup
-              label={t('profile.ageLabel')}
-              value={tempAge}
-              onChangeText={setTempAge}
-              placeholder={t('profile.agePlaceholder')}
-              keyboardType="numeric"
-            />
+            {renderInputGroup(
+              t('profile.ageLabel'),
+              tempAge,
+              setTempAge,
+              t('profile.agePlaceholder'),
+              false,
+              'numeric'
+            )}
 
             {/* Height & Weight row */}
             <View style={styles.rowInputs}>
               <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
-                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.heightLabel')}</Text>
-                <TextInput
-                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                  placeholder={t('profile.heightPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={tempHeight}
-                  onChangeText={setTempHeight}
-                  keyboardType="numeric"
-                />
+                {renderInputGroup(t('profile.heightLabel'), tempHeight, setTempHeight, t('profile.heightPlaceholder'), false, 'numeric')}
               </View>
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.weightLabel')}</Text>
-                <TextInput
-                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                  placeholder={t('profile.weightPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={tempWeight}
-                  onChangeText={setTempWeight}
-                  keyboardType="numeric"
-                />
+                {renderInputGroup(t('profile.weightLabel'), tempWeight, setTempWeight, t('profile.weightPlaceholder'), false, 'numeric')}
               </View>
             </View>
 
@@ -405,20 +424,21 @@ export const EditProfileScreen: React.FC = () => {
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('profile.instructorInfo')}
             </Text>
-            <InputGroup
-              label={t('profile.yearsOfTeachingLabel')}
-              value={tempYearsOfTeaching}
-              onChangeText={setTempYearsOfTeaching}
-              placeholder={t('profile.yearsOfTeachingPlaceholder')}
-              keyboardType="numeric"
-            />
-            <InputGroup
-              label={t('profile.certificatesLabel')}
-              value={tempCertificates}
-              onChangeText={setTempCertificates}
-              placeholder={t('profile.certificatesPlaceholder')}
-              multiline
-            />
+            {renderInputGroup(
+              t('profile.yearsOfTeachingLabel'),
+              tempYearsOfTeaching,
+              setTempYearsOfTeaching,
+              t('profile.yearsOfTeachingPlaceholder'),
+              false,
+              'numeric'
+            )}
+            {renderInputGroup(
+              t('profile.certificatesLabel'),
+              tempCertificates,
+              setTempCertificates,
+              t('profile.certificatesPlaceholder'),
+              true
+            )}
           </Card>
         )}
 

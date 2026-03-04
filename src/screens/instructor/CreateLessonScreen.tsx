@@ -183,12 +183,30 @@ export const CreateLessonScreen: React.FC = () => {
         fetchData();
     }, [isSchool, user]);
 
-    // Check if user has completed onboarding
+    // Check if user has completed onboarding or has missing school fields
     useEffect(() => {
-        if (user && !user.onboardingCompleted) {
+        if (!user) return;
+
+        let isMissingFields = false;
+
+        if (isSchool) {
+            // Check if school has missing required fields
+            if (!user.schoolName || !user.schoolAddress || !user.contactNumber || !user.contactPerson) {
+                isMissingFields = true;
+            }
+        } else {
+            // Instructor onboarding check
+            if (!user.onboardingCompleted) {
+                isMissingFields = true;
+            }
+        }
+
+        if (isMissingFields) {
             Alert.alert(
                 t('instructor.profileIncomplete') || 'Profiliniz Eksik',
-                t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.',
+                isSchool
+                    ? (t('school.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için okul profilinizdeki zorunlu alanları (Okul Adı, Adres, Telefon vb.) doldurmalısınız.')
+                    : (t('instructor.completeProfileBeforeLesson') || 'Kurs oluşturabilmek için önce eğitmen profilinizi tamamlamanız gerekmektedir.'),
                 [{
                     text: t('common.ok'),
                     onPress: () => {
@@ -199,14 +217,19 @@ export const CreateLessonScreen: React.FC = () => {
 
                         // Small delay to allow the modal/screen transition
                         setTimeout(() => {
-                            // @ts-ignore
-                            navigation.navigate('InstructorOnboarding');
+                            if (isSchool) {
+                                // @ts-ignore
+                                navigation.navigate('EditProfile', { highlightErrors: true });
+                            } else {
+                                // @ts-ignore
+                                navigation.navigate('InstructorOnboarding');
+                            }
                         }, 100);
                     }
                 }]
             );
         }
-    }, [user]);
+    }, [user, isSchool, navigation, t]);
 
     // Populate form if editing
     useEffect(() => {

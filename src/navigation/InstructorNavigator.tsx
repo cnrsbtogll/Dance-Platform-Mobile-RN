@@ -119,7 +119,7 @@ const MainTabs: React.FC = () => {
                 fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
                 color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
               }}>
-                {t('navigation.home')}
+                {t('navigation.instructorHome')}
               </Text>
             ),
             tabBarIcon: ({ color, size, focused }) => (

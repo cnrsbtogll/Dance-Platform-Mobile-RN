@@ -989,19 +989,11 @@ export class FirestoreService {
             updatedAt: data.updatedAt?.toString(),
             danceStyles: data.danceStyles || [],
           } as any;
-          
-          console.log(`[getApprovedSchools Debug] Gelen Data (${COLLECTIONS.DANCE_SCHOOLS}):`, {
-            id: schoolData.id,
-            name: schoolData.name,
-            imageUrl: schoolData.imageUrl,
-            isActive: schoolData.isActive
-          });
 
           return schoolData;
         })
         .filter(school => school.isActive); // Sadece aktif (onaylı) okulları göster
         
-      console.log(`[getApprovedSchools] Toplam çekilen okul sayısı: ${schools.length}`);
       return schools;
     } catch (error) {
       console.error('[FirestoreService] Error fetching approved schools:', error);

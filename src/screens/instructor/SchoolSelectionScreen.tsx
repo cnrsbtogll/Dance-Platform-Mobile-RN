@@ -50,7 +50,6 @@ export const SchoolSelectionScreen: React.FC = () => {
                 setLoading(true);
                 try {
                     const data = await FirestoreService.getApprovedSchools();
-                    console.log('[SchoolSelection] Fetched schools:', data.length, data.map(s => s.name));
                     setSchools(data);
                 } catch (err) {
                     console.error('[SchoolSelectionScreen] load error:', err);
