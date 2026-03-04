@@ -24,6 +24,7 @@ interface ProfileState {
   // Personal info
   tempGender: 'male' | 'female' | 'other' | '';
   tempAge: string;
+  tempCountry: string;
   tempCity: string;
   // Partner search visibility
   tempIsVisibleInPartnerSearch: boolean;
@@ -46,6 +47,7 @@ interface ProfileState {
   setTempLevel: (level: DanceLevel | '') => void;
   setTempGender: (g: 'male' | 'female' | 'other' | '') => void;
   setTempAge: (a: string) => void;
+  setTempCountry: (c: string) => void;
   setTempCity: (c: string) => void;
   setTempIsVisibleInPartnerSearch: (v: boolean) => void;
   setTempYearsOfTeaching: (y: string) => void;
@@ -71,6 +73,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   tempLevel: '',
   tempGender: '',
   tempAge: '',
+  tempCountry: 'Türkiye',
   tempCity: '',
   tempIsVisibleInPartnerSearch: true,
   tempYearsOfTeaching: '',
@@ -91,6 +94,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   setTempLevel: (level) => set({ tempLevel: level }),
   setTempGender: (g) => set({ tempGender: g }),
   setTempAge: (a) => set({ tempAge: a }),
+  setTempCountry: (c) => set({ tempCountry: c }),
   setTempCity: (c) => set({ tempCity: c }),
   setTempIsVisibleInPartnerSearch: (v) => set({ tempIsVisibleInPartnerSearch: v }),
   setTempYearsOfTeaching: (y) => set({ tempYearsOfTeaching: y }),
@@ -117,6 +121,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       tempLevel: (user?.level as DanceLevel) || '',
       tempGender: (user?.gender as 'male' | 'female' | 'other') || '',
       tempAge: user?.age != null ? String(user.age) : '',
+      tempCountry: user?.country || 'Türkiye',
       tempCity: user?.city || '',
       tempIsVisibleInPartnerSearch: user?.isVisibleInPartnerSearch !== false, // default true
       tempYearsOfTeaching: user?.yearsOfTeaching != null ? String(user.yearsOfTeaching) : '',
@@ -130,7 +135,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       tempSchoolName, tempSchoolAddress, tempContactNumber,
       tempContactPerson, tempInstagramHandle,
       tempHeight, tempWeight, tempDanceStyles, tempLevel,
-      tempGender, tempAge, tempCity,
+      tempGender, tempAge, tempCountry, tempCity,
       tempIsVisibleInPartnerSearch,
       tempYearsOfTeaching, tempCertificates,
     } = get();
@@ -157,6 +162,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (tempLevel) updatedFields.level = tempLevel;
     if (tempGender) updatedFields.gender = tempGender;
     if (tempAge) updatedFields.age = Number(tempAge) || undefined;
+    if (tempCountry) updatedFields.country = tempCountry;
     if (tempCity) updatedFields.city = tempCity;
 
     // School-specific fields

@@ -88,6 +88,20 @@
     "loginRequiredDesc": "You must log in to view detailed information about partners and contact them.",
     "login": "Login"
   },
+  "filters": {
+    "title": "Filter",
+    "role": "Role",
+    "gender": "Gender",
+    "ageRange": "Age Range",
+    "all": "All",
+    "student": "Student",
+    "instructor": "Instructor",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
   "profile": {
     "editProfile": "Edit Profile",
     "accountInfo": "Account Information",
@@ -147,6 +161,15 @@
     "requiredFieldsBanner": "These details are required to match with the right partners and get in touch.",
     "requiredFieldsTitle": "Complete your profile",
     "completeProfile": "Complete Profile"
+  },
+  "location": {
+    "selectCountry": "Select Country",
+    "selectCity": "Select City",
+    "searchCountry": "Search country...",
+    "searchCity": "Search city...",
+    "allCities": "No preference",
+    "countryLabel": "Country",
+    "cityLabel": "City (optional)"
   },
   "lessons": {
     "createLesson": "Create Lesson",

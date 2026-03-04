@@ -35,6 +35,7 @@ export interface User {
   danceStyles?: string[];
   experience?: string;
   city?: string;
+  country?: string;
   verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
   pushTokens?: string[];
   // Partner search & profile enrichment

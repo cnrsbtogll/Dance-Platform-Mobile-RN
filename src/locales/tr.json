@@ -92,6 +92,7 @@
     "title": "Filtreler",
     "role": "Rol",
     "gender": "Cinsiyet",
+    "ageRange": "Yaş Aralığı",
     "all": "Tümü",
     "student": "Öğrenci",
     "instructor": "Eğitmen",
@@ -160,6 +161,15 @@
     "requiredFieldsBanner": "Doğru partnerlerle eşleşmek ve iletişime geçmek için bu bilgiler gereklidir.",
     "requiredFieldsTitle": "Profil alanlarını tamamla",
     "completeProfile": "Profili Tamamla"
+  },
+  "location": {
+    "selectCountry": "Ülke Seç",
+    "selectCity": "Şehir Seç",
+    "searchCountry": "Ülke ara...",
+    "searchCity": "Şehir ara...",
+    "allCities": "Şehir Belirtme",
+    "countryLabel": "Ülke",
+    "cityLabel": "Şehir (opsiyonel)"
   },
   "lessons": {
     "createLesson": "Kurs Oluştur",

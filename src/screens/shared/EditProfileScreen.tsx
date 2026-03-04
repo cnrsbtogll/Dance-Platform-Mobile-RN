@@ -17,6 +17,8 @@ import { getAvatarSource } from '../../utils/imageHelper';
 import { uploadAvatar, UploadProgress } from '../../services/storageService';
 import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
+import { LocationPickerModal } from '../../components/common/LocationPickerModal';
+import { DEFAULT_COUNTRY } from '../../utils/locations';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -28,14 +30,14 @@ export const EditProfileScreen: React.FC = () => {
     tempSchoolName, tempSchoolAddress, tempContactNumber,
     tempContactPerson, tempInstagramHandle,
     tempHeight, tempWeight, tempDanceStyles, tempLevel,
-    tempGender, tempAge, tempCity,
+    tempGender, tempAge, tempCountry, tempCity,
     tempIsVisibleInPartnerSearch,
     tempYearsOfTeaching, tempCertificates,
     setTempName, setTempAvatar, setTempBio, setTempPhoneNumber,
     setTempSchoolName, setTempSchoolAddress, setTempContactNumber,
     setTempContactPerson, setTempInstagramHandle,
     setTempHeight, setTempWeight, setTempDanceStyles, setTempLevel,
-    setTempGender, setTempAge, setTempCity,
+    setTempGender, setTempAge, setTempCountry, setTempCity,
     setTempIsVisibleInPartnerSearch,
     setTempYearsOfTeaching, setTempCertificates,
     loadFromUser, applyChanges,
@@ -44,6 +46,7 @@ export const EditProfileScreen: React.FC = () => {
   const { danceStyles, loading: stylesLoading } = useDanceStyles();
 
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+  const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
@@ -274,37 +277,43 @@ export const EditProfileScreen: React.FC = () => {
               })}
             </View>
 
-            {/* Age + City row */}
-            <View style={styles.rowInputs}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
-                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.ageLabel')}</Text>
-                <TextInput
-                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                  placeholder={t('profile.agePlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={tempAge}
-                  onChangeText={setTempAge}
-                  keyboardType="numeric"
-                />
-              </View>
-              <View style={[styles.inputGroup, { flex: 2 }]}>
-                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.cityLabel')}</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      borderColor: !tempCity ? '#ef4444' : palette.border,
-                      backgroundColor: palette.card,
-                      color: palette.text.primary,
-                    },
-                  ]}
-                  placeholder={t('profile.cityPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={tempCity}
-                  onChangeText={setTempCity}
-                />
-              </View>
+            {/* Country + City picker */}
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, { color: palette.text.secondary }]}>
+                {t('location.countryLabel')} / {t('location.cityLabel')}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.input,
+                  styles.pickerButton,
+                  {
+                    borderColor: !tempCountry ? '#ef4444' : palette.border,
+                    backgroundColor: palette.card,
+                  },
+                ]}
+                onPress={() => setLocationPickerVisible(true)}
+              >
+                <MaterialIcons name="location-on" size={18} color={palette.text.secondary} />
+                <Text style={[
+                  styles.pickerButtonText,
+                  { color: tempCountry || tempCity ? palette.text.primary : palette.text.secondary },
+                ]}>
+                  {tempCountry
+                    ? (tempCity ? `${tempCountry} · ${tempCity}` : tempCountry)
+                    : (t('location.selectCountry') || 'Ülke Seç...')}
+                </Text>
+                <MaterialIcons name="chevron-right" size={18} color={palette.text.secondary} />
+              </TouchableOpacity>
             </View>
+
+            {/* Age input */}
+            <InputGroup
+              label={t('profile.ageLabel')}
+              value={tempAge}
+              onChangeText={setTempAge}
+              placeholder={t('profile.agePlaceholder')}
+              keyboardType="numeric"
+            />
 
             {/* Height & Weight row */}
             <View style={styles.rowInputs}>
@@ -459,6 +468,25 @@ export const EditProfileScreen: React.FC = () => {
         </View>
 
       </ScrollView>
+
+      {/* Age input — standalone, below location picker */}
+      {!isSchool && (
+        <View style={[styles.card, { backgroundColor: 'transparent', paddingTop: 0 }]}>
+          {/* age placed inside physicalInfo card: rendered via InputGroup below */}
+        </View>
+      )}
+
+      {/* LocationPickerModal */}
+      <LocationPickerModal
+        visible={locationPickerVisible}
+        onClose={() => setLocationPickerVisible(false)}
+        selectedCountry={tempCountry || DEFAULT_COUNTRY}
+        selectedCity={tempCity}
+        onConfirm={(country, city) => {
+          setTempCountry(country);
+          setTempCity(city);
+        }}
+      />
 
       {/* Avatar Modal */}
       <Modal
@@ -676,5 +704,19 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     lineHeight: 18,
     fontWeight: '500' as any,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingVertical: spacing.sm,
+  },
+  pickerButtonText: {
+    flex: 1,
+    fontSize: typography.fontSize.base,
+  },
+  ageInput: {
+    marginTop: spacing.sm,
   },
 });
