@@ -389,7 +389,10 @@
     "clickToUpload": "Yüklemek için Dokunun",
     "privacyNote": "Belgeleriniz güvenle şifrelenir ve üçüncü şahıslarla paylaşılmaz.",
     "submitVerification": "Doğrulamayı Gönder",
-    "verificationSubmitted": "Doğrulama talebiniz başarıyla gönderildi. Belgeleriniz admin tarafından incelenip onaylandığında eğitmen olacaksınız."
+    "verificationSubmitted": "Doğrulama talebiniz başarıyla gönderildi. Belgeleriniz admin tarafından incelenip onaylandığında eğitmen olacaksınız.",
+    "pendingSchoolApproval": "Okul onayı bekleniyor",
+    "pendingSchoolApprovalDesc": "Başvurunuz {{school}} okuluna iletildi. Onay geldiğinde bildirim alacaksınız.",
+    "changeSchool": "Okul Değiştir"
   },
   "becomeInstructor": {
     "title": "Eğitmen Ol",
@@ -814,5 +817,25 @@
       "approved": "Onaylanan başvuru yok",
       "rejected": "Reddedilen başvuru yok"
     }
+  },
+  "verificationGate": {
+    "title": "Doğrulama Gerekiyor",
+    "subtitle": "Kursunuzu yayına almak veya yeni kurs ekleyebilmek için hesabınızın doğrulanması gerekmektedir.",
+    "schoolApprovalTitle": "Okul Onayı ile Doğrula",
+    "schoolApprovalDesc": "Sistemimizde kayıtlı bir okul seçin. Okul sizi onayladığında verified olursunuz.",
+    "documentTitle": "Belge ile Doğrula",
+    "documentDesc": "Kimlik ve sertifika belgelerinizi yükleyin, ekibimiz inceleyerek onaylayacak.",
+    "or": "veya"
+  },
+  "schoolSelection": {
+    "title": "Okul Seç",
+    "infoBanner": "Seçtiğiniz okul sizi onayladığında eğitmen olarak doğrulanacaksınız. Onay beklenirken kurslarınız taslak olarak kalır.",
+    "searchPlaceholder": "Okul adı veya şehir ara...",
+    "confirmTitle": "Okul Onayı Başvurusu",
+    "confirmDesc": "{{school}} okuluna onay için başvurulacak. Devam edilsin mi?",
+    "apply": "Başvur",
+    "noSchools": "Kayıtlı okul bulunamadı",
+    "successTitle": "Başvurunuz Alındı!",
+    "successDesc": "{{school}} okuluna başvurunuz iletildi. Onaylandığında bildirim alacaksınız."
   }
 }

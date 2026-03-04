@@ -151,6 +151,7 @@ export class FirestoreService {
     certDocumentUrl: string;  // Eğitmen sertifikası
     status: 'pending' | 'approved' | 'rejected';
     schoolId?: string | null; // Okul bağlantısı (okul onay akışı için)
+    verificationMethod?: 'school' | 'document'; // Seçilen doğrulama yöntemi
     createdAt: string;
     updatedAt: string;
   }): Promise<void> {
@@ -915,6 +916,42 @@ export class FirestoreService {
       return users.filter(Boolean) as User[];
     } catch (error) {
       console.error('[FirestoreService] Error fetching students by school:', error);
+      return [];
+    }
+  }
+
+  static async getApprovedSchools(): Promise<DanceSchool[]> {
+    try {
+      // Okullar users koleksiyonunda role:'school' olarak kaydediliyor
+      const snap = await getDocs(
+        query(
+          collection(db, COLLECTIONS.USERS),
+          where('role', '==', 'school'),
+        )
+      );
+
+      return snap.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          name: data.schoolName || data.displayName || data.name || '',
+          address: data.schoolAddress || data.address || '',
+          city: data.city || '',
+          country: data.country || '',
+          phone: data.contactNumber || data.phoneNumber || '',
+          email: data.email || '',
+          website: data.website || '',
+          description: data.bio || data.description || '',
+          imageUrl: data.photoURL || data.imageUrl || '',
+          isActive: true,
+          createdAt: data.createdAt?.toString() || new Date().toISOString(),
+          updatedAt: data.updatedAt?.toString(),
+          danceStyles: data.danceStyles || [],
+          schoolAddress: data.schoolAddress || data.address || '',
+        } as any;
+      });
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching approved schools:', error);
       return [];
     }
   }

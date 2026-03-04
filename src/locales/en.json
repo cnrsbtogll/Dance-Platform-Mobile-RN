@@ -385,7 +385,10 @@
     "clickToUpload": "Click to Upload",
     "privacyNote": "Your documents are securely encrypted and not shared with third parties.",
     "submitVerification": "Submit Verification",
-    "verificationSubmitted": "Your verification request has been successfully submitted. You will become an instructor once your documents are reviewed and approved by an admin."
+    "verificationSubmitted": "Your verification request has been successfully submitted. You will become an instructor once your documents are reviewed and approved by an admin.",
+    "pendingSchoolApproval": "Awaiting school approval",
+    "pendingSchoolApprovalDesc": "Your application has been sent to {{school}}. You'll be notified when approved.",
+    "changeSchool": "Change School"
   },
   "becomeInstructor": {
     "title": "Become an Instructor",
@@ -769,7 +772,7 @@
     "bannerText": "Please verify your email address to get full access to your account.",
     "resend": "Send",
     "cooldown": "Wait {{seconds}}s",
-    "sentSuccess": "\u2713 Verification email sent!",
+    "sentSuccess": "✓ Verification email sent!",
     "sendError": "Failed to send. Try again."
   },
   "studentPasswordReset": {
@@ -811,5 +814,25 @@
       "approved": "No approved applications",
       "rejected": "No rejected applications"
     }
+  },
+  "verificationGate": {
+    "title": "Verification Required",
+    "subtitle": "Your account must be verified to publish courses or add new ones.",
+    "schoolApprovalTitle": "Verify via School",
+    "schoolApprovalDesc": "Select a registered school. Once they approve you, you'll be verified.",
+    "documentTitle": "Verify via Documents",
+    "documentDesc": "Upload your ID and certificates. Our team will review and approve.",
+    "or": "or"
+  },
+  "schoolSelection": {
+    "title": "Select a School",
+    "infoBanner": "Once the selected school approves you, you'll be verified as an instructor. Your courses remain as drafts until then.",
+    "searchPlaceholder": "Search by school name or city...",
+    "confirmTitle": "Apply for School Approval",
+    "confirmDesc": "Your application will be sent to {{school}}. Continue?",
+    "apply": "Apply",
+    "noSchools": "No registered schools found",
+    "successTitle": "Application Submitted!",
+    "successDesc": "Your application has been sent to {{school}}. You'll receive a notification when approved."
   }
 }

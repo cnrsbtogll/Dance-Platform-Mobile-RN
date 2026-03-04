@@ -11,6 +11,7 @@ import { Card } from '../../components/common/Card';
 import { Lesson } from '../../types';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { NotificationBell } from '../../components/common/NotificationBell';
+import { VerificationGateModal } from '../../components/common/VerificationGateModal';
 
 type TabType = 'active' | 'past';
 
@@ -23,6 +24,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>(params?.initialTab ?? 'active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
+  const [gateVisible, setGateVisible] = useState(false);
 
   // State for lessons
   const [instructorLessons, setInstructorLessons] = useState<Lesson[]>([]);
@@ -125,7 +127,13 @@ export const InstructorLessonsScreen: React.FC = () => {
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <TouchableOpacity
-            onPress={() => (navigation as any).navigate('CreateLesson')}
+            onPress={() => {
+              if (user?.role !== 'instructor') {
+                setGateVisible(true);
+              } else {
+                (navigation as any).navigate('CreateLesson');
+              }
+            }}
             style={{
               padding: spacing.xs,
               marginRight: -spacing.xs,
@@ -137,7 +145,7 @@ export const InstructorLessonsScreen: React.FC = () => {
         </View>
       ),
     });
-  }, [navigation, isDarkMode, t]);
+  }, [navigation, isDarkMode, t, user?.role]);
 
 
 
@@ -149,21 +157,8 @@ export const InstructorLessonsScreen: React.FC = () => {
 
   const handleToggleStatus = async (lesson: Lesson) => {
     if (user?.role !== 'instructor') {
-      Alert.alert(
-        t('instructor.verificationRequired') || 'Kimlik Doğrulaması Gerekiyor',
-        t('instructor.verificationDesc') || 'Kurslarınızı yayınlayabilmek için onaylanmış bir eğitmen olmanız gerekmektedir. Şimdi belge yüklemek ister misiniz?',
-        [{
-          text: t('common.cancel'),
-          style: 'cancel'
-        },
-        {
-          text: t('instructor.verifyNow') || 'Hemen Doğrula',
-          onPress: () => {
-            // @ts-ignore
-            navigation.navigate('Verification');
-          }
-        }]
-      );
+      // Doğrulama kapısını aç
+      setGateVisible(true);
       return;
     }
 
@@ -253,6 +248,21 @@ export const InstructorLessonsScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
+      {/* Verification Gate Modal */}
+      <VerificationGateModal
+        visible={gateVisible}
+        onClose={() => setGateVisible(false)}
+        onSchoolApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('SchoolSelection');
+        }}
+        onDocumentApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('Verification');
+        }}
+      />
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity

@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getLessonImageSource } from '../../utils/imageHelper';
 import { Lesson, Booking } from '../../types';
 import { Alert } from 'react-native';
+import { VerificationGateModal } from '../../components/common/VerificationGateModal';
 
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -33,6 +34,8 @@ export const InstructorHomeScreen: React.FC = () => {
   const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [hasSubmittedRequest, setHasSubmittedRequest] = React.useState(false);
+  const [gateVisible, setGateVisible] = React.useState(false);
+  const [pendingSchoolName, setPendingSchoolName] = React.useState<string | null>(null);
 
   // Fetch instructor's lessons from Firestore
   useFocusEffect(
@@ -60,6 +63,18 @@ export const InstructorHomeScreen: React.FC = () => {
         if (user?.id) {
           const status = await FirestoreService.getInstructorRequestStatus(user.id);
           setHasSubmittedRequest(!!status);
+
+          console.log('[HomeScreen] verificationStatus:', user.verificationStatus, '| verificationMethod:', user.verificationMethod, '| schoolId:', user.schoolId);
+
+          // Okul onayı bekliyorsa okul adını getir (verificationMethod olmasa da schoolId varsa)
+          if (user.verificationStatus === 'pending' && user.schoolId) {
+            try {
+              const school = await FirestoreService.getUserById(user.schoolId);
+              setPendingSchoolName((school as any)?.schoolName || (school as any)?.name || null);
+            } catch (_) {
+              setPendingSchoolName(null);
+            }
+          }
         }
       };
 
@@ -69,7 +84,6 @@ export const InstructorHomeScreen: React.FC = () => {
       checkRequestStatus();
     }, [user?.id, user?.role, refreshProfile, fetchUserBookings])
   );
-
 
 
   // Calculate stats
@@ -264,9 +278,57 @@ export const InstructorHomeScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
+      {/* Verification Gate Modal */}
+      <VerificationGateModal
+        visible={gateVisible}
+        onClose={() => setGateVisible(false)}
+        onSchoolApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('SchoolSelection');
+        }}
+        onDocumentApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('Verification');
+        }}
+      />
+
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
-        {/* Verification Banner */}
-        {user?.role === 'draft-instructor' && (
+        {/* Pending School Approval Banner */}
+        {user?.verificationStatus === 'pending' && !!user?.schoolId && (
+          <View style={[styles.pendingBanner, {
+            backgroundColor: isDarkMode ? '#1E293B' : '#FFFBEB',
+            borderColor: '#F59E0B',
+          }]}>
+            <View style={styles.pendingBannerHeader}>
+              <View style={[styles.pendingIconWrap, { backgroundColor: '#F59E0B20' }]}>
+                <MaterialIcons name="hourglass-top" size={20} color="#F59E0B" />
+              </View>
+              <Text style={[styles.pendingBannerTitle, { color: palette.text.primary }]}>
+                {t('instructor.pendingSchoolApproval')}
+              </Text>
+            </View>
+            {pendingSchoolName && (
+              <Text style={[styles.pendingBannerDesc, { color: palette.text.secondary }]}>
+                {t('instructor.pendingSchoolApprovalDesc', { school: pendingSchoolName })}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.changeSchoolBtn}
+              onPress={() => {
+                // @ts-ignore
+                navigation.navigate('SchoolSelection');
+              }}
+            >
+              <MaterialIcons name="swap-horiz" size={14} color="#F59E0B" />
+              <Text style={styles.changeSchoolText}>{t('instructor.changeSchool')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Verification Banner (draft-instructor without pending school) */}
+        {user?.role === 'draft-instructor' && user?.verificationStatus !== 'pending' && (
           <View style={[styles.verificationBanner, { backgroundColor: isDarkMode ? palette.card : '#F0FDFA', borderColor: colors.instructor.primary }]}>
             <View style={styles.verificationBannerHeader}>
               <View style={[styles.infoIconContainer, { backgroundColor: colors.instructor.primary + '20' }]}>
@@ -809,5 +871,53 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.fontSize.base,
+  },
+  pendingBanner: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1.5,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  pendingBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: 4,
+  },
+  pendingIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingBannerTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    flex: 1,
+  },
+  pendingBannerDesc: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: 20,
+    marginLeft: 34 + spacing.sm,
+  },
+  changeSchoolBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    marginLeft: 34 + spacing.sm,
+    marginTop: 4,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: '#F59E0B15',
+    borderRadius: borderRadius.full,
+  },
+  changeSchoolText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    color: '#F59E0B',
   },
 });
