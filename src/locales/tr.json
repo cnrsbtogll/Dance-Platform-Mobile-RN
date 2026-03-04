@@ -621,6 +621,19 @@
     "verifyTooltip": "E-posta doğrulama gönder",
     "send": "Gönder"
   },
+  "studentDetail": {
+    "title": "Öğrenci Detayı",
+    "notFound": "Öğrenci bulunamadı",
+    "sessions": "Seans",
+    "courses": "Kurs",
+    "since": "Başlangıç",
+    "enrolledCourses": "Kayıtlı Kurslar",
+    "noCourses": "Kayıtlı kurs yok",
+    "bookingHistory": "Rezervasyon Geçmişi",
+    "noBookings": "Henüz rezervasyon yok",
+    "session": "seans",
+    "actions": "Aksiyonlar"
+  },
   "earnings": {
     "totalEarnings": "Toplam Kazanç",
     "averageMonthly": "Ortalama Aylık",
@@ -852,5 +865,11 @@
     "noSchools": "Kayıtlı okul bulunamadı",
     "successTitle": "Başvurunuz Alındı!",
     "successDesc": "{{school}} okuluna başvurunuz iletildi. Onaylandığında bildirim alacaksınız."
+  },
+  "booking": {
+    "pending": "Bekliyor",
+    "confirmed": "Onaylandı",
+    "completed": "Tamamlandı",
+    "cancelled": "İptal Edildi"
   }
 }

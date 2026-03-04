@@ -617,6 +617,19 @@
     "verifyTooltip": "Send email verification",
     "send": "Send"
   },
+  "studentDetail": {
+    "title": "Student Detail",
+    "notFound": "Student not found",
+    "sessions": "Sessions",
+    "courses": "Courses",
+    "since": "Since",
+    "enrolledCourses": "Enrolled Courses",
+    "noCourses": "No courses enrolled",
+    "bookingHistory": "Booking History",
+    "noBookings": "No bookings yet",
+    "session": "session",
+    "actions": "Actions"
+  },
   "earnings": {
     "totalEarnings": "Total Earnings",
     "averageMonthly": "Average Monthly",
@@ -849,5 +862,11 @@
     "noSchools": "No registered schools found",
     "successTitle": "Application Submitted!",
     "successDesc": "Your application has been sent to {{school}}. You'll receive a notification when approved."
+  },
+  "booking": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
   }
 }

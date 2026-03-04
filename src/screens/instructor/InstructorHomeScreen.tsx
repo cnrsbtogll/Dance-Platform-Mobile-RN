@@ -438,26 +438,36 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
 
         {/* Stats Cards */}
+        {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
-          </Card>
           <TouchableOpacity
             style={{ flex: 1 }}
-            activeOpacity={0.75}
-            onPress={() => (navigation as any).navigate('InstructorStudents')}
+            activeOpacity={0.7}
+            onPress={() => (navigation as any).navigate('Lessons', { initialTab: 'active' })}
           >
-            <Card style={[styles.statCard, { backgroundColor: palette.card, borderColor: colors.instructor.primary, borderWidth: 1.5 }]}>
-              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
-              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
-              <MaterialIcons name="chevron-right" size={12} color={colors.instructor.primary} style={{ alignSelf: 'flex-end', marginTop: 2 }} />
+            <Card style={[styles.statCard, { backgroundColor: palette.card, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
             </Card>
           </TouchableOpacity>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
-          </Card>
+
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={0.7}
+            onPress={() => (navigation as any).navigate('InstructorStudents')}
+          >
+            <Card style={[styles.statCard, { backgroundColor: palette.card, borderColor: colors.instructor.primary + '30', borderWidth: 1, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
+            </Card>
+          </TouchableOpacity>
+
+          <View style={{ flex: 1 }}>
+            <Card style={[styles.statCard, { backgroundColor: palette.card, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
+            </Card>
+          </View>
         </View>
 
         {/* Upcoming Lessons */}
@@ -744,27 +754,29 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
-    flexWrap: 'wrap',
   },
   statCard: {
-    flex: 1,
-    minWidth: 158,
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: spacing.sm,
+    gap: 4,
     marginBottom: 0,
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 80,
   },
   statLabel: {
-    fontSize: typography.fontSize.base,
+    fontSize: 12,
     fontWeight: typography.fontWeight.medium,
+    textAlign: 'center',
+    height: 36, // İki satıra izin verir ama kartı bozmaz
   },
   statValue: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: typography.fontWeight.bold,
-    letterSpacing: -0.5,
+    textAlign: 'center',
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: 22,

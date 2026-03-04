@@ -34,7 +34,7 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, un
         <TouchableOpacity
             style={[
                 styles.container,
-                { backgroundColor: palette.primary, bottom: insets.bottom + 80 },
+                { backgroundColor: role === 'instructor' ? palette.secondary : palette.primary, bottom: insets.bottom + 80 },
                 shadows.md
             ]}
             onPress={handlePress}

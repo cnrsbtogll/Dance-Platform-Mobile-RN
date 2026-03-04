@@ -37,6 +37,7 @@ import { FloatingChatButton } from '../components/common/FloatingChatButton';
 import { StudentPasswordResetScreen } from '../screens/shared/StudentPasswordResetScreen';
 import { SchoolSelectionScreen } from '../screens/instructor/SchoolSelectionScreen';
 import { InstructorStudentsScreen } from '../screens/instructor/InstructorStudentsScreen';
+import { InstructorStudentDetailScreen } from '../screens/instructor/InstructorStudentDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -537,6 +538,16 @@ export const InstructorNavigator: React.FC = () => {
           headerStyle: { backgroundColor: palette.background },
           headerTintColor: palette.text.primary,
           headerTitleStyle: { color: palette.text.primary },
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="StudentDetail"
+        component={InstructorStudentDetailScreen}
+        options={{
+          headerShown: true,
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: 'transparent' },
           presentation: 'card',
         }}
       />

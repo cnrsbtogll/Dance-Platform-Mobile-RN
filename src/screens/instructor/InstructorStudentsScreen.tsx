@@ -193,7 +193,7 @@ export const InstructorStudentsScreen: React.FC = () => {
                 style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
                 onPress={() => {
                     // Öğrenci detay sayfasına git
-                    (navigation as any).navigate('PartnerDetail', { userId: item.user.id });
+                    (navigation as any).navigate('StudentDetail', { student: item.user });
                 }}
                 activeOpacity={0.8}
             >

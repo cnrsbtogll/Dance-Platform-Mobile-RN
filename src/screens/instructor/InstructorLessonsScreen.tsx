@@ -33,6 +33,11 @@ export const InstructorLessonsScreen: React.FC = () => {
   // Fetch lessons from Firestore when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      // Sync tab with navigation params if provided
+      if (params?.initialTab) {
+        setActiveTab(params.initialTab);
+      }
+
       const fetchLessons = async () => {
         if (!user || (user.role !== 'instructor' && user.role !== 'draft-instructor')) {
           setInstructorLessons([]);
