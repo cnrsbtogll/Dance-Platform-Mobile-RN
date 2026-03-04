@@ -35,7 +35,8 @@ export const InstructorStudentsScreen: React.FC = () => {
     const { t } = useTranslation();
     const { user } = useAuthStore();
     const { isDarkMode } = useThemeStore();
-    const palette = getPalette('instructor', isDarkMode);
+    const isSchool = user?.role === 'school' || user?.role === 'draft-school';
+    const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
     const [students, setStudents] = useState<StudentEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -61,10 +62,23 @@ export const InstructorStudentsScreen: React.FC = () => {
             const load = async () => {
                 setLoading(true);
                 try {
-                    const [bookings, lessons] = await Promise.all([
-                        FirestoreService.getBookingsByInstructor(user.id),
-                        FirestoreService.getLessonsByInstructor(user.id),
-                    ]);
+                    let bookings: Booking[] = [];
+                    let lessons: Lesson[] = [];
+
+                    if (user.role === 'school' || user.role === 'draft-school') {
+                        lessons = await FirestoreService.getLessonsBySchool(user.id);
+                        // Fetch bookings for all lessons of the school
+                        const bookingsPromises = lessons.map(lesson => FirestoreService.getBookingsByLesson(lesson.id));
+                        const bookingsArrays = await Promise.all(bookingsPromises);
+                        bookings = bookingsArrays.flat();
+                    } else {
+                        const [b, l] = await Promise.all([
+                            FirestoreService.getBookingsByInstructor(user.id),
+                            FirestoreService.getLessonsByInstructor(user.id),
+                        ]);
+                        bookings = b;
+                        lessons = l;
+                    }
 
                     // Unique students
                     const studentMap = new Map<string, { bookings: Booking[]; lessons: Set<string> }>();
@@ -202,8 +216,8 @@ export const InstructorStudentsScreen: React.FC = () => {
                     {avatarUrl ? (
                         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
                     ) : (
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: colors.instructor.primary + '20' }]}>
-                            <Text style={[styles.avatarInitial, { color: colors.instructor.primary }]}>
+                        <View style={[styles.avatarPlaceholder, { backgroundColor: palette.primary + '20' }]}>
+                            <Text style={[styles.avatarInitial, { color: palette.primary }]}>
                                 {(item.user.name || '?').charAt(0).toUpperCase()}
                             </Text>
                         </View>
@@ -230,7 +244,7 @@ export const InstructorStudentsScreen: React.FC = () => {
                     <ActionBtn
                         icon="lock-reset"
                         state={state.reset}
-                        color={colors.instructor.primary}
+                        color={palette.primary}
                         tooltip={t('instructorStudents.resetTooltip')}
                         onPress={() => handlePasswordReset(item)}
                     />
@@ -274,7 +288,7 @@ export const InstructorStudentsScreen: React.FC = () => {
 
             {loading ? (
                 <View style={styles.loader}>
-                    <ActivityIndicator size="large" color={colors.instructor.primary} />
+                    <ActivityIndicator size="large" color={palette.primary} />
                 </View>
             ) : (
                 <FlatList

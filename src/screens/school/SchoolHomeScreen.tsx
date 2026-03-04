@@ -302,18 +302,35 @@ export const SchoolHomeScreen: React.FC = () => {
 
                 {/* Stats Cards */}
                 <View style={styles.statsContainer}>
-                    <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-                        <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('school.activeLessons') || 'Aktif Kurslar'}</Text>
-                        <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.activeLessons}</Text>
-                    </Card>
-                    <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-                        <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('school.totalStudents') || 'Kayıtlı Öğrenci'}</Text>
-                        <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.totalStudents}</Text>
-                    </Card>
-                    <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-                        <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
-                        <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.avgRating}</Text>
-                    </Card>
+                    <TouchableOpacity
+                        style={{ flex: 1 }}
+                        onPress={() => (navigation as any).navigate('Lessons', { initialTab: 'active' })}
+                        activeOpacity={0.8}
+                    >
+                        <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+                            <Text style={[styles.statLabel, { color: palette.text.primary }]} numberOfLines={2}>{t('school.activeLessons') || 'Aktif Kurslar'}</Text>
+                            <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.activeLessons}</Text>
+                        </Card>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{ flex: 1 }}
+                        onPress={() => (navigation as any).navigate('InstructorStudents')}
+                        activeOpacity={0.8}
+                    >
+                        <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+                            <Text style={[styles.statLabel, { color: palette.text.primary }]} numberOfLines={2}>{t('school.totalStudents') || 'Kayıtlı Öğrenci'}</Text>
+                            <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.totalStudents}</Text>
+                        </Card>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{ flex: 1 }}
+                        activeOpacity={1}
+                    >
+                        <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
+                            <Text style={[styles.statLabel, { color: palette.text.primary }]} numberOfLines={2}>{t('instructorHome.rating')}</Text>
+                            <Text style={[styles.statValue, { color: colors.school.primary }]}>{stats.avgRating}</Text>
+                        </Card>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Quick Actions */}
@@ -343,13 +360,6 @@ export const SchoolHomeScreen: React.FC = () => {
                         >
                             <MaterialIcons name="verified-user" size={24} color="#ffffff" />
                             <Text style={styles.quickActionText}>{t('school.addInstructor') || 'Eğitmen Başvuruları'}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.quickActionButton, { backgroundColor: '#3B82F6' }]}
-                            onPress={() => (navigation as any).navigate('StudentPasswordReset')}
-                        >
-                            <MaterialIcons name="lock-reset" size={24} color="#ffffff" />
-                            <Text style={styles.quickActionText}>{t('school.studentPasswordReset') || 'Şifre Sıfırla'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -447,9 +457,9 @@ const styles = StyleSheet.create({
     earningsTotal: { fontSize: typography.fontSize.base },
     detailsButton: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.lg },
     detailsButtonText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: '#ffffff' },
-    statsContainer: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.md, marginBottom: spacing.lg, flexWrap: 'wrap' },
-    statCard: { flex: 1, minWidth: 100, padding: spacing.md, gap: spacing.sm, alignItems: 'flex-start' },
-    statLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium },
+    statsContainer: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.md, marginBottom: spacing.lg },
+    statCard: { flex: 1, padding: spacing.md, gap: spacing.sm, alignItems: 'center', justifyContent: 'center' },
+    statLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, textAlign: 'center', height: 32 },
     statValue: { fontSize: 24, fontWeight: typography.fontWeight.bold },
     sectionTitle: { fontSize: 20, fontWeight: typography.fontWeight.bold, marginBottom: spacing.md },
     quickActionsGrid: { flexDirection: 'row', gap: spacing.md },

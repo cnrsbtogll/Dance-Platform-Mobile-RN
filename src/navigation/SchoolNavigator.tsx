@@ -11,7 +11,8 @@ import { appConfig } from '../config/appConfig';
 import { SchoolHomeScreen } from '../screens/school/SchoolHomeScreen';
 import { InstructorProfileScreen } from '../screens/instructor/InstructorProfileScreen';
 import { InstructorChatScreen } from '../screens/instructor/InstructorChatScreen';
-import { PartnerSearchScreen } from '../screens/student/PartnerSearchScreen';
+import { InstructorStudentsScreen } from '../screens/instructor/InstructorStudentsScreen';
+import { InstructorStudentDetailScreen } from '../screens/instructor/InstructorStudentDetailScreen';
 import { PartnerDetailScreen } from '../screens/shared/PartnerDetailScreen';
 import { ChatDetailScreen } from '../screens/student/ChatDetailScreen';
 import { NotificationScreen } from '../screens/shared/NotificationScreen';
@@ -117,10 +118,10 @@ const MainTabs: React.FC = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="PartnerSearch"
-                    component={PartnerSearchScreen}
+                    name="InstructorStudents"
+                    component={InstructorStudentsScreen}
                     options={{
-                        title: t('navigation.partnerSearch'),
+                        title: t('instructorStudents.title'),
                         headerShown: true,
                         headerStyle: {
                             backgroundColor: palette.background,
@@ -138,11 +139,11 @@ const MainTabs: React.FC = () => {
                                 fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
                                 color,
                             }}>
-                                {t('navigation.partnerSearch')}
+                                {t('instructorStudents.title')}
                             </Text>
                         ),
                         tabBarIcon: ({ color, size }) => (
-                            <MaterialIcons name="people" size={size} color={color} />
+                            <MaterialIcons name="groups" size={size} color={color} />
                         ),
                     }}
                 />
@@ -463,6 +464,19 @@ export const SchoolNavigator: React.FC = () => {
                 component={StudentPasswordResetScreen}
                 options={{
                     headerShown: true,
+                    headerBackTitle: '',
+                    headerStyle: { backgroundColor: palette.background },
+                    headerTintColor: palette.text.primary,
+                    headerTitleStyle: { color: palette.text.primary },
+                    presentation: 'card',
+                }}
+            />
+            <Stack.Screen
+                name="InstructorStudentDetail"
+                component={InstructorStudentDetailScreen}
+                options={{
+                    headerShown: true,
+                    headerTitle: t('instructorStudents.studentDetail') || 'Öğrenci Detayı',
                     headerBackTitle: '',
                     headerStyle: { backgroundColor: palette.background },
                     headerTintColor: palette.text.primary,
