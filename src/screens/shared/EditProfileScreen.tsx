@@ -72,7 +72,7 @@ export const EditProfileScreen: React.FC = () => {
   const handleSave = async () => {
     // Validate required fields for matching
     if (isSchool) {
-      if (!tempSchoolName.trim() || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) {
+      if (!tempSchoolName.trim() || !tempCountry || !tempCity || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) {
         setHighlightErrors(true);
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
         return;
@@ -179,6 +179,39 @@ export const EditProfileScreen: React.FC = () => {
     );
   };
 
+  const renderLocationPicker = (isRequired = false) => {
+    const hasError = highlightErrors && isRequired && (!tempCountry || !tempCity);
+    return (
+      <View style={styles.inputGroup}>
+        <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>
+          {t('location.countryLabel')} / {t('location.cityLabel')} {isRequired && <Text style={{ color: '#ef4444' }}>*</Text>}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.input,
+            styles.pickerButton,
+            {
+              borderColor: hasError ? '#ef4444' : palette.border,
+              backgroundColor: palette.card,
+            },
+          ]}
+          onPress={() => setLocationPickerVisible(true)}
+        >
+          <MaterialIcons name="location-on" size={18} color={palette.text.secondary} />
+          <Text style={[
+            styles.pickerButtonText,
+            { color: tempCountry || tempCity ? palette.text.primary : palette.text.secondary },
+          ]}>
+            {tempCountry
+              ? (tempCity ? `${tempCountry} · ${tempCity}` : tempCountry)
+              : (t('location.selectCountry') || 'Ülke Seç...')}
+          </Text>
+          <MaterialIcons name="chevron-right" size={18} color={palette.text.secondary} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
@@ -239,15 +272,16 @@ export const EditProfileScreen: React.FC = () => {
             </Text>
 
             {/* Motivation banner for missing fields */}
-            {highlightErrors && (!tempSchoolName.trim() || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) && (
+            {highlightErrors && (!tempSchoolName.trim() || !tempCountry || !tempCity || !tempSchoolAddress.trim() || !tempContactNumber.trim() || !tempContactPerson.trim()) && (
               <View style={[styles.motivationBanner, { backgroundColor: '#fef2f2', borderColor: '#fecaca', marginBottom: spacing.md }]}>
                 <MaterialIcons name="error-outline" size={18} color="#ef4444" />
                 <Text style={[styles.motivationText, { color: '#ef4444' }]}>
-                  {t('profile.requiredFieldsBannerSchool') || 'Lütfen kırmızı ile işaretli eksik alanları doldurun.'}
+                  {t('profile.requiredFieldsBannerSchool') || 'Lütfen kırmızı ile işaretli tüm zorunlu alanları doldurun.'}
                 </Text>
               </View>
             )}
 
+            {renderLocationPicker(true)}
             {renderInputGroup((t('becomeSchool.schoolAddressPlaceholder') || 'Adres').replace(' *', ''), tempSchoolAddress, setTempSchoolAddress, t('becomeSchool.schoolAddressPlaceholder') || 'Adres *', false, 'default', true)}
             {renderInputGroup(t('becomeSchool.contactNumberPlaceholder').replace(' *', ''), tempContactNumber, setTempContactNumber, t('becomeSchool.contactNumberPlaceholder'), false, 'phone-pad', true)}
             {renderInputGroup(t('becomeSchool.contactPersonPlaceholder').replace(' *', ''), tempContactPerson, setTempContactPerson, t('becomeSchool.contactPersonPlaceholder'), false, 'default', true)}
@@ -312,33 +346,7 @@ export const EditProfileScreen: React.FC = () => {
             </View>
 
             {/* Country + City picker */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: palette.text.secondary }]}>
-                {t('location.countryLabel')} / {t('location.cityLabel')}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.input,
-                  styles.pickerButton,
-                  {
-                    borderColor: (highlightErrors && (!tempCountry || !tempCity)) ? '#ef4444' : palette.border,
-                    backgroundColor: palette.card,
-                  },
-                ]}
-                onPress={() => setLocationPickerVisible(true)}
-              >
-                <MaterialIcons name="location-on" size={18} color={palette.text.secondary} />
-                <Text style={[
-                  styles.pickerButtonText,
-                  { color: tempCountry || tempCity ? palette.text.primary : palette.text.secondary },
-                ]}>
-                  {tempCountry
-                    ? (tempCity ? `${tempCountry} · ${tempCity}` : tempCountry)
-                    : (t('location.selectCountry') || 'Ülke Seç...')}
-                </Text>
-                <MaterialIcons name="chevron-right" size={18} color={palette.text.secondary} />
-              </TouchableOpacity>
-            </View>
+            {renderLocationPicker(true)}
 
             {/* Age input */}
             {renderInputGroup(
