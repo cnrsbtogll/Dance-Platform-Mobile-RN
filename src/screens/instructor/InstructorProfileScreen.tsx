@@ -90,12 +90,6 @@ export const InstructorProfileScreen: React.FC = () => {
       title: t('profile.changePassword'),
       onPress: () => (navigation as any).navigate('ChangePassword'),
     },
-    {
-      id: 'studentPasswordReset',
-      icon: 'lock-reset',
-      title: t('profile.studentPasswordReset'),
-      onPress: () => (navigation as any).navigate('StudentPasswordReset'),
-    },
   ];
 
   const appSettings: SettingItem[] = [
