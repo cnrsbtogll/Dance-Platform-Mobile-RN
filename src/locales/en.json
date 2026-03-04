@@ -4,6 +4,7 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
+    "unknownError": "An unexpected error occurred. Please try again.",
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
@@ -107,6 +108,7 @@
     "accountInfo": "Account Information",
     "paymentMethods": "Payment Methods",
     "changePassword": "Change Password",
+    "studentPasswordReset": "Student Password Reset",
     "notifications": "Notifications",
     "language": "Language Selection",
     "currency": "Currency",
@@ -662,7 +664,18 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "passwordsDoNotMatch": "Passwords do not match",
     "samePassword": "New password cannot be the same as current password",
-    "passwordChanged": "Your password has been changed successfully"
+    "passwordChanged": "Your password has been changed successfully",
+    "wrongCurrentPassword": "Your current password is incorrect",
+    "networkError": "Connection error. Please try again.",
+    "tooManyRequests": "Too many attempts. Please wait a moment.",
+    "resetMailSection": "Password Reset",
+    "resetMailDesc": "If you can't remember your password, a reset link can be sent to your email address.",
+    "sendResetMail": "Send Reset Email",
+    "resetMailSent": "Reset email sent! Please check your inbox.",
+    "resetMailError": "Failed to send email. Please try again.",
+    "googleUserTitle": "Password Change Not Available",
+    "googleUserDesc": "Since you signed in with Google, your password is managed by Google. Use your Google account settings to change your password.",
+    "googleUserResetDesc": "You can send a reset email to the address associated with your account."
   },
   "helpCenter": {
     "frequentlyAskedQuestions": "Frequently Asked Questions",
@@ -713,8 +726,9 @@
     "activeLessons": "Active Lessons",
     "totalStudents": "Registered Students",
     "quickActions": "Quick Actions",
-    "addInstructor": "Add Instructor",
+    "addInstructor": "Instructor Applications",
     "createLesson": "Create Lesson",
+    "studentPasswordReset": "Reset Password",
     "verificationRequired": "Welcome to the Team!",
     "verificationStepDesc": "You are just a few small steps away from starting your school journey. Let's set up your profile!",
     "completeProfileButton": "Complete Your School Profile",
@@ -757,5 +771,45 @@
     "cooldown": "Wait {{seconds}}s",
     "sentSuccess": "\u2713 Verification email sent!",
     "sendError": "Failed to send. Try again."
+  },
+  "studentPasswordReset": {
+    "title": "Send Password Reset Email",
+    "searchPlaceholder": "Search students...",
+    "infoBanner": "A Firebase password reset link will be sent to the selected student's email. The student can then reset their own password.",
+    "send": "Send",
+    "sent": "Sent",
+    "mailSentTo": "Reset email sent to {{email}}",
+    "userNotFound": "This email address was not found in the system",
+    "sendFailed": "Failed to send email. Please try again.",
+    "noEmail": "No email",
+    "noStudents": "No students enrolled yet"
+  },
+  "instructorVerification": {
+    "title": "Instructor Applications",
+    "searchPlaceholder": "Search instructors...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "experience": "Experience",
+    "approveConfirmTitle": "Approve Application",
+    "approveConfirmDesc": "Are you sure you want to approve {{name}}'s application? Their role will be updated to 'Instructor'.",
+    "rejectConfirmTitle": "Reject Application",
+    "rejectConfirmDesc": "Are you sure you want to reject {{name}}'s application?",
+    "approveSuccess": "{{name}} approved successfully!",
+    "rejectSuccess": "{{name}}'s application rejected.",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "tab": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "empty": {
+      "pending": "No pending applications",
+      "approved": "No approved applications",
+      "rejected": "No rejected applications"
+    }
   }
 }

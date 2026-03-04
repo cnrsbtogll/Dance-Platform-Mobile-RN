@@ -4,6 +4,7 @@
     "loading": "Yükleniyor...",
     "error": "Hata",
     "success": "Başarılı",
+    "unknownError": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.",
     "cancel": "İptal",
     "save": "Kaydet",
     "delete": "Sil",
@@ -107,6 +108,7 @@
     "accountInfo": "Hesap Bilgileri",
     "paymentMethods": "Ödeme Yöntemleri",
     "changePassword": "Şifre Değiştir",
+    "studentPasswordReset": "Öğrenci Şifre Sıfırla",
     "notifications": "Bildirimler",
     "language": "Dil Seçimi",
     "currency": "Para Birimi",
@@ -666,7 +668,18 @@
     "passwordTooShort": "Şifre en az 6 karakter olmalıdır",
     "passwordsDoNotMatch": "Şifreler eşleşmiyor",
     "samePassword": "Yeni şifre mevcut şifre ile aynı olamaz",
-    "passwordChanged": "Şifreniz başarıyla değiştirildi"
+    "passwordChanged": "Şifreniz başarıyla değiştirildi",
+    "wrongCurrentPassword": "Mevcut şifreniz hatalı",
+    "networkError": "Bağlantı hatası. Lütfen tekrar deneyin.",
+    "tooManyRequests": "Çok fazla deneme yapıldı. Lütfen biraz bekleyin.",
+    "resetMailSection": "Şifre Sıfırlama",
+    "resetMailDesc": "Şifrenizi hatırlamıyorsanız e-posta adresinize sıfırlama bağlantısı gönderilebilir.",
+    "sendResetMail": "Sıfırlama Maili Gönder",
+    "resetMailSent": "Sıfırlama maili gönderildi! Lütfen e-posta kutunuzu kontrol edin.",
+    "resetMailError": "Mail gönderilemedi. Lütfen tekrar deneyin.",
+    "googleUserTitle": "Şifre Değiştirme Mevcut Değil",
+    "googleUserDesc": "Google ile giriş yaptığınız için şifreniz Google tarafından yönetilmektedir. Şifrenizi değiştirmek için Google hesap ayarlarınızı kullanın.",
+    "googleUserResetDesc": "Hesabınızla ilişkili e-posta adresine sıfırlama maili gönderebilirsiniz."
   },
   "helpCenter": {
     "frequentlyAskedQuestions": "Sık Sorulan Sorular",
@@ -736,8 +749,9 @@
     "activeLessons": "Aktif Kurslar",
     "totalStudents": "Kayıtlı Öğrenci",
     "quickActions": "Hızlı İşlemler",
-    "addInstructor": "Eğitmen Ekle",
+    "addInstructor": "Eğitmen Başvuruları",
     "createLesson": "Kurs Oluştur",
+    "studentPasswordReset": "Şifre Sıfırla",
     "verificationRequired": "Aramıza Hoş Geldiniz!",
     "verificationStepDesc": "Okul olarak kurs vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!",
     "completeProfileButton": "Okul Profilinizi Tamamlayın",
@@ -760,5 +774,45 @@
     "cooldown": "{{seconds}}s bekle",
     "sentSuccess": "✓ Doğrulama maili gönderildi!",
     "sendError": "Gönderilemedi. Tekrar dene."
+  },
+  "studentPasswordReset": {
+    "title": "Şifre Sıfırlama Maili Gönder",
+    "searchPlaceholder": "Öğrenci ara...",
+    "infoBanner": "Seileçtiğiniz öğrencilerin e-posta adresine Firebase şifre sıfırlama bağlantısı gönderilir. Öğrenci kendi şifresini sıfırlayabilir.",
+    "send": "Gönder",
+    "sent": "Gönderildi",
+    "mailSentTo": "{{email}} adresine sıfırlama maili gönderildi",
+    "userNotFound": "Bu e-posta adresi sistemde bulunamadı",
+    "sendFailed": "Mail gönderilemedi. Tekrar deneyin.",
+    "noEmail": "E-posta yok",
+    "noStudents": "Henüz kayıtlı öğrenci bulunmuyor"
+  },
+  "instructorVerification": {
+    "title": "Eğitmen Başvuruları",
+    "searchPlaceholder": "Eğitmen ara...",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "experience": "Deneyim",
+    "approveConfirmTitle": "Başvuruyu Onayla",
+    "approveConfirmDesc": "{{name}} adlı eğitmenin başvurusunu onaylamak istediğinizden emin misiniz? Rolü 'Eğitmen' olarak güncellenecek.",
+    "rejectConfirmTitle": "Başvuruyu Reddet",
+    "rejectConfirmDesc": "{{name}} adlı eğitmenin başvurusunu reddetmek istediğinizden emin misiniz?",
+    "approveSuccess": "{{name}} başarıyla onaylandı!",
+    "rejectSuccess": "{{name}} başvurusu reddedildi.",
+    "status": {
+      "pending": "Bekliyor",
+      "approved": "Onaylandı",
+      "rejected": "Reddedildi"
+    },
+    "tab": {
+      "pending": "Bekleyen",
+      "approved": "Onaylanan",
+      "rejected": "Reddedilen"
+    },
+    "empty": {
+      "pending": "Bekleyen başvuru yok",
+      "approved": "Onaylanan başvuru yok",
+      "rejected": "Reddedilen başvuru yok"
+    }
   }
 }

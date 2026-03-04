@@ -84,19 +84,17 @@ export const InstructorProfileScreen: React.FC = () => {
       title: t('profile.accountInfo'),
       onPress: () => (navigation as any).navigate('AccountInformation'),
     },
-    /*
-    {
-      id: 'payment',
-      icon: 'credit-card',
-      title: t('profile.paymentMethods'),
-      onPress: () => (navigation as any).navigate('PaymentMethods'),
-    },
-    */
     {
       id: 'password',
       icon: 'lock',
       title: t('profile.changePassword'),
       onPress: () => (navigation as any).navigate('ChangePassword'),
+    },
+    {
+      id: 'studentPasswordReset',
+      icon: 'lock-reset',
+      title: t('profile.studentPasswordReset'),
+      onPress: () => (navigation as any).navigate('StudentPasswordReset'),
     },
   ];
 

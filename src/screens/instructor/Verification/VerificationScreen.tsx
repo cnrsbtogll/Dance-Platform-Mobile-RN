@@ -83,6 +83,7 @@ export const VerificationScreen: React.FC = () => {
                 idDocumentUrl: idDocument!,
                 certDocumentUrl: certDocument!,
                 status: 'pending',
+                schoolId: (user as any).schoolId || null,   // okul bağlantısı varsa sakla
                 createdAt: now,
                 updatedAt: now,
             });

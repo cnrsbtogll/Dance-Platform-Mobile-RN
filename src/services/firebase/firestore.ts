@@ -150,6 +150,7 @@ export class FirestoreService {
     idDocumentUrl: string;    // Kimlik / Ehliyet / Pasaport
     certDocumentUrl: string;  // Eğitmen sertifikası
     status: 'pending' | 'approved' | 'rejected';
+    schoolId?: string | null; // Okul bağlantısı (okul onay akışı için)
     createdAt: string;
     updatedAt: string;
   }): Promise<void> {
@@ -784,6 +785,137 @@ export class FirestoreService {
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       throw error;
+    }
+  }
+
+  // ==========================================
+  // INSTRUCTOR VERIFICATION (OKUL/ADMİN ONAYI)
+  // ==========================================
+
+  /**
+   * Belirli bir okul ID'sine bağlı eğitmen başvurularını getirir.
+   * Eğitmen başvuru formunda `schoolId` alanı varsa o okula göre filtreler;
+   * yoksa tüm pending başvuruları döner (admin görünümü).
+   */
+  static async getInstructorRequestsBySchool(schoolId: string): Promise<any[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
+        where('schoolId', '==', schoolId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      // Fallback: eğer `schoolId` alanı yoksa pending olanları getir
+      console.warn('[FirestoreService] getInstructorRequestsBySchool fallback:', error);
+      return [];
+    }
+  }
+
+  /** Tüm pending eğitmen başvurularını getirir (admin veya onay sayfası için). */
+  static async getPendingInstructorRequests(): Promise<any[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching pending requests:', error);
+      return [];
+    }
+  }
+
+  /** Eğitmen başvurusunun durumunu günceller ve kullanıcı rolünü senkronize eder. */
+  static async updateInstructorRequestStatus(
+    requestId: string,
+    status: 'approved' | 'rejected',
+    userId: string,
+    reviewNote?: string,
+  ): Promise<void> {
+    try {
+      const requestRef = doc(db, COLLECTIONS.INSTRUCTOR_REQUESTS, requestId);
+      await updateDoc(requestRef, {
+        status,
+        reviewNote: reviewNote ?? '',
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Eğer onaylandıysa kullanıcının rolünü 'instructor' yap
+      if (status === 'approved') {
+        await FirestoreService.updateUser(userId, {
+          role: 'instructor',
+          verificationStatus: 'verified',
+          updatedAt: new Date().toISOString(),
+        } as any);
+      } else {
+        await FirestoreService.updateUser(userId, {
+          verificationStatus: 'rejected',
+          updatedAt: new Date().toISOString(),
+        } as any);
+      }
+    } catch (error) {
+      console.error('[FirestoreService] Error updating instructor request:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bir kursa kayıtlı öğrencilerin user dokümanlarını getirir.
+   * Lesson'daki booking kayıtlarından studentId'leri toplayarak kullanır.
+   */
+  static async getStudentsByInstructor(instructorId: string): Promise<User[]> {
+    try {
+      const bookingsSnap = await getDocs(
+        query(
+          collection(db, COLLECTIONS.BOOKINGS),
+          where('instructorId', '==', instructorId),
+          where('status', '!=', 'cancelled'),
+        )
+      );
+
+      const studentIds = [...new Set(
+        bookingsSnap.docs.map(d => d.data().studentId as string).filter(Boolean)
+      )];
+
+      if (studentIds.length === 0) return [];
+
+      const users = await Promise.all(
+        studentIds.map(id => FirestoreService.getUserById(id))
+      );
+      return users.filter(Boolean) as User[];
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching students by instructor:', error);
+      return [];
+    }
+  }
+
+  static async getStudentsBySchool(schoolId: string): Promise<User[]> {
+    try {
+      const bookingsSnap = await getDocs(
+        query(
+          collection(db, COLLECTIONS.BOOKINGS),
+          where('schoolId', '==', schoolId),
+          where('status', '!=', 'cancelled'),
+        )
+      );
+
+      const studentIds = [...new Set(
+        bookingsSnap.docs.map(d => d.data().studentId as string).filter(Boolean)
+      )];
+
+      if (studentIds.length === 0) return [];
+
+      const users = await Promise.all(
+        studentIds.map(id => FirestoreService.getUserById(id))
+      );
+      return users.filter(Boolean) as User[];
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching students by school:', error);
+      return [];
     }
   }
 }

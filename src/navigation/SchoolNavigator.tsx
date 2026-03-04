@@ -32,6 +32,8 @@ import { NotificationBell } from '../components/common/NotificationBell';
 import { PrivacyPolicyScreen } from '../screens/shared/PrivacyPolicyScreen';
 import { useAuthStore } from '../store/useAuthStore';
 import { FloatingChatButton } from '../components/common/FloatingChatButton';
+import { StudentPasswordResetScreen } from '../screens/shared/StudentPasswordResetScreen';
+import { InstructorVerificationScreen } from '../screens/school/InstructorVerificationScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -454,6 +456,30 @@ export const SchoolNavigator: React.FC = () => {
                     headerStyle: { backgroundColor: palette.background },
                     headerTintColor: palette.text.primary,
                     headerTitleStyle: { color: palette.text.primary },
+                }}
+            />
+            <Stack.Screen
+                name="StudentPasswordReset"
+                component={StudentPasswordResetScreen}
+                options={{
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerStyle: { backgroundColor: palette.background },
+                    headerTintColor: palette.text.primary,
+                    headerTitleStyle: { color: palette.text.primary },
+                    presentation: 'card',
+                }}
+            />
+            <Stack.Screen
+                name="InstructorVerification"
+                component={InstructorVerificationScreen}
+                options={{
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerStyle: { backgroundColor: palette.background },
+                    headerTintColor: palette.text.primary,
+                    headerTitleStyle: { color: palette.text.primary },
+                    presentation: 'card',
                 }}
             />
         </Stack.Navigator>

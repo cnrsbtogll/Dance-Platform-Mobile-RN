@@ -339,10 +339,17 @@ export const SchoolHomeScreen: React.FC = () => {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.quickActionButton, { backgroundColor: colors.school.secondary }]}
-                            onPress={() => Alert.alert('Gelecek Özellik', 'Eğitmen yönetimi yakında eklenecek.')}
+                            onPress={() => (navigation as any).navigate('InstructorVerification')}
                         >
-                            <MaterialIcons name="people-outline" size={24} color="#ffffff" />
-                            <Text style={styles.quickActionText}>{t('school.addInstructor') || 'Eğitmen Ekle'}</Text>
+                            <MaterialIcons name="verified-user" size={24} color="#ffffff" />
+                            <Text style={styles.quickActionText}>{t('school.addInstructor') || 'Eğitmen Başvuruları'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.quickActionButton, { backgroundColor: '#3B82F6' }]}
+                            onPress={() => (navigation as any).navigate('StudentPasswordReset')}
+                        >
+                            <MaterialIcons name="lock-reset" size={24} color="#ffffff" />
+                            <Text style={styles.quickActionText}>{t('school.studentPasswordReset') || 'Şifre Sıfırla'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
