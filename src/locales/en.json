@@ -388,7 +388,10 @@
     "verificationSubmitted": "Your verification request has been successfully submitted. You will become an instructor once your documents are reviewed and approved by an admin.",
     "pendingSchoolApproval": "Awaiting school approval",
     "pendingSchoolApprovalDesc": "Your application has been sent to {{school}}. You'll be notified when approved.",
-    "changeSchool": "Change School"
+    "changeSchool": "Change School",
+    "cancelRequestTitle": "Cancel Request",
+    "cancelRequestDesc": "Are you sure you want to cancel your school application? Your account will revert to student mode.",
+    "cancelRequest": "Cancel It"
   },
   "becomeInstructor": {
     "title": "Become an Instructor",
@@ -861,7 +864,10 @@
     "apply": "Apply",
     "noSchools": "No registered schools found",
     "successTitle": "Application Submitted!",
-    "successDesc": "Your application has been sent to {{school}}. You'll receive a notification when approved."
+    "successDesc": "Your application has been sent to {{school}}. You'll receive a notification when approved.",
+    "pendingBadge": "Applied • Pending",
+    "alreadyAppliedTitle": "Application Already Sent",
+    "alreadyAppliedDesc": "You already have an application for {{school}}. You can select another school or cancel your current request."
   },
   "booking": {
     "pending": "Pending",

@@ -152,6 +152,7 @@ export class FirestoreService {
     status: 'pending' | 'approved' | 'rejected';
     schoolId?: string | null; // Okul bağlantısı (okul onay akışı için)
     verificationMethod?: 'school' | 'document'; // Seçilen doğrulama yöntemi
+    photoURL?: string | null; // Eğitmenin profil görseli
     createdAt: string;
     updatedAt: string;
   }): Promise<void> {
@@ -718,6 +719,16 @@ export class FirestoreService {
   // NOTIFICATIONS (BİLDİRİMLER)
   // ==========================================
 
+  static async createNotification(data: Omit<Notification, 'id'>): Promise<void> {
+    try {
+      const colRef = collection(db, COLLECTIONS.NOTIFICATIONS);
+      await addDoc(colRef, data);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  }
+
   static async getUserNotifications(userId: string): Promise<any[]> {
     try {
       const q = query(
@@ -854,12 +865,43 @@ export class FirestoreService {
         } as any);
       } else {
         await FirestoreService.updateUser(userId, {
+          role: 'student', // Reddedildiğinde veya iptal edildiğinde öğrenciye geri döner
           verificationStatus: 'rejected',
           updatedAt: new Date().toISOString(),
         } as any);
       }
     } catch (error) {
       console.error('[FirestoreService] Error updating instructor request:', error);
+      throw error;
+    }
+  }
+
+  /** Eğitmen kendi başvurusunu iptal eder: isteği siler ve rolü student'a çevirir. */
+  static async cancelInstructorRequest(userId: string): Promise<void> {
+    try {
+      // En son pending isteği bul
+      const q = query(
+        collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
+        where('userId', '==', userId),
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        await deleteDoc(doc(db, COLLECTIONS.INSTRUCTOR_REQUESTS, snap.docs[0].id));
+      }
+
+      // Kullanıcıyı student'a döndür
+      await FirestoreService.updateUser(userId, {
+        role: 'student',
+        verificationStatus: 'idle',
+        schoolId: null,
+        verificationMethod: null,
+        updatedAt: new Date().toISOString(),
+      } as any);
+    } catch (error) {
+      console.error('[FirestoreService] Error cancelling instructor request:', error);
       throw error;
     }
   }
@@ -922,34 +964,45 @@ export class FirestoreService {
 
   static async getApprovedSchools(): Promise<DanceSchool[]> {
     try {
-      // Okullar users koleksiyonunda role:'school' olarak kaydediliyor
-      const snap = await getDocs(
-        query(
-          collection(db, COLLECTIONS.USERS),
-          where('role', '==', 'school'),
-        )
-      );
+      // Okullar doğrudan "schools" (DANCE_SCHOOLS) koleksiyonundan çekiliyor
+      const snap = await getDocs(collection(db, COLLECTIONS.DANCE_SCHOOLS));
 
-      return snap.docs.map(d => {
-        const data = d.data();
-        return {
-          id: d.id,
-          name: data.schoolName || data.displayName || data.name || '',
-          address: data.schoolAddress || data.address || '',
-          city: data.city || '',
-          country: data.country || '',
-          phone: data.contactNumber || data.phoneNumber || '',
-          email: data.email || '',
-          website: data.website || '',
-          description: data.bio || data.description || '',
-          imageUrl: data.photoURL || data.imageUrl || '',
-          isActive: true,
-          createdAt: data.createdAt?.toString() || new Date().toISOString(),
-          updatedAt: data.updatedAt?.toString(),
-          danceStyles: data.danceStyles || [],
-          schoolAddress: data.schoolAddress || data.address || '',
-        } as any;
-      });
+      const schools = snap.docs
+        .map(d => {
+          const data = d.data();
+          const isActive = data.status === 'active' || data.isActive === true;
+          
+          const schoolData = {
+            id: d.id, // School collection ID is the definitive schoolId
+            userId: data.userId || data.ownerId || d.id, // Bildirim atabilmek için owner ID'si gerekiyor (eğer okul belgesinde tutuluyorsa)
+            name: data.displayName || data.name || data.ad || '',
+            address: data.address || data.adres || '',
+            city: data.city || data.konum || data.sehir || '',
+            country: data.country || data.ulke || '',
+            phone: data.phoneNumber || data.phone || data.telefon || '',
+            email: data.email || data.iletisim || '',
+            website: data.website || '',
+            description: data.description || data.aciklama || '',
+            imageUrl: data.photoURL || data.imageUrl || data.gorsel || '',
+            isActive,
+            createdAt: data.createdAt?.toString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toString(),
+            danceStyles: data.danceStyles || [],
+          } as any;
+          
+          console.log(`[getApprovedSchools Debug] Gelen Data (${COLLECTIONS.DANCE_SCHOOLS}):`, {
+            id: schoolData.id,
+            name: schoolData.name,
+            imageUrl: schoolData.imageUrl,
+            isActive: schoolData.isActive
+          });
+
+          return schoolData;
+        })
+        .filter(school => school.isActive); // Sadece aktif (onaylı) okulları göster
+        
+      console.log(`[getApprovedSchools] Toplam çekilen okul sayısı: ${schools.length}`);
+      return schools;
     } catch (error) {
       console.error('[FirestoreService] Error fetching approved schools:', error);
       return [];

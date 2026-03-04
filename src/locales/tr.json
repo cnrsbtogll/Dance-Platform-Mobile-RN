@@ -392,7 +392,10 @@
     "verificationSubmitted": "Doğrulama talebiniz başarıyla gönderildi. Belgeleriniz admin tarafından incelenip onaylandığında eğitmen olacaksınız.",
     "pendingSchoolApproval": "Okul onayı bekleniyor",
     "pendingSchoolApprovalDesc": "Başvurunuz {{school}} okuluna iletildi. Onay geldiğinde bildirim alacaksınız.",
-    "changeSchool": "Okul Değiştir"
+    "changeSchool": "Okul Değiştir",
+    "cancelRequestTitle": "Başvuruyu İptal Et",
+    "cancelRequestDesc": "Okul başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.",
+    "cancelRequest": "İptal Et"
   },
   "becomeInstructor": {
     "title": "Eğitmen Ol",
@@ -864,7 +867,10 @@
     "apply": "Başvur",
     "noSchools": "Kayıtlı okul bulunamadı",
     "successTitle": "Başvurunuz Alındı!",
-    "successDesc": "{{school}} okuluna başvurunuz iletildi. Onaylandığında bildirim alacaksınız."
+    "successDesc": "{{school}} okuluna başvurunuz iletildi. Onaylandığında bildirim alacaksınız.",
+    "pendingBadge": "Başvuruldu • Bekliyor",
+    "alreadyAppliedTitle": "Başvuru Zaten Gönderildi",
+    "alreadyAppliedDesc": "{{school}} okuluna zaten bir başvurunuz bulunuyor. Başka bir okul seçebilir veya mevcut başvuruyu iptal edebilirsiniz."
   },
   "booking": {
     "pending": "Bekliyor",

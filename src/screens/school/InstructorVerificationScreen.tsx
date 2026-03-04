@@ -9,6 +9,7 @@ import {
     TextInput,
     Animated,
     Alert,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,6 +33,7 @@ interface RequestRow {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: string;
     reviewNote?: string;
+    photoURL?: string;
 }
 
 type FilterTab = 'pending' | 'approved' | 'rejected';
@@ -89,14 +91,12 @@ export const InstructorVerificationScreen: React.FC = () => {
                 try {
                     let data: RequestRow[];
                     if (user?.role === 'school' && user?.id) {
-                        // Okul: kendi okuluna bağlı başvurular
-                        const schoolResults = await FirestoreService.getInstructorRequestsBySchool(user.id);
-                        // Eğer schoolId'ye göre kayıt yoksa, tüm pending'leri getir
-                        data = schoolResults.length > 0
-                            ? schoolResults
-                            : await FirestoreService.getPendingInstructorRequests();
+                        // Okul: SADECE kendi okuluna bağlı başvuruları görsün.
+                        // Diğer okulların başvuruları veya genel başvurular görünmemeli.
+                        const targetSchoolId = (user as any).schoolId || user.id;
+                        data = await FirestoreService.getInstructorRequestsBySchool(targetSchoolId);
                     } else {
-                        // Fallback: tüm pending başvurular
+                        // Fallback: Admin görünümü veya genel instructor doğrulamaları (eğer schoolId yoksa)
                         data = await FirestoreService.getPendingInstructorRequests();
                     }
                     setRequests(data as RequestRow[]);
@@ -180,9 +180,16 @@ export const InstructorVerificationScreen: React.FC = () => {
             <View style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}>
                 {/* Top row */}
                 <View style={styles.cardHeader}>
-                    <View style={[styles.avatar, { backgroundColor: palette.primary + '20' }]}>
-                        <Text style={[styles.avatarText, { color: palette.primary }]}>{initials}</Text>
-                    </View>
+                    {item.photoURL ? (
+                        <Image
+                            source={{ uri: item.photoURL }}
+                            style={[styles.avatar, { borderRadius: 24 }]}
+                        />
+                    ) : (
+                        <View style={[styles.avatar, { backgroundColor: palette.primary + '20' }]}>
+                            <Text style={[styles.avatarText, { color: palette.primary }]}>{initials}</Text>
+                        </View>
+                    )}
 
                     <View style={styles.cardInfo}>
                         <Text style={[styles.cardName, { color: palette.text.primary }]} numberOfLines={1}>

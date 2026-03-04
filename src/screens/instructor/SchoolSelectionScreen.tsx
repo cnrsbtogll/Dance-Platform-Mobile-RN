@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     TextInput,
     Alert,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -63,6 +64,20 @@ export const SchoolSelectionScreen: React.FC = () => {
 
     // ── Submit school approval request ───────────────────────────────────────────
     const handleSelect = (school: DanceSchool) => {
+        // Aynı okula zaten pending başvuru varsa engelle
+        if (
+            user?.verificationStatus === 'pending' &&
+            (user as any).schoolId === school.id
+        ) {
+            Alert.alert(
+                t('schoolSelection.alreadyAppliedTitle') || 'Başvuru Zaten Gönderildi',
+                t('schoolSelection.alreadyAppliedDesc', { school: school.name }) ||
+                `${school.name} okuluna zaten bir başvurunuz bulunuyor. Başka bir okul seçebilir veya mevcut başvuruyu iptal edebilirsiniz.`,
+                [{ text: t('common.ok') }]
+            );
+            return;
+        }
+
         Alert.alert(
             t('schoolSelection.confirmTitle'),
             t('schoolSelection.confirmDesc', { school: school.name }),
@@ -73,6 +88,7 @@ export const SchoolSelectionScreen: React.FC = () => {
                     onPress: async () => {
                         if (!user?.id) return;
                         setSubmitting(school.id);
+
                         try {
                             const now = new Date().toISOString();
                             await FirestoreService.createVerificationRequest({
@@ -89,6 +105,7 @@ export const SchoolSelectionScreen: React.FC = () => {
                                 status: 'pending',
                                 schoolId: school.id,
                                 verificationMethod: 'school',
+                                photoURL: user.photoURL || user.avatar || null,
                                 createdAt: now,
                                 updatedAt: now,
                             });
@@ -107,6 +124,21 @@ export const SchoolSelectionScreen: React.FC = () => {
                                 verificationMethod: 'school',
                                 schoolId: school.id,
                             } as any);
+
+                            // Okula bildirim gönder
+                            if (school.userId) {
+                                await FirestoreService.createNotification({
+                                    userId: school.userId,
+                                    title: t('notifications.newVerificationRequestTitle') || 'Yeni Eğitmen Başvurusu',
+                                    message: t('notifications.newVerificationRequestDesc', { name: `${user.firstName || ''} ${user.lastName || ''}`.trim() }) || `${user.firstName || ''} ${user.lastName || ''} adlı eğitmen doğrulama istiyor.`,
+                                    type: 'instructor_verification_request',
+                                    isRead: false,
+                                    createdAt: now,
+                                    data: {
+                                        instructorId: user.id
+                                    }
+                                });
+                            }
 
                             Alert.alert(
                                 t('schoolSelection.successTitle'),
@@ -142,18 +174,31 @@ export const SchoolSelectionScreen: React.FC = () => {
     const renderItem = ({ item }: { item: DanceSchool }) => {
         const isSubmitting = submitting === item.id;
         const initials = (item.name || '?').slice(0, 2).toUpperCase();
+        const alreadyApplied =
+            user?.verificationStatus === 'pending' && (user as any).schoolId === item.id;
 
         return (
             <TouchableOpacity
-                style={[styles.card, { backgroundColor: palette.card, borderColor: palette.border }]}
+                style={[
+                    styles.card,
+                    {
+                        backgroundColor: palette.card,
+                        borderColor: alreadyApplied ? '#F59E0B' : palette.border,
+                        borderWidth: alreadyApplied ? 2 : 1,
+                    },
+                ]}
                 onPress={() => handleSelect(item)}
                 activeOpacity={0.8}
                 disabled={!!submitting}
             >
                 {/* Logo / Initials */}
-                <View style={[styles.logoWrap, { backgroundColor: colors.school.primary + '18' }]}>
-                    <Text style={[styles.logoText, { color: colors.school.primary }]}>{initials}</Text>
-                </View>
+                {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl }} style={styles.logoWrap} />
+                ) : (
+                    <View style={[styles.logoWrap, { backgroundColor: colors.school.primary + '18' }]}>
+                        <Text style={[styles.logoText, { color: colors.school.primary }]}>{initials}</Text>
+                    </View>
+                )}
 
                 {/* Info */}
                 <View style={styles.info}>
@@ -173,17 +218,28 @@ export const SchoolSelectionScreen: React.FC = () => {
                             {(item as any).danceStyles.slice(0, 3).join(' · ')}
                         </Text>
                     )}
+                    {alreadyApplied && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                            <MaterialIcons name="hourglass-top" size={12} color="#F59E0B" />
+                            <Text style={{ fontSize: 11, color: '#F59E0B', fontWeight: '600' }}>
+                                {t('schoolSelection.pendingBadge') || 'Başvuruldu • Bekliyor'}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Action */}
                 {isSubmitting ? (
                     <ActivityIndicator size="small" color={colors.school.primary} />
+                ) : alreadyApplied ? (
+                    <MaterialIcons name="hourglass-top" size={22} color="#F59E0B" />
                 ) : (
                     <MaterialIcons name="chevron-right" size={22} color={palette.text.secondary} />
                 )}
             </TouchableOpacity>
         );
     };
+
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
@@ -279,6 +335,7 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.lg,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
     },
     logoText: { fontSize: typography.fontSize.base, fontWeight: 'bold' },
     info: { flex: 1, gap: 3 },

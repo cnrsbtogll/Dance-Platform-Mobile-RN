@@ -10,7 +10,8 @@ export type NotificationType =
   | 'system'
   | 'announcement'
   | 'course_update'
-  | 'new_course';
+  | 'new_course'
+  | 'instructor_verification_request';
 
 export interface Notification {
   id: string;

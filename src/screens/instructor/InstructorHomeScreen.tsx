@@ -314,16 +314,48 @@ export const InstructorHomeScreen: React.FC = () => {
                 {t('instructor.pendingSchoolApprovalDesc', { school: pendingSchoolName })}
               </Text>
             )}
-            <TouchableOpacity
-              style={styles.changeSchoolBtn}
-              onPress={() => {
-                // @ts-ignore
-                navigation.navigate('SchoolSelection');
-              }}
-            >
-              <MaterialIcons name="swap-horiz" size={14} color="#F59E0B" />
-              <Text style={styles.changeSchoolText}>{t('instructor.changeSchool')}</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
+              <TouchableOpacity
+                style={styles.changeSchoolBtn}
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('SchoolSelection');
+                }}
+              >
+                <MaterialIcons name="swap-horiz" size={14} color="#F59E0B" />
+                <Text style={styles.changeSchoolText}>{t('instructor.changeSchool')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.changeSchoolBtn, { borderColor: '#EF4444', backgroundColor: '#FEF2F2' }]}
+                onPress={() => {
+                  Alert.alert(
+                    t('instructor.cancelRequestTitle') || 'Başvuruyu İptal Et',
+                    t('instructor.cancelRequestDesc') || 'Okul başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.',
+                    [
+                      { text: t('common.cancel'), style: 'cancel' },
+                      {
+                        text: t('common.confirm') || 'Evet, İptal Et',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await FirestoreService.cancelInstructorRequest(user!.id);
+                            await refreshProfile();
+                          } catch (err) {
+                            Alert.alert(t('common.error'), t('common.errorDesc'));
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+              >
+                <MaterialIcons name="close" size={14} color="#EF4444" />
+                <Text style={[styles.changeSchoolText, { color: '#EF4444' }]}>
+                  {t('instructor.cancelRequest') || 'İptal Et'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
