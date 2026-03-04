@@ -606,6 +606,21 @@
     "student": "Öğrenci",
     "recurringLesson": "Tekrarlayan Kurs"
   },
+  "instructorStudents": {
+    "title": "Öğrencilerim",
+    "searchPlaceholder": "İsim veya e-posta ara...",
+    "count": "{{count}} öğrenci",
+    "noStudents": "Henüz öğrenciniz yok",
+    "noResults": "Eşleşen öğrenci bulunamadı",
+    "noEmail": "Bu öğrencinin e-posta adresi bulunamadı",
+    "resetTitle": "Şifre Sıfırlama Maili",
+    "resetDesc": "{{name}} adlı öğrenciye ({{email}}) şifre sıfırlama maili gönderilsin mi?",
+    "resetTooltip": "Şifre sıfırlama gönder",
+    "verifyTitle": "E-posta Doğrulama Maili",
+    "verifyDesc": "{{name}} adlı öğrenciye e-posta doğrulama maili gönderilsin mi?",
+    "verifyTooltip": "E-posta doğrulama gönder",
+    "send": "Gönder"
+  },
   "earnings": {
     "totalEarnings": "Toplam Kazanç",
     "averageMonthly": "Ortalama Aylık",

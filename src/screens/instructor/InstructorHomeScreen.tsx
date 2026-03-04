@@ -443,10 +443,17 @@ export const InstructorHomeScreen: React.FC = () => {
             <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
             <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
           </Card>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
-          </Card>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={0.75}
+            onPress={() => (navigation as any).navigate('InstructorStudents')}
+          >
+            <Card style={[styles.statCard, { backgroundColor: palette.card, borderColor: colors.instructor.primary, borderWidth: 1.5 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
+              <MaterialIcons name="chevron-right" size={12} color={colors.instructor.primary} style={{ alignSelf: 'flex-end', marginTop: 2 }} />
+            </Card>
+          </TouchableOpacity>
           <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
             <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
             <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>

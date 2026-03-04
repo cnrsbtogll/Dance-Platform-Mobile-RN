@@ -602,6 +602,21 @@
     "student": "Student",
     "recurringLesson": "Recurring Lesson"
   },
+  "instructorStudents": {
+    "title": "My Students",
+    "searchPlaceholder": "Search by name or email...",
+    "count": "{{count}} students",
+    "noStudents": "You have no students yet",
+    "noResults": "No matching students found",
+    "noEmail": "This student has no email address",
+    "resetTitle": "Password Reset Email",
+    "resetDesc": "Send a password reset email to {{name}} ({{email}})?",
+    "resetTooltip": "Send password reset",
+    "verifyTitle": "Email Verification",
+    "verifyDesc": "Send an email verification to {{name}}?",
+    "verifyTooltip": "Send email verification",
+    "send": "Send"
+  },
   "earnings": {
     "totalEarnings": "Total Earnings",
     "averageMonthly": "Average Monthly",
