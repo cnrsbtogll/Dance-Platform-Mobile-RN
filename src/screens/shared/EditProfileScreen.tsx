@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  Image, Modal, ScrollView, ActivityIndicator, Alert,
+  Image, Modal, ScrollView, ActivityIndicator, Alert, Switch,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,6 +15,8 @@ import { useProfileStore } from '../../store/useProfileStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { uploadAvatar, UploadProgress } from '../../services/storageService';
+import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
+import { useDanceStyles } from '../../hooks/useDanceStyles';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -25,11 +27,21 @@ export const EditProfileScreen: React.FC = () => {
     tempName, tempAvatar, tempBio, tempPhoneNumber,
     tempSchoolName, tempSchoolAddress, tempContactNumber,
     tempContactPerson, tempInstagramHandle,
+    tempHeight, tempWeight, tempDanceStyles, tempLevel,
+    tempGender, tempAge, tempCity,
+    tempIsVisibleInPartnerSearch,
+    tempYearsOfTeaching, tempCertificates,
     setTempName, setTempAvatar, setTempBio, setTempPhoneNumber,
     setTempSchoolName, setTempSchoolAddress, setTempContactNumber,
     setTempContactPerson, setTempInstagramHandle,
+    setTempHeight, setTempWeight, setTempDanceStyles, setTempLevel,
+    setTempGender, setTempAge, setTempCity,
+    setTempIsVisibleInPartnerSearch,
+    setTempYearsOfTeaching, setTempCertificates,
     loadFromUser, applyChanges,
   } = useProfileStore();
+
+  const { danceStyles, loading: stylesLoading } = useDanceStyles();
 
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,6 +66,13 @@ export const EditProfileScreen: React.FC = () => {
   }, [loadFromUser]);
 
   const handleSave = async () => {
+    // Validate required fields for matching
+    if (!isSchool) {
+      if (!tempGender || !tempCity || tempDanceStyles.length === 0) {
+        Alert.alert(t('common.error'), t('profile.requiredFieldsError'));
+        return;
+      }
+    }
     setSaving(true);
     try {
       await applyChanges();
@@ -68,13 +87,9 @@ export const EditProfileScreen: React.FC = () => {
   const handlePickAvatarFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        t('common.permissionRequired') || 'İzin Gerekli',
-        'Galeri erişimi için izin vermeniz gerekiyor.'
-      );
+      Alert.alert(t('common.permissionRequired') || 'İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
@@ -91,11 +106,26 @@ export const EditProfileScreen: React.FC = () => {
       const publicUrl = await uploadAvatar(user.id, result.assets[0].uri, onProgress);
       setTempAvatar(publicUrl);
     } catch (err: any) {
-      Alert.alert('Yukleme Hatasi', err.message || 'Profil fotografi yuklenemedi.');
+      Alert.alert('Yükleme Hatası', err.message || 'Profil fotoğrafı yüklenemedi.');
     } finally {
       setUploadingAvatar(false);
       setAvatarUploadProgress(0);
     }
+  };
+
+  const toggleDanceStyle = (style: string) => {
+    if (tempDanceStyles.includes(style)) {
+      setTempDanceStyles(tempDanceStyles.filter(s => s !== style));
+    } else {
+      setTempDanceStyles([...tempDanceStyles, style]);
+    }
+  };
+
+  const levelLabelKey: Record<DanceLevel, string> = {
+    beginner: 'profile.levelBeginner',
+    intermediate: 'profile.levelIntermediate',
+    advanced: 'profile.levelAdvanced',
+    professional: 'profile.levelProfessional',
   };
 
   const InputGroup = ({
@@ -130,7 +160,7 @@ export const EditProfileScreen: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
 
-        {/* Avatar Section */}
+        {/* — Avatar & Name — */}
         <Card style={[styles.card, { backgroundColor: palette.card }]}>
           <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
             {t('profile.profileInfo')}
@@ -142,7 +172,7 @@ export const EditProfileScreen: React.FC = () => {
                 style={styles.avatar}
               />
               {uploadingAvatar && (
-                <View style={[styles.avatarUploadOverlay]}>
+                <View style={styles.avatarUploadOverlay}>
                   <ActivityIndicator size="small" color="#ffffff" />
                 </View>
               )}
@@ -161,13 +191,11 @@ export const EditProfileScreen: React.FC = () => {
                 disabled={uploadingAvatar}
               >
                 <Text style={[styles.changeAvatarButtonText, { color: palette.text.primary }]}>
-                  {uploadingAvatar ? `Yukleniyor ${avatarUploadProgress}%` : 'Galeriden Yukle'}
+                  {uploadingAvatar ? `Yükleniyor ${avatarUploadProgress}%` : 'Galeriden Yükle'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Display Name */}
           <InputGroup
             label={t('auth.firstName')}
             value={tempName}
@@ -176,78 +204,241 @@ export const EditProfileScreen: React.FC = () => {
           />
         </Card>
 
-        {/* School Fields */}
+        {/* — School Fields — */}
         {isSchool && (
           <Card style={[styles.card, { backgroundColor: palette.card }]}>
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('school.onboardingTitle')}
             </Text>
-
-            <InputGroup
-              label={t('becomeSchool.schoolNamePlaceholder').replace(' *', '')}
-              value={tempSchoolName}
-              onChangeText={setTempSchoolName}
-              placeholder={t('becomeSchool.schoolNamePlaceholder')}
-            />
-            <InputGroup
-              label={t('becomeSchool.schoolAddressPlaceholder').replace(' *', '')}
-              value={tempSchoolAddress}
-              onChangeText={setTempSchoolAddress}
-              placeholder={t('becomeSchool.schoolAddressPlaceholder')}
-            />
-            <InputGroup
-              label={t('becomeSchool.contactNumberPlaceholder').replace(' *', '')}
-              value={tempContactNumber}
-              onChangeText={setTempContactNumber}
-              placeholder={t('becomeSchool.contactNumberPlaceholder')}
-              keyboardType="phone-pad"
-            />
-            <InputGroup
-              label={t('becomeSchool.contactPersonPlaceholder').replace(' *', '')}
-              value={tempContactPerson}
-              onChangeText={setTempContactPerson}
-              placeholder={t('becomeSchool.contactPersonPlaceholder')}
-            />
-            <InputGroup
-              label={t('becomeSchool.instagramPlaceholder').replace(' (Opsiyonel)', '').replace(' (Optional)', '')}
-              value={tempInstagramHandle}
-              onChangeText={setTempInstagramHandle}
-              placeholder={t('becomeSchool.instagramPlaceholder')}
-            />
-            <InputGroup
-              label={t('onboarding.bioLabel')}
-              value={tempBio}
-              onChangeText={setTempBio}
-              placeholder={t('school.bioPlaceholder')}
-              multiline
-            />
+            <InputGroup label={t('becomeSchool.schoolNamePlaceholder').replace(' *', '')} value={tempSchoolName} onChangeText={setTempSchoolName} placeholder={t('becomeSchool.schoolNamePlaceholder')} />
+            <InputGroup label={t('becomeSchool.schoolAddressPlaceholder').replace(' *', '')} value={tempSchoolAddress} onChangeText={setTempSchoolAddress} placeholder={t('becomeSchool.schoolAddressPlaceholder')} />
+            <InputGroup label={t('becomeSchool.contactNumberPlaceholder').replace(' *', '')} value={tempContactNumber} onChangeText={setTempContactNumber} placeholder={t('becomeSchool.contactNumberPlaceholder')} keyboardType="phone-pad" />
+            <InputGroup label={t('becomeSchool.contactPersonPlaceholder').replace(' *', '')} value={tempContactPerson} onChangeText={setTempContactPerson} placeholder={t('becomeSchool.contactPersonPlaceholder')} />
+            <InputGroup label={t('becomeSchool.instagramPlaceholder').replace(' (Opsiyonel)', '').replace(' (Optional)', '')} value={tempInstagramHandle} onChangeText={setTempInstagramHandle} placeholder={t('becomeSchool.instagramPlaceholder')} />
+            <InputGroup label={t('onboarding.bioLabel')} value={tempBio} onChangeText={setTempBio} placeholder={t('school.bioPlaceholder')} multiline />
           </Card>
         )}
 
-        {/* Instructor Fields */}
+        {/* — Instructor Base Fields — */}
         {isInstructor && (
           <Card style={[styles.card, { backgroundColor: palette.card }]}>
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('onboarding.basicInfoTitle')}
             </Text>
+            <InputGroup label={t('onboarding.phoneLabel')} value={tempPhoneNumber} onChangeText={setTempPhoneNumber} placeholder={t('onboarding.phonePlaceholder')} keyboardType="phone-pad" />
+            <InputGroup label={t('onboarding.bioLabel')} value={tempBio} onChangeText={setTempBio} placeholder={t('onboarding.bioPlaceholder')} multiline />
+          </Card>
+        )}
+
+        {/* — Physical & Dance Info (all roles except school) — */}
+        {!isSchool && (
+          <Card style={[styles.card, { backgroundColor: palette.card }]}>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+              {t('profile.physicalInfo')}
+            </Text>
+
+            {/* Motivation banner */}
+            <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
+              <MaterialIcons name="person-search" size={18} color={palette.primary} />
+              <Text style={[styles.motivationText, { color: palette.primary }]}>
+                {t('profile.requiredFieldsBanner')}
+              </Text>
+            </View>
+
+            {/* Gender chips — REQUIRED */}
+            <Text style={[styles.label, { color: palette.text.secondary, marginBottom: spacing.sm }]}>
+              {t('profile.genderLabel')}
+            </Text>
+            <View style={[styles.chipRow, { marginBottom: spacing.md }]}>
+              {(['male', 'female'] as const).map((g) => {
+                const selected = tempGender === g;
+                const labelKey = g === 'male' ? 'profile.genderMale' : 'profile.genderFemale';
+                return (
+                  <TouchableOpacity
+                    key={g}
+                    style={[
+                      styles.chip,
+                      {
+                        borderColor: !tempGender ? '#ef4444' : palette.border,
+                        backgroundColor: palette.card,
+                      },
+                      selected && { backgroundColor: palette.primary, borderColor: palette.primary },
+                    ]}
+                    onPress={() => setTempGender(selected ? '' : g)}
+                  >
+                    <Text style={[styles.chipText, { color: selected ? '#fff' : palette.text.primary }]}>
+                      {t(labelKey)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Age + City row */}
+            <View style={styles.rowInputs}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
+                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.ageLabel')}</Text>
+                <TextInput
+                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                  placeholder={t('profile.agePlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={tempAge}
+                  onChangeText={setTempAge}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={[styles.inputGroup, { flex: 2 }]}>
+                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.cityLabel')}</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: !tempCity ? '#ef4444' : palette.border,
+                      backgroundColor: palette.card,
+                      color: palette.text.primary,
+                    },
+                  ]}
+                  placeholder={t('profile.cityPlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={tempCity}
+                  onChangeText={setTempCity}
+                />
+              </View>
+            </View>
+
+            {/* Height & Weight row */}
+            <View style={styles.rowInputs}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
+                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.heightLabel')}</Text>
+                <TextInput
+                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                  placeholder={t('profile.heightPlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={tempHeight}
+                  onChangeText={setTempHeight}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={[styles.inputGroup, { flex: 1 }]}>
+                <Text style={[styles.label, { color: palette.text.secondary }]}>{t('profile.weightLabel')}</Text>
+                <TextInput
+                  style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                  placeholder={t('profile.weightPlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={tempWeight}
+                  onChangeText={setTempWeight}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+
+            {/* Dance Level chips */}
+            <Text style={[styles.label, { color: palette.text.secondary, marginBottom: spacing.sm }]}>
+              {t('profile.levelLabel')}
+            </Text>
+            <View style={styles.chipRow}>
+              {DANCE_LEVELS.map((lvl) => {
+                const selected = tempLevel === lvl;
+                return (
+                  <TouchableOpacity
+                    key={lvl}
+                    style={[
+                      styles.chip,
+                      { borderColor: palette.border, backgroundColor: palette.card },
+                      selected && { backgroundColor: palette.primary, borderColor: palette.primary },
+                    ]}
+                    onPress={() => setTempLevel(selected ? '' : lvl as DanceLevel)}
+                  >
+                    <Text style={[styles.chipText, { color: selected ? '#fff' : palette.text.primary }]}>
+                      {t(levelLabelKey[lvl])}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Dance Styles multi-select chips */}
+            <Text style={[styles.label, { color: palette.text.secondary, marginTop: spacing.md, marginBottom: 4 }]}>
+              {t('profile.danceStylesLabel')}
+            </Text>
+            <Text style={[styles.hint, { color: palette.text.secondary }]}>
+              {t('profile.danceStylesHint')}
+            </Text>
+            <View style={[styles.chipRow, { marginTop: spacing.sm }]}>
+              {stylesLoading
+                ? <ActivityIndicator size="small" color={palette.primary} />
+                : danceStyles.map((style) => {
+                  const selected = tempDanceStyles.includes(style);
+                  return (
+                    <TouchableOpacity
+                      key={style}
+                      style={[
+                        styles.chip,
+                        { borderColor: palette.border, backgroundColor: palette.card },
+                        selected && { backgroundColor: palette.primary, borderColor: palette.primary },
+                      ]}
+                      onPress={() => toggleDanceStyle(style)}
+                    >
+                      <Text style={[styles.chipText, { color: selected ? '#fff' : palette.text.primary }]}>
+                        {style}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              }
+            </View>
+          </Card>
+        )}
+
+        {/* — Instructor Extra Fields — */}
+        {isInstructor && (
+          <Card style={[styles.card, { backgroundColor: palette.card }]}>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+              {t('profile.instructorInfo')}
+            </Text>
             <InputGroup
-              label={t('onboarding.phoneLabel')}
-              value={tempPhoneNumber}
-              onChangeText={setTempPhoneNumber}
-              placeholder={t('onboarding.phonePlaceholder')}
-              keyboardType="phone-pad"
+              label={t('profile.yearsOfTeachingLabel')}
+              value={tempYearsOfTeaching}
+              onChangeText={setTempYearsOfTeaching}
+              placeholder={t('profile.yearsOfTeachingPlaceholder')}
+              keyboardType="numeric"
             />
             <InputGroup
-              label={t('onboarding.bioLabel')}
-              value={tempBio}
-              onChangeText={setTempBio}
-              placeholder={t('onboarding.bioPlaceholder')}
+              label={t('profile.certificatesLabel')}
+              value={tempCertificates}
+              onChangeText={setTempCertificates}
+              placeholder={t('profile.certificatesPlaceholder')}
               multiline
             />
           </Card>
         )}
 
-        {/* Action Buttons */}
+        {/* — Privacy: Partner Search Visibility — */}
+        {!isSchool && (
+          <Card style={[styles.card, { backgroundColor: palette.card }]}>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+              {t('profile.privacySettings')}
+            </Text>
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextBlock}>
+                <Text style={[styles.switchLabel, { color: palette.text.primary }]}>
+                  {t('profile.visibleInPartnerSearch')}
+                </Text>
+                <Text style={[styles.switchDesc, { color: palette.text.secondary }]}>
+                  {t('profile.visibleInPartnerSearchDesc')}
+                </Text>
+              </View>
+              <Switch
+                value={tempIsVisibleInPartnerSearch}
+                onValueChange={setTempIsVisibleInPartnerSearch}
+                trackColor={{ false: palette.border, true: palette.primary + '80' }}
+                thumbColor={tempIsVisibleInPartnerSearch ? palette.primary : palette.text.secondary}
+              />
+            </View>
+          </Card>
+        )}
+
+        {/* — Action Buttons — */}
         <View style={styles.actions}>
           <TouchableOpacity
             style={[styles.actionButton, styles.cancelButton, { backgroundColor: palette.border }]}
@@ -337,11 +528,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarUploadText: {
-    color: '#ffffff',
-    fontSize: 10,
-    marginTop: 2,
-  },
   avatar: {
     width: 72,
     height: 72,
@@ -359,10 +545,18 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
   },
   inputGroup: { marginBottom: spacing.md },
+  rowInputs: {
+    flexDirection: 'row',
+    marginBottom: spacing.md,
+  },
   label: {
     fontSize: typography.fontSize.sm,
     marginBottom: spacing.xs,
     fontWeight: typography.fontWeight.medium,
+  },
+  hint: {
+    fontSize: typography.fontSize.xs,
+    marginBottom: 0,
   },
   input: {
     borderRadius: borderRadius.md,
@@ -375,6 +569,37 @@ const styles = StyleSheet.create({
   inputMultiline: {
     minHeight: 100,
     paddingTop: spacing.sm,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  chip: {
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+  },
+  chipText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  switchTextBlock: { flex: 1 },
+  switchLabel: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.medium,
+    marginBottom: 2,
+  },
+  switchDesc: {
+    fontSize: typography.fontSize.xs,
+    lineHeight: 16,
   },
   actions: {
     flexDirection: 'row',
@@ -436,5 +661,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: 'transparent',
+  },
+  motivationBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    marginBottom: spacing.md,
+  },
+  motivationText: {
+    flex: 1,
+    fontSize: typography.fontSize.sm,
+    lineHeight: 18,
+    fontWeight: '500' as any,
   },
 });

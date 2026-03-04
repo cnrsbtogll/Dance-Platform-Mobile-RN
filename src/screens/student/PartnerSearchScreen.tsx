@@ -101,7 +101,7 @@ export const PartnerSearchScreen: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
-    // Re-fetch when user id or role changes (e.g. after login or role promotion)
+        // Re-fetch when user id or role changes (e.g. after login or role promotion)
     }, [currentUser?.id, currentUser?.role]);
 
     useEffect(() => {
@@ -130,6 +130,8 @@ export const PartnerSearchScreen: React.FC = () => {
     };
 
     const filteredUsers = users.filter(u => {
+        // Respect visibility preference; users without the field are treated as visible (default true)
+        if (u.isVisibleInPartnerSearch === false) return false;
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             const name = (u.displayName || u.name || '').toLowerCase();

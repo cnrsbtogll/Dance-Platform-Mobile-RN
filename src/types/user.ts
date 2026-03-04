@@ -1,3 +1,5 @@
+import { DanceLevel } from '../utils/constants';
+
 export type UserRole = 'student' | 'instructor' | 'admin' | 'draft-instructor' | 'school' | 'draft-school';
 export type Currency = 'USD' | 'EUR' | 'TRY';
 
@@ -35,5 +37,11 @@ export interface User {
   city?: string;
   verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
   pushTokens?: string[];
+  // Partner search & profile enrichment
+  level?: DanceLevel;
+  isVisibleInPartnerSearch?: boolean;
+  // Instructor-specific
+  yearsOfTeaching?: number;
+  certificates?: string;
 }
 

@@ -32,6 +32,7 @@ const COLLECTIONS = {
   INSTRUCTOR_REQUESTS: 'instructorRequests',
   SCHOOL_REQUESTS: 'schoolRequests',
   ANNOUNCEMENTS: 'announcements',
+  DANCE_STYLES: 'danceStyles',
 };
 
 // Helper to convert Firestore doc to typed object
@@ -48,6 +49,21 @@ const convertDoc = <T>(doc: any): T => {
 };
 
 export class FirestoreService {
+  // Dance Styles (from Firestore collection)
+  static async getDanceStyles(): Promise<string[]> {
+    try {
+      const querySnapshot = await getDocs(collection(db, COLLECTIONS.DANCE_STYLES));
+      if (querySnapshot.empty) return [];
+      return querySnapshot.docs
+        .map(doc => doc.data().name || doc.data().label || doc.id)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'tr'));
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching danceStyles:', error);
+      return [];
+    }
+  }
+
   // Users
   static async getUserById(id: string): Promise<User | null> {
     try {
