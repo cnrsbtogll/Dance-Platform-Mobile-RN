@@ -79,6 +79,10 @@
     "chat": "Messages",
     "partnerSearch": "Find Partner"
   },
+  "partnerSearch": {
+    "searchPlaceholder": "Search for a partner...",
+    "noResults": "No one found."
+  },
   "partner": {
     "loginRequired": "View Partner Details",
     "loginRequiredDesc": "You must log in to view detailed information about partners and contact them.",

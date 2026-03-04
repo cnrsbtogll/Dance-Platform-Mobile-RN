@@ -30,6 +30,14 @@ export const PartnerSearchScreen: React.FC = () => {
     const role = currentUser?.role === 'admin' || currentUser?.role === 'draft-instructor' || currentUser?.role === 'draft-school' ? 'student' : currentUser?.role || 'student';
     const palette = getPalette(role, isDarkMode);
 
+    // Role-based visibility scoping:
+    // instructor → sees everyone (student, instructor, draft-instructor)
+    // student / draft-instructor / others → sees only student + draft-instructor
+    const isVerifiedInstructor = currentUser?.role === 'instructor';
+    const visibleRoles = isVerifiedInstructor
+        ? ['student', 'instructor', 'draft-instructor']
+        : ['student', 'draft-instructor'];
+
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +55,9 @@ export const PartnerSearchScreen: React.FC = () => {
     const fetchUsers = async () => {
         try {
             const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('role', 'in', ['student', 'instructor']));
+            // Scope query based on the viewer's role:
+            // Verified instructors see all roles; students/draft-instructors see only student-tier roles.
+            const q = query(usersRef, where('role', 'in', visibleRoles));
             const querySnapshot = await getDocs(q);
 
             const fetchedUsers: User[] = [];
@@ -91,7 +101,8 @@ export const PartnerSearchScreen: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, [currentUser?.id]);
+    // Re-fetch when user id or role changes (e.g. after login or role promotion)
+    }, [currentUser?.id, currentUser?.role]);
 
     useEffect(() => {
         if (isAuthenticated && pendingPartner) {
@@ -125,10 +136,22 @@ export const PartnerSearchScreen: React.FC = () => {
             const bio = (u.bio || '').toLowerCase();
             if (!name.includes(q) && !bio.includes(q)) return false;
         }
-        if (activeRole !== 'all' && u.role !== activeRole) return false;
+        if (activeRole !== 'all') {
+            // When filtering by 'student', also include draft-instructors (they appear as students)
+            if (activeRole === 'student') {
+                if (u.role !== 'student' && u.role !== 'draft-instructor') return false;
+            } else {
+                if (u.role !== activeRole) return false;
+            }
+        }
         if (activeGender !== 'all' && u.gender !== activeGender) return false;
         return true;
     });
+
+    // Filter modal role options: instructors can filter by 'instructor', students cannot
+    const availableRoleFilters: Array<'all' | 'student' | 'instructor'> = isVerifiedInstructor
+        ? ['all', 'student', 'instructor']
+        : ['all', 'student'];
 
     const openFilters = () => {
         setTempRole(activeRole);
@@ -191,6 +214,7 @@ export const PartnerSearchScreen: React.FC = () => {
                         styles.roleBadgeText,
                         { color: item.role === 'instructor' ? colors.instructor.primary : item.role === 'school' ? colors.school.primary : colors.student.primary }
                     ]}>
+                        {/* draft-instructor users appear as students in the listing */}
                         {item.role === 'instructor' ? t('chat.instructor') : item.role === 'school' ? t('chat.school') : t('chat.student')}
                     </Text>
                 </View>
@@ -307,7 +331,7 @@ export const PartnerSearchScreen: React.FC = () => {
                                 {t('filters.role')}
                             </Text>
                             <View style={styles.filterOptionsContainer}>
-                                {(['all', 'student', 'instructor'] as const).map((status) => (
+                                {availableRoleFilters.map((status) => (
                                     <TouchableOpacity
                                         key={status}
                                         style={[
