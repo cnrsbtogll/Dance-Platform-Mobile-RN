@@ -492,7 +492,9 @@
     "noNotificationsTitle": "No Notifications",
     "noNotificationsText": "You don't have any notifications yet.",
     "unread": "Unread",
-    "earlier": "Earlier"
+    "earlier": "Earlier",
+    "newVerificationRequestTitle": "New Instructor Application",
+    "newVerificationRequestDesc": "{{name}} is requesting to be associated with your school."
   },
   "detail": {
     "contact": "Contact",

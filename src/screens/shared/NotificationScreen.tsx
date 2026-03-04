@@ -36,6 +36,8 @@ const getNotificationIcon = (type: NotificationType): string => {
       return 'campaign';
     case 'system':
       return 'info';
+    case 'instructor_verification_request':
+      return 'how-to-reg';
     default:
       return 'notifications';
   }
@@ -68,6 +70,8 @@ const getNotificationIconColor = (type: NotificationType, isRead: boolean): stri
       return '#F39C12';
     case 'system':
       return '#95A5A6';
+    case 'instructor_verification_request':
+      return '#E67E22'; // Orange tint for verification requests
     default:
       return colors.student.primary;
   }
@@ -154,6 +158,10 @@ export const NotificationScreen: React.FC = () => {
     } else if (notification.type === 'new_message') {
       // Navigate to chat if implemented
       // (navigation as any).navigate('ChatDetail', { ... });
+    } else if (notification.type === 'instructor_verification_request') {
+      if (isSchool || user?.role === 'admin') {
+        (navigation as any).navigate('InstructorVerification');
+      }
     }
   };
 

@@ -496,7 +496,9 @@
     "noNotificationsTitle": "Bildirim Yok",
     "noNotificationsText": "Henüz bildiriminiz bulunmuyor.",
     "unread": "Okunmamış",
-    "earlier": "Daha Önce"
+    "earlier": "Daha Önce",
+    "newVerificationRequestTitle": "Yeni Eğitmen Başvurusu",
+    "newVerificationRequestDesc": "{{name}} adlı eğitmen okulunuzla ilişkilendirilmek için onay istiyor."
   },
   "detail": {
     "contact": "İletişime Geç",

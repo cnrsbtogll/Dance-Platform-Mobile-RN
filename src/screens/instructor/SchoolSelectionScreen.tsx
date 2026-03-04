@@ -127,10 +127,14 @@ export const SchoolSelectionScreen: React.FC = () => {
 
                             // Okula bildirim gönder
                             if (school.userId) {
+                                const instructorName = (user.firstName || user.lastName)
+                                    ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                                    : (user as any).name || user.email?.split('@')[0] || 'Bir';
+
                                 await FirestoreService.createNotification({
                                     userId: school.userId,
                                     title: t('notifications.newVerificationRequestTitle') || 'Yeni Eğitmen Başvurusu',
-                                    message: t('notifications.newVerificationRequestDesc', { name: `${user.firstName || ''} ${user.lastName || ''}`.trim() }) || `${user.firstName || ''} ${user.lastName || ''} adlı eğitmen doğrulama istiyor.`,
+                                    message: t('notifications.newVerificationRequestDesc', { name: instructorName }),
                                     type: 'instructor_verification_request',
                                     isRead: false,
                                     createdAt: now,
