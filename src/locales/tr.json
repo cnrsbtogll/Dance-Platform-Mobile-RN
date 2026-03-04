@@ -752,5 +752,13 @@
     "draftLimitReachedDesc": "Hesabınız doğrulanmadan en fazla 3 taslak kurs oluşturabilirsiniz. Devam etmek için lütfen belgelerinizi yükleyin.",
     "activateLessonVerificationTitle": "Doğrulama Gerekiyor",
     "activateLessonVerificationDesc": "kursu yayına alabilmek için okulunuzun doğrulanmış olması gerekmektedir."
+  },
+  "emailVerification": {
+    "title": "E-postanı Doğrula",
+    "bannerText": "Hesabına erişimin eksiksiz olması için e-posta adresini doğrula.",
+    "resend": "Gönder",
+    "cooldown": "{{seconds}}s bekle",
+    "sentSuccess": "✓ Doğrulama maili gönderildi!",
+    "sendError": "Gönderilemedi. Tekrar dene."
   }
 }

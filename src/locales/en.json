@@ -749,5 +749,13 @@
     "section7Content": "We may update this privacy policy from time to time. We will notify you of any significant changes.",
     "contactTitle": "Contact",
     "contactContent": "If you have questions about our privacy policy, please contact us at support@danceplatform.com."
+  },
+  "emailVerification": {
+    "title": "Verify Your Email",
+    "bannerText": "Please verify your email address to get full access to your account.",
+    "resend": "Send",
+    "cooldown": "Wait {{seconds}}s",
+    "sentSuccess": "\u2713 Verification email sent!",
+    "sendError": "Failed to send. Try again."
   }
 }

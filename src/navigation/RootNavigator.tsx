@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StudentNavigator } from './StudentNavigator';
@@ -6,8 +7,9 @@ import { InstructorNavigator } from './InstructorNavigator';
 import { SchoolNavigator } from './SchoolNavigator';
 import { useAuthStore } from '../store/useAuthStore';
 import { User } from '../types';
-
 import { useNotificationStore } from '../store/useNotificationStore';
+import { EmailVerificationBanner } from '../components/common/EmailVerificationBanner';
+import { useEmailVerification } from '../hooks/useEmailVerification';
 
 const Stack = createStackNavigator();
 
@@ -81,17 +83,27 @@ export const RootNavigator: React.FC = () => {
     return 'Student';
   };
 
+  const { shouldShowBanner } = useEmailVerification();
+
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator
-        screenOptions={{ headerShown: false }}
-        initialRouteName={getInitialRoute()}
-      >
-        <Stack.Screen name="Student" component={StudentNavigator} />
-        <Stack.Screen name="Instructor" component={InstructorNavigator} />
-        <Stack.Screen name="School" component={SchoolNavigator} />
-      </Stack.Navigator>
+      <View style={styles.root}>
+        <EmailVerificationBanner isVisible={shouldShowBanner} />
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={getInitialRoute()}
+        >
+          <Stack.Screen name="Student" component={StudentNavigator} />
+          <Stack.Screen name="Instructor" component={InstructorNavigator} />
+          <Stack.Screen name="School" component={SchoolNavigator} />
+        </Stack.Navigator>
+      </View>
     </NavigationContainer>
   );
 };
 
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
