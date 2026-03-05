@@ -6,73 +6,75 @@
 
 import { appConfig } from '../config/appConfig';
 import { MockDataService } from './mockDataService';
+import { FirestoreService } from './firebase/firestore';
+import { auth, storage as firebaseStorage } from './firebase/config';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signOut as customSignOut, deleteAccount as customDeleteAccount } from './firebase/auth';
+import {
+  uploadAvatar,
+  uploadCourseCover,
+  uploadInstructorDocument,
+  getDocumentDownloadUrl,
+} from './storageService';
 
-// Conditional Firebase import
-let firebaseAuth: any = null;
-let firestore: any = null;
-let firebaseStorage: any = null;
-
-if (appConfig.integrations.firebase) {
-  try {
-    // Firebase will be imported here when implemented
-    // import { auth } from './firebase/auth';
-    // import { db } from './firebase/firestore';
-    // import { storage } from './firebase/storage';
-    console.log('[BackendService] Firebase integration enabled');
-  } catch (error) {
-    console.warn('[BackendService] Firebase not available:', error);
-  }
-}
-
-// Conditional Stripe import
-let stripeModule: any = null;
-
-if (appConfig.integrations.stripe) {
-  try {
-    // Stripe will be imported here when implemented
-    // stripeModule = require('@stripe/stripe-react-native');
-    console.log('[BackendService] Stripe integration enabled');
-  } catch (error) {
-    console.warn('[BackendService] Stripe not available:', error);
-  }
-}
+// Define stripeModule as null for now since it's not yet integrated
+const stripeModule: any = null;
+const firebaseEnabled = appConfig.integrations.firebase;
 
 /**
  * Authentication Service
  */
 export const authService = {
-  login: async (email: string, password: string): Promise<boolean> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase authentication
-      // return await firebaseAuth.signInWithEmailAndPassword(email, password);
-      console.log('[AuthService] Using Firebase auth');
-      return false; // Placeholder
-    } else {
-      // Use mock authentication
-      return MockDataService.authenticateUser(email, password);
+  login: async (email: string, password: string): Promise<{ success: boolean; error?: any }> => {
+    if (firebaseEnabled) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error };
+      }
     }
+    return { success: false, error: new Error('Firebase disabled') };
   },
 
-  register: async (email: string, password: string, name: string): Promise<boolean> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase registration
-      // return await firebaseAuth.createUserWithEmailAndPassword(email, password);
-      console.log('[AuthService] Using Firebase registration');
-      return false; // Placeholder
-    } else {
-      // Use mock registration
-      return MockDataService.createUser(email, password, name);
+  register: async (email: string, password: string, firstName: string, lastName: string): Promise<{ success: boolean; error?: any }> => {
+    if (firebaseEnabled) {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const displayName = `${firstName} ${lastName}`;
+        // Also create user profile in Firestore
+        if (cred.user) {
+          await FirestoreService.createUser(cred.user.uid, {
+            id: cred.user.uid,
+            name: displayName,
+            displayName: displayName,
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            role: 'student', // Default role
+            createdAt: new Date().toISOString()
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        return { success: false, error };
+      }
     }
+    return { success: false, error: new Error('Firebase disabled') };
   },
 
   logout: async (): Promise<void> => {
-    if (appConfig.integrations.firebase && firebaseAuth) {
-      // Use Firebase logout
-      // await firebaseAuth.signOut();
-      console.log('[AuthService] Using Firebase logout');
+    if (firebaseEnabled) {
+      await customSignOut();
     } else {
       // Mock logout (no-op)
-      console.log('[AuthService] Mock logout');
+    }
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    if (firebaseEnabled) {
+      await customDeleteAccount();
+    } else {
     }
   },
 };
@@ -81,30 +83,30 @@ export const authService = {
  * Data Service
  */
 export const dataService = {
-  getLessons: () => {
-    if (appConfig.integrations.firebase && firestore) {
-      // Use Firestore
-      // return firestore.collection('lessons').get();
-      console.log('[DataService] Using Firestore');
-      return [];
-    } else {
-      // Use mock data
-      return MockDataService.getLessons();
+  getLessons: async () => {
+    if (firebaseEnabled) {
+      try {
+        const lessons = await FirestoreService.getLessons();
+        return lessons;
+      } catch (error) {
+        console.error('[BackendService] Error fetching from Firestore, falling back to empty array:', error);
+        return [];
+      }
     }
+    return [];
   },
 
-  getUsers: () => {
-    if (appConfig.integrations.firebase && firestore) {
-      // Use Firestore
-      // return firestore.collection('users').get();
-      console.log('[DataService] Using Firestore');
+  getUsers: async () => {
+    if (firebaseEnabled) {
+      // Not implemented in FirestoreService yet, adding TODO
+      // return await FirestoreService.getUsers();
       return [];
     } else {
-      // Use mock data
       return MockDataService.getUsers();
     }
   },
 };
+
 
 /**
  * Payment Service
@@ -118,14 +120,12 @@ export const paymentService = {
         //   amount: amount * 100, // Convert to cents
         //   currency: currency.toLowerCase(),
         // });
-        console.log('[PaymentService] Using Stripe payment');
         return { success: false, error: 'Stripe not yet implemented' };
       } catch (error: any) {
         return { success: false, error: error.message || 'Payment failed' };
       }
     } else {
       // Mock payment
-      console.log('[PaymentService] Using mock payment');
       return {
         success: true,
         transactionId: `mock_${Date.now()}`,
@@ -139,24 +139,15 @@ export const paymentService = {
 };
 
 /**
- * Storage Service
+ * Storage Service — delegates to MinIO storageService
  */
 export const storageService = {
-  uploadImage: async (uri: string, path: string): Promise<string> => {
-    if (appConfig.integrations.firebase && firebaseStorage) {
-      // Use Firebase Storage
-      // const ref = firebaseStorage.ref(path);
-      // await ref.putFile(uri);
-      // return await ref.getDownloadURL();
-      console.log('[StorageService] Using Firebase Storage');
-      return uri; // Placeholder
-    } else {
-      // Mock storage (return original URI)
-      console.log('[StorageService] Using mock storage');
-      return uri;
-    }
-  },
+  uploadAvatar,
+  uploadCourseCover,
+  uploadInstructorDocument,
+  getDocumentDownloadUrl,
 };
+
 
 // Export service availability flags
 export const isFirebaseEnabled = (): boolean => {

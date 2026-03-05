@@ -1,20 +1,49 @@
-export type LessonCategory = 'Salsa' | 'Bachata' | 'Tango' | 'Kizomba';
+export type LessonCategory = 'Salsa' | 'Bachata' | 'Tango' | 'Kizomba' | 'Vals' | string;
+export type LessonLevel = 'beginner' | 'intermediate' | 'advanced' | 'professional' | string;
 
 export interface Lesson {
   id: string;
-  title: string;
+  title: string; // Mapped from name
+  name: string; // Firebase field
   description: string;
-  category: LessonCategory;
+  category: LessonCategory; // Mapped from danceStyle
+  danceStyle: string; // Firebase field
+  level?: LessonLevel;
   instructorId: string;
   price: number;
+  currency?: string;
   duration: number; // minutes
-  imageUrl?: string;
+  imageUrl?: string | number;
   date?: string; // ISO date (YYYY-MM-DD)
   time?: string; // HH:mm format
+  daysOfWeek?: string[]; // Array of strings
+  recurring?: boolean;
+  maxParticipants?: number;
+  currentParticipants?: number;
+  participantStats?: {
+    male: number;
+    female: number;
+    other: number;
+    total: number;
+  };
   rating: number;
   reviewCount: number;
   favoriteCount: number;
-  isActive: boolean;
+  isActive: boolean; // Mapped from status === 'active'
+  status?: 'draft' | 'pending_approval' | 'active' | string; // Firebase field
+  tags?: string[]; // Array of strings
+  highlights?: string[]; // Array of strings
+  location?: {
+    type: 'school' | 'custom';
+    schoolId?: string;
+    schoolName?: string;
+    customAddress?: string;
+  };
+  schoolId?: string;
+  schoolName?: string;
+  instructorName?: string;
+  instructorIds?: string[];
+  instructorNames?: string[];
   createdAt: string;
   updatedAt?: string;
 }

@@ -7,7 +7,11 @@ export type NotificationType =
   | 'lesson_reminder'
   | 'lesson_updated'
   | 'new_booking'
-  | 'system';
+  | 'system'
+  | 'announcement'
+  | 'course_update'
+  | 'new_course'
+  | 'instructor_verification_request';
 
 export interface Notification {
   id: string;
@@ -20,5 +24,6 @@ export interface Notification {
   lessonId?: string;
   bookingId?: string;
   actionUrl?: string;
+  data?: Record<string, any>;
 }
 

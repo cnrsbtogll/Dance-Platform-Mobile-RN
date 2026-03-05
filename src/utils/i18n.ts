@@ -23,7 +23,7 @@ i18n
     resources,
     lng: initialLanguage,
     fallbackLng: 'tr',
-    compatibilityJSON: 'v3',
+    compatibilityJSON: 'v4',
     interpolation: {
       escapeValue: false,
     },

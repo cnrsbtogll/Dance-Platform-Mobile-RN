@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "326218239384",
+    "project_id": "danceplatform-7924a",
+    "storage_bucket": "danceplatform-7924a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326218239384:android:fd293f9ed5860d2d2eafed",
+        "android_client_info": {
+          "package_name": "com.dance.platform"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326218239384-4m4rlq0ge8dsp8neu3p83t7c9pa1af27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAd25xdob5wnCRTwN0XhqelXTCr1szDXNQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326218239384-4m4rlq0ge8dsp8neu3p83t7c9pa1af27.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "326218239384-0j75lr54jun0va8mqcgb8cvv4oibnfd0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.feriha.danceplatform"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326218239384:android:e893726cd5e52b022eafed",
+        "android_client_info": {
+          "package_name": "com.feriha.danceplatform"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326218239384-4m4rlq0ge8dsp8neu3p83t7c9pa1af27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAd25xdob5wnCRTwN0XhqelXTCr1szDXNQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326218239384-4m4rlq0ge8dsp8neu3p83t7c9pa1af27.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "326218239384-0j75lr54jun0va8mqcgb8cvv4oibnfd0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.feriha.danceplatform"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

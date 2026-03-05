@@ -46,6 +46,19 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
+  const handleSwitchToSchoolMode = () => {
+    // Navigate to School mode using CommonActions
+    const rootNavigation = navigation.getParent()?.getParent();
+    if (rootNavigation) {
+      rootNavigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'School' }],
+        })
+      );
+    }
+  };
+
   const accountSettings: SettingItem[] = [
     {
       id: 'account',
@@ -53,12 +66,14 @@ export const ProfileScreen: React.FC = () => {
       title: t('profile.accountInfo'),
       onPress: () => (navigation as any).navigate('AccountInformation'),
     },
+    /*
     {
       id: 'payment',
       icon: 'credit-card',
       title: t('profile.paymentMethods'),
       onPress: () => (navigation as any).navigate('PaymentMethods'),
     },
+    */
     {
       id: 'password',
       icon: 'lock',
@@ -159,15 +174,15 @@ export const ProfileScreen: React.FC = () => {
                 backgroundColor: item.isDanger
                   ? '#e53e3e20'
                   : item.iconColor
-                  ? `${item.iconColor}20`
-                  : '#48C9B020',
+                    ? `${item.iconColor}20`
+                    : `${colors.student.primary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || '#48C9B0'}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.student.primary}
             />
           </View>
           <Text
@@ -212,22 +227,22 @@ export const ProfileScreen: React.FC = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>
-              {user?.name || t('profile.defaultName')}
+              {user?.name || t('common.guest')}
             </Text>
             {isAuthenticated && user && (
               <TouchableOpacity onPress={() => {
                 (navigation as any).getParent()?.navigate('EditProfile');
               }}>
-                <Text style={[styles.editProfileLink, { color: '#48C9B0' }]}>{t('profile.editProfile')}</Text>
+                <Text style={[styles.editProfileLink, { color: colors.student.primary }]}>{t('profile.editProfile')}</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Switch to Instructor Mode Button - if user is instructor */}
-        {isAuthenticated && user?.role === 'instructor' && (
-          <TouchableOpacity 
-            style={styles.switchModeButton} 
+        {/* Switch to Instructor Mode Button - if user is instructor or draft-instructor */}
+        {isAuthenticated && (user?.role === 'instructor' || user?.role === 'draft-instructor') && (
+          <TouchableOpacity
+            style={styles.switchModeButton}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={handleSwitchToInstructorMode}
@@ -236,10 +251,36 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
+        {/* Switch to School Mode Button - if user is school or draft-school */}
+        {isAuthenticated && (user?.role === 'school' || user?.role === 'draft-school') && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={handleSwitchToSchoolMode}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.switchToSchoolMode') || 'Okul Moduna Geç'}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Login / Sign Up Button - if user is NOT logged in */}
+        {!isAuthenticated && (
+          <TouchableOpacity
+            style={styles.loginButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              (navigation as any).navigate('Login', { mode: 'login' });
+            }}
+          >
+            <MaterialIcons name="login" size={24} color="#ffffff" />
+            <Text style={styles.loginButtonText}>{t('auth.login')}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Become Instructor Button - if user is student or not logged in */}
         {(!isAuthenticated || user?.role === 'student') && (
-          <TouchableOpacity 
-            style={styles.switchModeButton} 
+          <TouchableOpacity
+            style={styles.switchModeButton}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => {
@@ -250,14 +291,28 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* Account Settings */}
-        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
+        {/* Become School Button - if user is student or not logged in */}
+        {(!isAuthenticated || user?.role === 'student') && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              (navigation as any).getParent()?.navigate('BecomeSchool');
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.becomeSchool') || 'Dans Okulu Aç'}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Account Settings - Only show if authenticated */}
+        {isAuthenticated && renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
         {renderSettingsCard(t('profile.appSettings'), appSettings)}
 
-        {/* Support & Legal */}
-        {renderSettingsCard('', supportSettings)}
+        {/* Support & Legal - Filter out logout if not authenticated */}
+        {renderSettingsCard('', isAuthenticated ? supportSettings : supportSettings.filter(item => item.id !== 'logout'))}
 
         {/* Bottom spacing */}
         <View style={{ height: spacing.xl }} />
@@ -275,7 +330,7 @@ export const ProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setLanguageModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -287,7 +342,7 @@ export const ProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={[
                 styles.languageOption,
@@ -368,11 +423,29 @@ const styles = StyleSheet.create({
   editProfileLink: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: '#48C9B0',
+    color: colors.student.primary,
+  },
+  loginButton: {
+    height: 56,
+    backgroundColor: colors.student.primary,
+    borderRadius: borderRadius.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    ...shadows.sm,
+  },
+  loginButtonText: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: '#ffffff',
+    letterSpacing: 0.015,
   },
   switchModeButton: {
     height: 56,
-    backgroundColor: colors.student.primary,
+    backgroundColor: colors.instructor.secondary,
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',

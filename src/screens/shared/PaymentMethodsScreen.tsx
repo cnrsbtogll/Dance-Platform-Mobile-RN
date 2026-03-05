@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -43,10 +43,14 @@ const mockPaymentMethods: PaymentMethod[] = [
 
 export const PaymentMethodsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette(user?.role || 'student', isDarkMode);
+
+  // @ts-ignore - params type
+  const mode = route.params?.mode || user?.role || 'student';
+  const palette = getPalette(mode, isDarkMode);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export const PaymentMethodsScreen: React.FC = () => {
     Alert.alert(t('paymentMethods.addCard'), t('paymentMethods.addCardMessage'));
   };
 
-  const getCardIcon = (brand: string): string => {
+  const getCardIcon = (brand: string): keyof typeof MaterialIcons.glyphMap => {
     const brandLower = brand.toLowerCase();
     if (brandLower.includes('visa')) return 'credit-card';
     if (brandLower.includes('mastercard')) return 'credit-card';
@@ -108,9 +112,9 @@ export const PaymentMethodsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom', 'left', 'right']}>
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
@@ -142,8 +146,8 @@ export const PaymentMethodsScreen: React.FC = () => {
                           {card.brand}
                         </Text>
                         {card.isDefault && (
-                          <View style={[styles.defaultBadge, { backgroundColor: colors.student.primary + '20' }]}>
-                            <Text style={[styles.defaultBadgeText, { color: colors.student.primary }]}>
+                          <View style={[styles.defaultBadge, { backgroundColor: palette.primary + '20' }]}>
+                            <Text style={[styles.defaultBadgeText, { color: palette.primary }]}>
                               {t('paymentMethods.default')}
                             </Text>
                           </View>
@@ -184,7 +188,7 @@ export const PaymentMethodsScreen: React.FC = () => {
         {/* Add Card Button */}
         <View style={styles.addButtonContainer}>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.student.primary }]}
+            style={[styles.addButton, { backgroundColor: palette.primary }]}
             onPress={handleAddCard}
             activeOpacity={0.8}
           >
@@ -207,7 +211,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
     gap: spacing.sm,
   },
   cardItem: {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, Modal, FlatList, Alert, TextInput } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,13 +7,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
-import { MockDataService } from '../../services/mockDataService';
-import { formatDate, formatTime, getDurationText, formatPrice } from '../../utils/helpers';
+
+import { formatDate, formatTime, getDurationText, formatPrice, normalizeDaysOfWeek } from '../../utils/helpers';
 import { useLessonStore } from '../../store/useLessonStore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { getLessonImageSource } from '../../utils/imageHelper';
-
+import { FirestoreService } from '../../services/firebase/firestore';
+import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../services/firebase/config';
+import { Booking, CourseAnnouncement } from '../../types';
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -24,35 +27,298 @@ export const LessonDetailScreen: React.FC = () => {
   const isInstructor = params?.isInstructor || false;
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('student', isDarkMode);
-  
-  const { toggleFavorite, favoriteLessons } = useLessonStore();
-  const { createBooking } = useBookingStore();
-  const { user, isAuthenticated } = useAuthStore();
-  
-  const lesson = MockDataService.getLessonById(lessonId || '');
-  const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
-  const booking = bookingId ? MockDataService.getBookingById(bookingId) : null;
-  
+  const { user, isAuthenticated, setUser } = useAuthStore();
+
+  // Determine role for palette
+  const role = user?.role === 'school' || user?.role === 'draft-school'
+    ? 'school'
+    : (isInstructor ? 'instructor' : 'student');
+
+  const palette = getPalette(role, isDarkMode);
+
+  const { toggleFavorite, favoriteLessons, lessons } = useLessonStore();
+  const { createBooking, pendingRegistrationLessonId, setPendingRegistrationLessonId } = useBookingStore();
+
+  const [lesson, setLesson] = useState<any>(lessons.find(l => l.id === lessonId) || null);
+  const [loadingLesson, setLoadingLesson] = useState(!lesson);
+
+  useEffect(() => {
+    const fetchLessonData = async () => {
+      // First try to find in store
+      const storeLesson = lessons.find(l => l.id === lessonId);
+      if (storeLesson) {
+        setLesson(storeLesson);
+        setLoadingLesson(false);
+        return;
+      }
+
+      // If not in store, fetch from Firestore
+      if (lessonId) {
+        try {
+          setLoadingLesson(true);
+          const fetchedLesson = await FirestoreService.getLessonById(lessonId);
+          if (fetchedLesson) {
+            setLesson(fetchedLesson);
+          }
+        } catch (error) {
+          console.error("Error fetching lesson:", error);
+        } finally {
+          setLoadingLesson(false);
+        }
+      }
+    };
+
+    fetchLessonData();
+  }, [lessonId, lessons]);
+
+  const [instructor, setInstructor] = useState<any>(null);
+  const [school, setSchool] = useState<any>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (lesson) {
+        setIsLoadingDetails(true);
+        try {
+          // Fetch Instructor
+          if (lesson.instructorId) {
+            const instructorData = await FirestoreService.getInstructorById(lesson.instructorId);
+            if (instructorData) {
+              setInstructor(instructorData);
+            }
+          }
+
+          // Fetch School
+          const schoolId = lesson.location?.type === 'school' ? lesson.location.schoolId : lesson.schoolId;
+
+          if (schoolId) {
+            const schoolData = await FirestoreService.getDanceSchoolById(schoolId);
+            if (schoolData) {
+              setSchool(schoolData);
+            } else {
+              // Fallback to user data for draft schools whose `DANCE_SCHOOLS` document is not yet created
+              const userData = await FirestoreService.getUserById(schoolId);
+              if (userData && (userData.role === 'school' || userData.role === 'draft-school')) {
+                setSchool({
+                  id: userData.id,
+                  name: userData.schoolName || userData.displayName || '',
+                  address: userData.schoolAddress || '',
+                  city: '', // Set default empty fields below as needed
+                });
+              }
+            }
+          } else if (lesson.location?.type === 'custom') {
+            setSchool(null); // Clear school if custom address
+          }
+        } catch (error) {
+          console.error("Error fetching details:", error);
+        } finally {
+          setIsLoadingDetails(false);
+        }
+      }
+    };
+
+    fetchDetails();
+  }, [lesson]);
+
+
+
+
   const isFavorite = lesson ? favoriteLessons.includes(lesson.id) : false;
   const [isRegistered, setIsRegistered] = useState(false);
-  const [pendingRegistration, setPendingRegistration] = useState(false);
-  const isOwnLesson = isInstructor && lesson && user && lesson.instructorId === user.id;
+
+  const [booking, setBooking] = useState<Booking | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
+
+      const refreshData = async () => {
+        // 1. Refresh Lesson Data (to update participant counts)
+        if (lessonId) {
+          try {
+            const fetchedLesson = await FirestoreService.getLessonById(lessonId);
+            if (isMounted && fetchedLesson) {
+              setLesson(fetchedLesson);
+            }
+          } catch (error) {
+            console.error("Error refreshing lesson:", error);
+          }
+        }
+
+        // 2. Check Booking Status
+        if (user) {
+          try {
+            let foundBooking: Booking | null = null;
+            if (bookingId) {
+              foundBooking = await FirestoreService.getBookingById(bookingId);
+            } else if (lessonId) {
+              foundBooking = await FirestoreService.getUserBookingForLesson(user.id, lessonId);
+            }
+
+            if (isMounted) {
+              if (foundBooking && foundBooking.status !== 'cancelled') {
+                setBooking(foundBooking);
+                setIsRegistered(true);
+              } else {
+                setBooking(null);
+                setIsRegistered(false);
+              }
+            }
+          } catch (error) {
+            console.error("Error checking booking:", error);
+          }
+        }
+      };
+
+      refreshData();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [user, bookingId, lessonId])
+  );
+
+
+  // Instructor veya School için kurs sahibi kontrolü
+  const isOwnLesson = isInstructor && (lesson?.instructorId === user?.id || lesson?.schoolId === user?.id);
+
+  // Registered Students
+  const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // Gender Selection Modal State
+  const [showGenderModal, setShowGenderModal] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
+
+
+
+  // Fetch enrolled students if instructor viewing own lesson
+  // Sync participant stats and fetch enrolled students (if instructor)
+  useEffect(() => {
+    let isMounted = true;
+    if (lesson?.id) {
+      const fetchStudentsAndSync = async () => {
+        if (isOwnLesson) setLoadingStudents(true);
+        try {
+          const bookings = await FirestoreService.getBookingsByLesson(lesson.id);
+
+          if (!isMounted) return;
+
+          // If instructor, show the student list
+          if (isOwnLesson) {
+            setEnrolledStudents(bookings);
+            setLoadingStudents(false);
+          }
+
+          // AUTO-SYNC: Check if stats need update (Self-Healing logic)
+          // Calculate real stats from active bookings
+          const activeBookings = bookings.filter(b => b.status !== 'cancelled');
+          const realTotal = activeBookings.length;
+          const currentTotal = lesson.participantStats?.total || 0;
+
+          // Check consistency
+          if (currentTotal !== realTotal || !lesson.participantStats) {
+            let male = 0, female = 0, other = 0;
+
+            activeBookings.forEach(b => {
+              const g = b.studentGender || 'other';
+              if (g === 'male') male++;
+              else if (g === 'female') female++;
+              else other++;
+            });
+
+            const newStats = { male, female, other, total: realTotal };
+
+            // Update local lesson state to reflect changes immediately
+            setLesson((prev: any) => ({
+              ...prev,
+              currentParticipants: realTotal,
+              participantStats: newStats
+            }));
+
+            // Background update to Firestore
+            FirestoreService.updateLesson(lesson.id, {
+              participantStats: newStats,
+              currentParticipants: realTotal,
+              updatedAt: new Date().toISOString()
+            }).catch(err => console.error('Stats sync error:', err));
+          }
+        } catch (error) {
+          console.error('Error in stats sync:', error);
+          if (isOwnLesson) setLoadingStudents(false);
+        }
+      };
+
+      fetchStudentsAndSync();
+    }
+
+    return () => { isMounted = false; };
+  }, [lessonId, isOwnLesson]); // Removed lesson from dependency to avoid loop if we update lesson inside
 
   // Check if user logged in after clicking register button
   useFocusEffect(
     React.useCallback(() => {
-      if (pendingRegistration && isAuthenticated && user && lesson) {
-        // User logged in, navigate to payment screen
-        setPendingRegistration(false);
-        (navigation as any).navigate('Payment', {
-          lessonId: lesson.id,
-          date: new Date().toISOString().split('T')[0],
-          time: '18:00',
-        });
+      if (pendingRegistrationLessonId) {
       }
-    }, [isAuthenticated, user, pendingRegistration, lesson, navigation])
+      if (pendingRegistrationLessonId === lesson?.id && isAuthenticated && user && lesson) {
+        // Check Gender before proceeding
+        if (!user.gender || user.gender === 'other') {
+          setShowGenderModal(true);
+          setPendingRegistrationLessonId(null);
+          return;
+        }
+
+        // User logged in and has gender info, proceed to direct registration
+        setPendingRegistrationLessonId(null);
+
+        (async () => {
+          try {
+            const date = lesson.date || new Date().toISOString().split('T')[0];
+            const time = lesson.time || '18:00';
+            const price = lesson.price || 0;
+
+            const result = await createBooking(lesson.id, date, time, price);
+
+            if (result) {
+              setBooking(result);
+              setIsRegistered(true);
+
+              // Update local lesson stats immediately
+              const gender = user.gender || 'other';
+              setLesson((prevLesson: any) => ({
+                ...prevLesson,
+                currentParticipants: (prevLesson.currentParticipants || 0) + 1,
+                participantStats: {
+                  ...prevLesson.participantStats,
+                  total: (prevLesson.participantStats?.total || 0) + 1,
+                  [gender]: (prevLesson.participantStats?.[gender] || 0) + 1
+                }
+              }));
+
+              Alert.alert(
+                t('common.success'),
+                t('lessons.registrationSuccess') || 'Registration successful!',
+                [{ text: 'OK' }]
+              );
+            }
+          } catch (error) {
+            console.error('Registration failed:', error);
+            Alert.alert(t('common.error'), t('lessons.registrationFailed') || 'Registration failed. Please try again.');
+          }
+        })();
+      }
+    }, [isAuthenticated, user, pendingRegistrationLessonId, lesson, navigation, setPendingRegistrationLessonId])
   );
+
+  if (loadingLesson) {
+    return (
+      <View style={[styles.container, { backgroundColor: palette.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={palette.primary} />
+      </View>
+    );
+  }
 
   if (!lesson) {
     return (
@@ -67,34 +333,181 @@ export const LessonDetailScreen: React.FC = () => {
     );
   }
 
+  const handleDirectRegistration = async () => {
+    if (!lesson || !user) return;
+
+    try {
+      const date = lesson.date || new Date().toISOString().split('T')[0];
+      const time = lesson.time || '18:00';
+      const price = lesson.price || 0;
+
+      const result = await createBooking(lesson.id, date, time, price);
+
+      if (result) {
+        setBooking(result);
+        setIsRegistered(true);
+
+        // Update local lesson stats immediately
+        const gender = user.gender || 'other';
+        setLesson((prevLesson: any) => ({
+          ...prevLesson,
+          currentParticipants: (prevLesson.currentParticipants || 0) + 1,
+          participantStats: {
+            ...prevLesson.participantStats,
+            total: (prevLesson.participantStats?.total || 0) + 1,
+            [gender]: (prevLesson.participantStats?.[gender] || 0) + 1
+          }
+        }));
+
+        Alert.alert(
+          t('common.success'),
+          t('lessons.registrationSuccess') || 'Registration successful!',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
+      Alert.alert(t('common.error'), t('lessons.registrationFailed') || 'Registration failed. Please try again.');
+    }
+  };
+
+  const confirmGenderUpdate = async () => {
+    if (!selectedGender || !user) return;
+
+    try {
+      // Update in Firestore
+      await FirestoreService.updateUser(user.id, { gender: selectedGender });
+
+      // Update local state immediately
+      const updatedUser = { ...user, gender: selectedGender };
+      setUser(updatedUser);
+
+      // Close modal and proceed
+      setShowGenderModal(false);
+      handleDirectRegistration();
+    } catch (error) {
+      console.error('Failed to update gender:', error);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
+  };
+
+  const handleUnsubscribe = () => {
+    if (!booking) return;
+
+    Alert.alert(
+      t('lessons.cancelRegistrationTitle') || 'Cancel Registration',
+      t('lessons.cancelRegistrationConfirm') || 'Are you sure you want to cancel your registration for this lesson?',
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.confirm'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Update status to cancelled in Firestore
+              await FirestoreService.updateBookingStatus(booking.id, 'cancelled');
+
+              // Calculate new stats
+              const gender = user?.gender || 'other';
+              const currentTotal = lesson.participantStats?.total || 0;
+              const currentGenderCount = lesson.participantStats?.[gender] || 0;
+              const currentParticipants = lesson.currentParticipants || 0;
+
+              const newTotal = Math.max(currentTotal - 1, 0);
+              const newGenderCount = Math.max(currentGenderCount - 1, 0);
+              const newCurrentParticipants = Math.max(currentParticipants - 1, 0);
+
+              const newStats = {
+                ...lesson.participantStats,
+                total: newTotal,
+                [gender]: newGenderCount
+              };
+
+              // Update stats in Firestore
+              await FirestoreService.updateLesson(lesson.id, {
+                participantStats: newStats,
+                currentParticipants: newCurrentParticipants,
+                updatedAt: new Date().toISOString()
+              });
+
+              // Update local state
+              setBooking(null);
+              setIsRegistered(false);
+
+              setLesson((prevLesson: any) => ({
+                ...prevLesson,
+                currentParticipants: newCurrentParticipants,
+                participantStats: newStats
+              }));
+
+              Alert.alert(t('common.success'), t('lessons.cancelSuccess') || 'Registration cancelled successfully.');
+            } catch (error) {
+              console.error('Cancellation failed:', error);
+              Alert.alert(t('common.error'), t('lessons.cancelFailed') || 'Failed to cancel registration.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleRegister = () => {
+
     if (booking || isRegistered) {
-      // Already registered
+      handleUnsubscribe();
       return;
     }
-    
+
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
-      // Set pending registration flag and navigate to login screen
-      setPendingRegistration(true);
+      setPendingRegistrationLessonId(lesson.id);
       (navigation as any).navigate('Login');
       return;
     }
-    
-    // Navigate to payment screen
-    (navigation as any).navigate('Payment', {
-      lessonId: lesson.id,
-      date: new Date().toISOString().split('T')[0], // Default to today, in real app get from date picker
-      time: '18:00', // Default time, in real app get from time picker
-    });
+
+    // Check Gender
+    if (!user.gender || user.gender === 'other') {
+      setShowGenderModal(true);
+      return;
+    }
+
+    handleDirectRegistration();
   };
 
   const handleEdit = () => {
     (navigation as any).navigate('EditLesson', { lessonId: lesson?.id });
   };
 
+  // Modal & Announcement State
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcementMessage, setAnnouncementMessage] = useState('');
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+
+  const handleSendAnnouncement = async () => {
+    if (!announcementMessage.trim() || !user || !lesson) return;
+    setIsSendingAnnouncement(true);
+    try {
+      await FirestoreService.createCourseAnnouncement({
+        courseId: lesson.id,
+        senderId: user.id,
+        senderName: user.displayName || t('profile.instructor'),
+        message: announcementMessage.trim()
+      });
+      setAnnouncementMessage('');
+      setShowAnnouncementModal(false);
+      Alert.alert(t('common.success'), t('lessons.announcementSentSuccess') || 'Duyuru gönderildi.');
+    } catch (error) {
+      console.error('Error sending announcement:', error);
+      Alert.alert(t('common.error'), t('lessons.announcementSendFailed') || 'Duyuru gönderilemedi.');
+    } finally {
+      setIsSendingAnnouncement(false);
+    }
+  };
+
+
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
         {/* Hero Image Section */}
         <View style={styles.heroContainer}>
@@ -109,37 +522,18 @@ export const LessonDetailScreen: React.FC = () => {
             colors={['transparent', 'rgba(0,0,0,0.6)']}
             style={styles.gradientOverlay}
           />
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              <MaterialIcons name="arrow-back-ios-new" size={20} color="#ffffff" />
-            </TouchableOpacity>
-            <View style={styles.headerRight}>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => lesson && toggleFavorite(lesson.id)}
-              >
-                <MaterialIcons
-                  name={isFavorite ? "favorite" : "favorite-border"}
-                  size={20}
-                  color="#ffffff"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.headerButton, styles.headerButtonMargin]}>
-                <MaterialIcons name="share" size={20} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
-          </View>
+
+
 
           {/* Title Overlay */}
           <View style={styles.titleOverlay}>
-            <Text style={styles.heroTitle}>{lesson.title}</Text>
+            <Text style={styles.heroTitle}>{lesson.title || lesson.name}</Text>
             <Text style={styles.heroInstructor}>
-              {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
+              {t('lessons.instructor')}: {
+                lesson.instructorNames && lesson.instructorNames.length > 1
+                  ? `${lesson.instructorNames[0]} ve +${lesson.instructorNames.length - 1} diğer`
+                  : (lesson.instructorNames?.[0] || instructor?.displayName || lesson.instructorName || t('studentHome.unknown'))
+              }
             </Text>
           </View>
         </View>
@@ -149,25 +543,73 @@ export const LessonDetailScreen: React.FC = () => {
           {/* Info Cards */}
           <View style={styles.infoCards}>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="calendar-today" size={32} color={colors.student.primary} />
-              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.date')}</Text>
+              <MaterialIcons name="calendar-today" size={32} color={palette.primary} />
+              <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.schedule')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
-                {booking ? formatDate(booking.date) : lesson.date ? formatDate(lesson.date) : t('lessons.notSpecified')}
+                {(() => {
+                  if (booking) return formatDate(booking.date);
+                  if (Array.isArray(lesson.daysOfWeek) && lesson.daysOfWeek.length > 0) {
+                    // Normalize days (convert Turkish to English keys if needed)
+                    const normalizedDays = normalizeDaysOfWeek(lesson.daysOfWeek);
+                    const translated = normalizedDays.map(day => t(`lessons.shortDays.${day}`)).join(', ');
+                    return translated;
+                  }
+                  if (lesson.date) return formatDate(lesson.date);
+                  if (typeof lesson.daysOfWeek === 'string') return lesson.daysOfWeek;
+                  return t('lessons.notSpecified');
+                })()}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="schedule" size={32} color={colors.student.primary} />
+              <MaterialIcons name="schedule" size={32} color={palette.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.time')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>
                 {booking ? formatTime(booking.time) : lesson.time ? formatTime(lesson.time) : t('lessons.notSpecified')}
               </Text>
             </View>
             <View style={[styles.infoCard, { backgroundColor: palette.card }]}>
-              <MaterialIcons name="hourglass-empty" size={32} color={colors.student.primary} />
+              <MaterialIcons name="hourglass-empty" size={32} color={palette.primary} />
               <Text style={[styles.infoCardLabel, { color: palette.text.primary }]}>{t('lessons.duration')}</Text>
               <Text style={[styles.infoCardValue, { color: palette.text.secondary }]}>{getDurationText(lesson.duration)}</Text>
             </View>
           </View>
+
+          {/* Participant Stats */}
+          {(lesson.participantStats) && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.participants') || 'Participants'}</Text>
+              <TouchableOpacity
+                style={[styles.participantsCard, { backgroundColor: palette.card }]}
+                activeOpacity={isOwnLesson ? 0.7 : 1}
+                onPress={() => isOwnLesson && setShowStudentsModal(true)}
+              >
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="group" size={24} color={palette.primary} />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.total}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.total') || 'Total'}</Text>
+                </View>
+                <View style={[styles.divider, { backgroundColor: palette.border }]} />
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="female" size={24} color="#E91E63" />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.female}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.female') || 'Female'}</Text>
+                </View>
+                <View style={[styles.divider, { backgroundColor: palette.border }]} />
+                <View style={styles.participantStat}>
+                  <MaterialIcons name="male" size={24} color="#2196F3" />
+                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.male}</Text>
+                  <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.male') || 'Male'}</Text>
+                </View>
+
+                {/* Visual indicator for instructor */}
+                {isOwnLesson && (
+                  <View style={{ position: 'absolute', right: 8, top: 8 }}>
+                    <MaterialIcons name="list" size={16} color={palette.text.secondary} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Description Section */}
           <View style={styles.section}>
@@ -179,22 +621,97 @@ export const LessonDetailScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.location')}</Text>
             <View style={styles.locationContainer}>
-              <MaterialIcons name="location-on" size={24} color={colors.student.primary} />
+              <MaterialIcons name="location-on" size={24} color={palette.primary} />
               <View style={styles.locationTextContainer}>
-                <Text style={[styles.locationName, { color: palette.text.primary }]}>Dans Stüdyosu A</Text>
-                <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
-                  Merkez Mah. Sanat Sk. No:12, Beşiktaş/İstanbul
-                </Text>
+                {lesson.location?.type === 'custom' ? (
+                  <Text style={[styles.locationName, { color: palette.text.primary }]}>
+                    {lesson.location.customAddress}
+                  </Text>
+                ) : (
+                  <>
+                    <Text style={[styles.locationName, { color: palette.text.primary }]}>
+                      {school?.name || lesson.location?.schoolName || lesson.schoolName || t('common.loading')}
+                    </Text>
+                    <Text style={[styles.locationAddress, { color: palette.text.secondary }]}>
+                      {school?.address
+                        ? `${school.address}${school.city ? `, ${school.city}` : ''}`
+                        : (school?.city || t('lessons.addressNotAvailable'))}
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
-            <View style={styles.mapContainer}>
-              <Image
-                source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdlKSrjSVNaws68X6Mj1wmNS4eTBkffsjaEQpAM66SAJwU6d2aTkwdmJ_FiNH__z1BzgxangkJH8tCrYxzMyiIpeDzj4_8EfiBVAl61zDO3oboPKjMgMkcdTFDkngMdK7BuzchBo1SJaQMGWjwGMBjjRRgBLw6tpwcU7C6q1Wj_WSViCjrsDaZRPShHonoPLVDni-BJVBvYq73a7jwf96AX8j6d19tjIPV5sj4r_-X39wu2ta5fpdF4TnwxYKJ6siZVRfUWyPV1uyb' }}
-                style={styles.mapImage}
-                resizeMode="cover"
-              />
-            </View>
           </View>
+
+          {/* Instructor Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
+              {lesson.instructorNames && lesson.instructorNames.length > 1
+                ? t('lessons.instructors')
+                : t('lessons.instructor')}
+            </Text>
+
+            {lesson.instructorIds && lesson.instructorIds.length > 1 ? (
+              // Multiple instructors: render separate cards
+              lesson.instructorIds.map((instrId: string, index: number) => {
+                const instrName = lesson.instructorNames?.[index] || t('studentHome.unknown');
+                return (
+                  <TouchableOpacity
+                    key={instrId}
+                    style={[styles.instructorCard, { backgroundColor: palette.card, marginBottom: index < lesson.instructorIds!.length - 1 ? 8 : 0 }]}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={getAvatarSource(index === 0 ? instructor?.photoURL : null, instrName)}
+                      style={styles.instructorAvatar}
+                    />
+                    <View style={styles.instructorInfo}>
+                      <Text style={[styles.instructorName, { color: palette.text.primary }]}>
+                        {instrName}
+                      </Text>
+                      <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
+                        {index === 0 ? t('lessons.lockedInstructor') : t('profile.instructor')}
+                      </Text>
+                    </View>
+                    <View style={styles.ratingContainer}>
+                      <MaterialIcons name="star" size={20} color={colors.student.rating} />
+                      <Text style={[styles.ratingText, { color: palette.text.primary }]}>
+                        {/* Not: Diğer eğitmen verileri henüz çekilmediği için geçici olarak ana eğitmen rating'i veya 5.0 gösteriyoruz */}
+                        {index === 0 && instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            ) : (
+              // Single instructor card
+              <TouchableOpacity
+                style={[styles.instructorCard, { backgroundColor: palette.card }]}
+                activeOpacity={0.9}
+              >
+                <Image
+                  source={getAvatarSource(instructor?.photoURL, instructor?.displayName)}
+                  style={styles.instructorAvatar}
+                />
+                <View style={styles.instructorInfo}>
+                  <Text style={[styles.instructorName, { color: palette.text.primary }]}>
+                    {instructor?.displayName || lesson.instructorName || t('studentHome.unknown')}
+                  </Text>
+                  <Text style={[styles.instructorRole, { color: palette.text.secondary }]}>
+                    {t('profile.instructor')}
+                  </Text>
+                </View>
+                <View style={styles.ratingContainer}>
+                  <MaterialIcons name="star" size={20} color={colors.student.rating} />
+                  <Text style={[styles.ratingText, { color: palette.text.primary }]}>
+                    {instructor?.rating ? instructor.rating.toFixed(1) : '5.0'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+
+
 
           {/* Bottom spacing for fixed bar */}
           <View style={{ height: 80 + insets.bottom }} />
@@ -206,11 +723,21 @@ export const LessonDetailScreen: React.FC = () => {
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
             <TouchableOpacity
-              style={[styles.registerButton, { marginLeft: 0, flex: 1 }]}
+              style={[styles.registerButton, { flex: 1, marginLeft: 0 }]}
+              onPress={() => setShowAnnouncementModal(true)}
+            >
+              <View style={[styles.registerButtonGradient, { backgroundColor: isInstructor ? colors.instructor.secondary : colors.school.primary, borderRadius: borderRadius.full }]}>
+                <MaterialIcons name="campaign" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
+                <Text style={styles.registerButtonText}>{t('lessons.send')}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.registerButton, { flex: 1 }]}
               onPress={handleEdit}
             >
               <LinearGradient
-                colors={[colors.instructor.secondary, colors.instructor.secondary]}
+                colors={[palette.primary, palette.primary]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.registerButtonGradient}
@@ -220,40 +747,307 @@ export const LessonDetailScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
+
+          {/* Students List Modal */}
+          <Modal
+            visible={showStudentsModal}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setShowStudentsModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background }]}>
+                <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                  <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                    {t('lessons.enrolledStudentsList') || 'Enrolled Students'} ({enrolledStudents.length})
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowStudentsModal(false)} style={styles.closeButton}>
+                    <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                {loadingStudents ? (
+                  <ActivityIndicator size="large" color={palette.primary} style={{ marginTop: 20 }} />
+                ) : enrolledStudents.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <Text style={[styles.emptyText, { color: palette.text.secondary }]}>
+                      {t('lessons.noStudentsEnrolled') || 'No students enrolled yet.'}
+                    </Text>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={enrolledStudents}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <View style={[styles.studentItem, { borderBottomColor: palette.border }]}>
+                        <Image
+                          source={getAvatarSource(null, item.studentName)}
+                          style={styles.studentAvatar}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.studentName, { color: palette.text.primary }]}>
+                            {item.studentName || t('studentHome.unknown')}
+                          </Text>
+                          <Text style={[styles.studentDate, { color: palette.text.secondary }]}>
+                            {formatDate(item.createdAt)}
+                          </Text>
+                        </View>
+                        <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#E8F5E9' : '#FFF3E0' }]}>
+                          <Text style={[styles.statusText, { color: item.status === 'confirmed' ? '#2E7D32' : '#EF6C00' }]}>
+                            {item.status}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                  />
+                )}
+              </View>
+            </View>
+          </Modal>
+
+          {/* Gender Selection Modal */}
+          <Modal
+            visible={showGenderModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowGenderModal(false)}
+          >
+            <View style={[styles.modalOverlay, { justifyContent: 'center', padding: 20 }]}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background, maxHeight: 'auto', borderRadius: 16, padding: 24, width: '100%' }]}>
+                <Text style={[styles.modalTitle, { color: palette.text.primary, textAlign: 'center', marginBottom: 12 }]}>
+                  {t('lessons.genderSelectionTitle')}
+                </Text>
+
+                <Text style={{ color: palette.text.secondary, textAlign: 'center', marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
+                  {t('lessons.genderSelectionReason')}
+                </Text>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <TouchableOpacity
+                    onPress={() => setSelectedGender('female')}
+                    style={{
+                      flex: 1,
+                      marginRight: 8,
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 2,
+                      borderColor: selectedGender === 'female' ? '#E91E63' : palette.border,
+                      backgroundColor: selectedGender === 'female' ? '#FCE4EC' : palette.card,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <MaterialIcons name="female" size={32} color="#E91E63" />
+                    <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.female')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedGender('male')}
+                    style={{
+                      flex: 1,
+                      marginLeft: 8,
+                      padding: 16,
+                      borderRadius: 12,
+                      borderWidth: 2,
+                      borderColor: selectedGender === 'male' ? '#2196F3' : palette.border,
+                      backgroundColor: selectedGender === 'male' ? '#E3F2FD' : palette.card,
+                      alignItems: 'center'
+                    }}
+                  >
+                    <MaterialIcons name="male" size={32} color="#2196F3" />
+                    <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.male')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={confirmGenderUpdate}
+                  disabled={!selectedGender}
+                  style={{
+                    backgroundColor: selectedGender ? palette.primary : '#E0E0E0',
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center'
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                    {t('lessons.saveAndRegister')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Send Announcement Modal */}
+          <Modal
+            visible={showAnnouncementModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowAnnouncementModal(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, { backgroundColor: palette.background, height: 'auto', padding: 24, borderRadius: 24 }]}>
+                <View style={[styles.modalHeader, { borderBottomWidth: 0, paddingHorizontal: 0 }]}>
+                  <Text style={[styles.modalTitle, { color: palette.text.primary }]}>
+                    {t('lessons.sendAnnouncement')}
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowAnnouncementModal(false)} style={styles.closeButton}>
+                    <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={{ color: palette.text.secondary, marginBottom: 16 }}>
+                  {t('lessons.announcementModalDesc')}
+                </Text>
+
+                <TextInput
+                  style={{
+                    backgroundColor: palette.card,
+                    color: palette.text.primary,
+                    borderRadius: 16,
+                    padding: 16,
+                    minHeight: 120,
+                    textAlignVertical: 'top',
+                    borderWidth: 1,
+                    borderColor: palette.border,
+                    fontSize: 16,
+                    marginBottom: 24
+                  }}
+                  placeholder={t('lessons.announcementMessagePlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  multiline
+                  value={announcementMessage}
+                  onChangeText={setAnnouncementMessage}
+                />
+
+                <TouchableOpacity
+                  onPress={handleSendAnnouncement}
+                  disabled={isSendingAnnouncement || !announcementMessage.trim()}
+                  style={{
+                    backgroundColor: announcementMessage.trim() ? palette.primary : palette.border,
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {isSendingAnnouncement ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                        {t('lessons.send')}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
         </SafeAreaView>
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
           <View style={styles.bottomBar}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
-            <Text style={[styles.priceValue, { color: colors.student.primary }]}>
-              {(() => {
-                const instructor = MockDataService.getInstructorForLesson(lesson.id);
-                const currency = instructor?.currency || 'USD';
-                return formatPrice(lesson.price, currency);
-              })()}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={isRegistered || !!booking}
-          >
-            <LinearGradient
-              colors={['#4A90E2', '#5BA3F5']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.registerButtonGradient}
-            >
-              <Text style={styles.registerButtonText}>
-                {booking || isRegistered ? t('lessons.registered') : t('lessons.register')}
+            <View style={styles.priceContainer}>
+              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
+              <Text style={[styles.priceValue, { color: colors.student.primary }]}>
+                {formatPrice(lesson.price)}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleRegister}
+            >
+              <LinearGradient
+                colors={booking || isRegistered ? ['#FF5252', '#FF5252'] : [palette.primary, palette.primary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.registerButtonGradient}
+              >
+                <Text style={styles.registerButtonText}>
+                  {booking || isRegistered ? (t('lessons.cancelRegistration') || 'Cancel Registration') : t('lessons.register')}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
-      )}
-    </SafeAreaView>
+      )
+      }
+      <Modal
+        visible={showGenderModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGenderModal(false)}
+      >
+        <View style={[styles.modalOverlay, { justifyContent: 'center', padding: 20 }]}>
+          <View style={[styles.modalContent, { backgroundColor: palette.background, maxHeight: 'auto', borderRadius: 16, padding: 24, width: '100%' }]}>
+            <Text style={[styles.modalTitle, { color: palette.text.primary, textAlign: 'center', marginBottom: 12 }]}>
+              {t('lessons.genderSelectionTitle')}
+            </Text>
+
+            <Text style={{ color: palette.text.secondary, textAlign: 'center', marginBottom: 24, fontSize: 14, lineHeight: 20 }}>
+              {t('lessons.genderSelectionReason')}
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
+              <TouchableOpacity
+                onPress={() => setSelectedGender('female')}
+                style={{
+                  flex: 1,
+                  marginRight: 8,
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: selectedGender === 'female' ? '#E91E63' : palette.border,
+                  backgroundColor: selectedGender === 'female' ? '#FCE4EC' : palette.card,
+                  alignItems: 'center'
+                }}
+              >
+                <MaterialIcons name="female" size={32} color="#E91E63" />
+                <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.female')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setSelectedGender('male')}
+                style={{
+                  flex: 1,
+                  marginLeft: 8,
+                  padding: 16,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  borderColor: selectedGender === 'male' ? '#2196F3' : palette.border,
+                  backgroundColor: selectedGender === 'male' ? '#E3F2FD' : palette.card,
+                  alignItems: 'center'
+                }}
+              >
+                <MaterialIcons name="male" size={32} color="#2196F3" />
+                <Text style={{ marginTop: 8, fontWeight: '600', color: palette.text.primary }}>{t('lessons.male')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              onPress={confirmGenderUpdate}
+              disabled={!selectedGender}
+              style={{
+                backgroundColor: selectedGender ? palette.primary : '#E0E0E0',
+                padding: 16,
+                borderRadius: 12,
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                {t('lessons.saveAndRegister')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
+
+    </View>
   );
 };
 
@@ -443,6 +1237,154 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.student.primary,
     fontWeight: typography.fontWeight.medium,
+  },
+  navbar: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 1,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+
+  navTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+  },
+  instructorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    ...shadows.sm,
+  },
+  instructorAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: spacing.md,
+  },
+  instructorInfo: {
+    flex: 1,
+  },
+  instructorName: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+  },
+  instructorRole: {
+    fontSize: typography.fontSize.sm,
+    marginTop: 2,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 184, 0, 0.1)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.lg,
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
+    height: '70%',
+    padding: spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  studentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    gap: spacing.sm,
+  },
+  studentAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  studentName: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: 2,
+  },
+  studentDate: {
+    fontSize: typography.fontSize.sm,
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  statusText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    textTransform: 'uppercase',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    marginTop: spacing.md,
+    fontSize: typography.fontSize.base,
+  },
+  participantsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderRadius: 12,
+    marginTop: spacing.xs,
+  },
+  participantStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  divider: {
+    width: 1,
+    height: 40,
+    marginHorizontal: spacing.sm,
   },
 });
 

@@ -6,10 +6,12 @@
  * - Codecanyon: APP_BRAND=codecanyon expo start
  * - Feriha: APP_BRAND=feriha expo start
  * 
- * Default: codecanyon (for main branch)
+ * Default: feriha (for feriha-production branch)
  */
 
-const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'codecanyon';
+require('dotenv').config();
+
+const APP_BRAND = process.env.APP_BRAND || process.env.EXPO_PUBLIC_APP_BRAND || 'feriha';
 
 // Brand-specific configurations
 const brands = {
@@ -24,7 +26,7 @@ const brands = {
     favicon: './assets/favicon.png',
   },
   feriha: {
-    name: 'Feriha Dance Platform',
+    name: 'Feriha',
     slug: 'feriha-dance-platform',
     icon: './assets/icon-feriha.png',
     bundleIdentifier: 'com.feriha.danceplatform',
@@ -35,7 +37,7 @@ const brands = {
   },
 };
 
-const currentBrand = brands[APP_BRAND] || brands.codecanyon;
+const currentBrand = brands[APP_BRAND] || brands.feriha;
 
 // Log in development
 if (process.env.NODE_ENV !== 'production') {
@@ -47,7 +49,8 @@ module.exports = {
   expo: {
     name: currentBrand.name,
     slug: currentBrand.slug,
-    version: '1.0.0',
+    version: "1.0.2",
+    runtimeVersion: "1.0.2",
     orientation: 'portrait',
     icon: currentBrand.icon,
     userInterfaceStyle: 'light',
@@ -56,10 +59,18 @@ module.exports = {
       resizeMode: 'contain',
       backgroundColor: '#ffffff',
     },
+    updates: {
+      url: "https://u.expo.dev/4cd51a3f-fc74-4cfb-b923-8ce29df8b37d"
+    },
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: true,
       bundleIdentifier: currentBrand.bundleIdentifier,
+      config: {
+        usesNonExemptEncryption: false
+      },
+      buildNumber: "1",
+      googleServicesFile: "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
@@ -67,10 +78,51 @@ module.exports = {
         backgroundColor: '#ffffff',
       },
       package: currentBrand.package,
+      versionCode: 1,
+      googleServicesFile: "./google-services.json",
     },
     web: {
       favicon: currentBrand.favicon,
     },
+    extra: {
+      eas: {
+        projectId: "4cd51a3f-fc74-4cfb-b923-8ce29df8b37d"
+      }
+    },
+    plugins: [
+      "@react-native-community/datetimepicker",
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Profil fotoğrafınızı seçmek için galeri erişimi gerekiyor.",
+          "cameraPermission": "Fotoğraf çekmek için kamera erişimi gerekiyor."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": `merchant.${currentBrand.bundleIdentifier}`,
+          "enableGooglePay": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": currentBrand.icon,
+          "color": "#ffffff"
+        }
+      ]
+    ],
   },
 };
 

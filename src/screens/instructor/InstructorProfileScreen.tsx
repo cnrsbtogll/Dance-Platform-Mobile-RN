@@ -9,6 +9,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 import { Currency } from '../../types';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { getDefaultCurrency } from '../../utils/helpers';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 interface SettingItem {
   id: string;
@@ -28,10 +30,12 @@ export const InstructorProfileScreen: React.FC = () => {
   const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const palette = getPalette('instructor', isDarkMode);
-  
-  const currentCurrency: Currency = user?.currency || 'USD';
-  
+
+  const isSchool = user?.role === 'school' || user?.role === 'draft-school';
+  const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
+
+  const currentCurrency: Currency = user?.currency || getDefaultCurrency();
+
   const currencies: { code: Currency; symbol: string; name: string }[] = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -49,7 +53,7 @@ export const InstructorProfileScreen: React.FC = () => {
       },
       headerLeft: () => (
         <View style={{
-          backgroundColor: colors.instructor.secondary,
+          backgroundColor: isSchool ? colors.school.primary : colors.instructor.secondary,
           paddingHorizontal: spacing.sm,
           paddingVertical: 4,
           borderRadius: borderRadius.full,
@@ -60,16 +64,17 @@ export const InstructorProfileScreen: React.FC = () => {
             fontWeight: typography.fontWeight.bold,
             color: '#ffffff',
           }}>
-            {t('instructor.badge')}
+            {isSchool ? (t('school.badge') || 'OKUL') : t('instructor.badge')}
           </Text>
         </View>
       ),
+      headerRight: () => <NotificationBell role={isSchool ? 'school' : 'instructor'} />,
     });
-  }, [navigation, isDarkMode, palette, t]);
+  }, [navigation, isDarkMode, palette, t, isSchool]);
 
-  const handleLogout = () => {
-    logout();
-    // Navigate to login screen if needed
+  const handleLogout = async () => {
+    await logout();
+    // Stay on profile page after logout
   };
 
   const accountSettings: SettingItem[] = [
@@ -78,12 +83,6 @@ export const InstructorProfileScreen: React.FC = () => {
       icon: 'person',
       title: t('profile.accountInfo'),
       onPress: () => (navigation as any).navigate('AccountInformation'),
-    },
-    {
-      id: 'payment',
-      icon: 'credit-card',
-      title: t('profile.paymentMethods'),
-      onPress: () => (navigation as any).navigate('PaymentMethods'),
     },
     {
       id: 'password',
@@ -102,7 +101,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={notificationsEnabled}
           onValueChange={setNotificationsEnabled}
-          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: palette.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -151,7 +150,7 @@ export const InstructorProfileScreen: React.FC = () => {
         <Switch
           value={isDarkMode}
           onValueChange={setDarkMode}
-          trackColor={{ false: palette.border, true: colors.instructor.secondary }}
+          trackColor={{ false: palette.border, true: palette.secondary }}
           thumbColor="#ffffff"
         />
       ),
@@ -177,14 +176,15 @@ export const InstructorProfileScreen: React.FC = () => {
       title: t('profile.privacyPolicy'),
       onPress: () => (navigation as any).navigate('PrivacyPolicy'),
     },
-    {
+    // Only show logout if user is authenticated
+    ...(user ? [{
       id: 'logout',
       icon: 'logout',
       title: t('profile.logout'),
       isDanger: true,
       iconColor: '#e53e3e',
       onPress: handleLogout,
-    },
+    }] : []),
   ];
 
   const renderSettingItem = (item: SettingItem, isLast: boolean = false) => (
@@ -203,15 +203,15 @@ export const InstructorProfileScreen: React.FC = () => {
                 backgroundColor: item.isDanger
                   ? '#e53e3e20'
                   : item.iconColor
-                  ? `${item.iconColor}20`
-                  : `${colors.instructor.secondary}20`,
+                    ? `${item.iconColor}20`
+                    : `${palette.secondary}20`,
               },
             ]}
           >
             <MaterialIcons
               name={item.icon as any}
               size={24}
-              color={item.isDanger ? '#e53e3e' : item.iconColor || colors.instructor.secondary}
+              color={item.isDanger ? '#e53e3e' : item.iconColor || palette.secondary}
             />
           </View>
           <Text
@@ -256,38 +256,70 @@ export const InstructorProfileScreen: React.FC = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: palette.text.primary }]}>{user?.name || t('profile.instructor')}</Text>
-            <TouchableOpacity onPress={() => {
-              (navigation as any).getParent()?.navigate('EditProfile');
-            }}>
-              <Text style={[styles.editProfileLink, { color: colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
-            </TouchableOpacity>
+            {user && (
+              <TouchableOpacity onPress={() => {
+                (navigation as any).getParent()?.navigate('EditProfile');
+              }}>
+                <Text style={[styles.editProfileLink, { color: isSchool ? colors.school.primary : colors.instructor.secondary }]}>{t('profile.editProfile')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
-        {/* Switch to Student Mode Button */}
-        <TouchableOpacity 
-          style={styles.switchModeButton} 
-          activeOpacity={0.8}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          onPress={() => {
-            // Navigate to Student mode using CommonActions
-            // Get root navigator to navigate between Student and Instructor
-            const rootNavigation = navigation.getParent()?.getParent();
-            if (rootNavigation) {
-              rootNavigation.dispatch(
-                CommonActions.reset({
-                  index: 0,
-                  routes: [{ name: 'Student' }],
-                })
-              );
-            }
-          }}
-        >
-          <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
-        </TouchableOpacity>
+        {/* Login Button - Only show when not authenticated */}
+        {!user && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.instructor.secondary, marginBottom: spacing.md }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              // Navigate to Login screen in Student stack
+              const rootNavigation = (navigation as any).getParent()?.getParent();
+              if (rootNavigation) {
+                rootNavigation.navigate('Student', {
+                  screen: 'Login',
+                  params: { mode: 'login' }
+                });
+              } else {
+                // Fallback if hierarchy is shallower
+                (navigation as any).navigate('Student', {
+                  screen: 'Login',
+                  params: { mode: 'login' }
+                });
+              }
+            }}
+          >
+            <MaterialIcons name="login" size={20} color="#ffffff" style={{ marginRight: spacing.xs }} />
+            <Text style={styles.switchModeButtonText}>{t('auth.login')}</Text>
+          </TouchableOpacity>
+        )}
 
-        {/* Account Settings */}
-        {renderSettingsCard(t('profile.accountSettings'), accountSettings)}
+        {/* Switch to Student Mode Button - Only show for instructors, hide for schools */}
+        {!isSchool && (
+          <TouchableOpacity
+            style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
+            activeOpacity={0.8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => {
+              // Navigate to Student mode using CommonActions
+              // Get root navigator to navigate between Student and Instructor
+              const rootNavigation = navigation.getParent()?.getParent();
+              if (rootNavigation) {
+                rootNavigation.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Student' }],
+                  })
+                );
+              }
+            }}
+          >
+            <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Account Settings - Only show when authenticated */}
+        {user && renderSettingsCard(t('profile.accountSettings'), accountSettings)}
 
         {/* Application Settings */}
         {renderSettingsCard(t('profile.appSettings'), appSettings)}
@@ -311,7 +343,7 @@ export const InstructorProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setLanguageModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -323,11 +355,11 @@ export const InstructorProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={[
                 styles.languageOption,
-                language === 'tr' && { backgroundColor: `${colors.instructor.secondary}20` },
+                language === 'tr' && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
               ]}
               onPress={() => {
                 setLanguage('tr');
@@ -338,14 +370,14 @@ export const InstructorProfileScreen: React.FC = () => {
                 {t('profile.turkish')}
               </Text>
               {language === 'tr' && (
-                <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.languageOption,
-                language === 'en' && { backgroundColor: `${colors.instructor.secondary}20` },
+                language === 'en' && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
               ]}
               onPress={() => {
                 setLanguage('en');
@@ -356,7 +388,7 @@ export const InstructorProfileScreen: React.FC = () => {
                 {t('profile.english')}
               </Text>
               {language === 'en' && (
-                <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
               )}
             </TouchableOpacity>
           </View>
@@ -375,7 +407,7 @@ export const InstructorProfileScreen: React.FC = () => {
           activeOpacity={1}
           onPress={() => setCurrencyModalVisible(false)}
         >
-          <View 
+          <View
             style={[styles.modalContent, { backgroundColor: palette.card }]}
             onStartShouldSetResponder={() => true}
           >
@@ -387,13 +419,13 @@ export const InstructorProfileScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.secondary} />
               </TouchableOpacity>
             </View>
-            
+
             {currencies.map((currency) => (
               <TouchableOpacity
                 key={currency.code}
                 style={[
                   styles.languageOption,
-                  currentCurrency === currency.code && { backgroundColor: `${colors.instructor.secondary}20` },
+                  currentCurrency === currency.code && { backgroundColor: `${isSchool ? colors.school.primary : colors.instructor.secondary}20` },
                 ]}
                 onPress={() => {
                   updateCurrency(currency.code);
@@ -409,7 +441,7 @@ export const InstructorProfileScreen: React.FC = () => {
                   </Text>
                 </View>
                 {currentCurrency === currency.code && (
-                  <MaterialIcons name="check" size={24} color={colors.instructor.secondary} />
+                  <MaterialIcons name="check" size={24} color={isSchool ? colors.school.primary : colors.instructor.secondary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -461,8 +493,8 @@ const styles = StyleSheet.create({
   },
   switchModeButton: {
     height: 56,
-    backgroundColor: colors.instructor.primary,
     borderRadius: borderRadius.lg,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: spacing.md,

@@ -1,26 +1,18 @@
 import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
-import { MockDataService } from '../../services/mockDataService';
+import { FirestoreService } from '../../services/firebase/firestore';
+import { chatService, getConversationId } from '../../services/firebase/chat';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatNotificationTime } from '../../utils/helpers';
 import { getAvatarSource } from '../../utils/imageHelper';
-import { User } from '../../types';
-
-interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  lessonId?: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-}
+import { User } from '../../types/user';
+import { Message } from '../../types/message';
 
 interface HeaderTitleProps {
   partner: User | null;
@@ -29,15 +21,9 @@ interface HeaderTitleProps {
 }
 
 // Create HeaderTitle component outside ChatDetailScreen to avoid closure issues
-const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
-  if (!partner) {
-    return (
-      <Text style={[styles.headerName, { color: palette.text.primary }]}>
-        {t('chat.user')}
-      </Text>
-    );
-  }
-  
+const HeaderTitle: React.FC<HeaderTitleProps> = ({ partner, palette, t }) => {
+  if (!partner) return <Text style={[styles.headerName, { color: palette.text.primary }]}>{t('chat.user')}</Text>;
+
   return (
     <View style={styles.headerTitleContainer}>
       <Image
@@ -46,92 +32,111 @@ const HeaderTitle = React.memo<HeaderTitleProps>(({ partner, palette, t }) => {
       />
       <View style={styles.headerTitleText}>
         <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-          {partner.name || t('chat.user')}
+          {partner.displayName || partner.name || t('chat.user')}
         </Text>
         <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-          {partner.role === 'instructor' ? t('chat.instructor') : t('chat.online')}
+          {partner.role === 'instructor' ? t('chat.instructor') : partner.role === 'school' ? t('chat.school') : t('chat.student')}
         </Text>
       </View>
     </View>
   );
-});
+};
 
 export const ChatDetailScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { t } = useTranslation();
-  const params = route.params as { conversationId?: string; userId?: string } | undefined;
+  const params = route.params as { conversationId?: string; userId?: string; targetUserId?: string; chatId?: string; } | undefined;
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('student', isDarkMode);
+  const role: 'student' | 'instructor' | 'school' = (user?.role === 'admin' || user?.role === 'draft-school' || user?.role === 'school') ? 'school' : (user?.role === 'draft-instructor' || user?.role === 'instructor') ? 'instructor' : 'student';
+  const palette = getPalette(role, isDarkMode);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
-  
-  const conversationId = params?.conversationId;
-  const partnerId = params?.userId || (conversationId ? conversationId.split('_').find(id => id !== user?.id) : null);
-  
-  console.log('[ChatDetailScreen] Route params:', {
-    conversationId,
-    userId: params?.userId,
-    partnerId,
-    currentUserId: user?.id,
-  });
-  
-  const partner = useMemo(() => {
-    const p = partnerId ? MockDataService.getUserById(partnerId) : null;
-    console.log('[ChatDetailScreen] Partner memoized:', p ? {
-      id: p.id,
-      name: p.name,
-      role: p.role,
-      avatar: p.avatar,
-      hasAvatar: !!p.avatar,
-      email: p.email,
-      bio: p.bio,
-    } : null);
-    return p;
-  }, [partnerId]);
-  
+
+  const conversationIdParam = params?.conversationId || params?.chatId;
+  const initialPartnerId = params?.userId || params?.targetUserId || (conversationIdParam ? conversationIdParam.split('_').find(id => id !== user?.id) : null);
+  const partnerId = initialPartnerId;
+  const conversationId = conversationIdParam?.startsWith('temp_') ? '' : (conversationIdParam || (user?.id && partnerId ? getConversationId(user.id, partnerId) : ''));
+
+  const [partner, setPartner] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
+  // Count consecutive sent messages at the end without a partner reply
+  const consecutiveUnreplied = useMemo(() => {
+    if (!user) return 0;
+    let count = 0;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderId === user.id) {
+        count++;
+      } else {
+        // Partner replied — reset streak
+        break;
+      }
+    }
+    return count;
+  }, [messages, user]);
+
+  const isMessageBlocked = consecutiveUnreplied >= 3;
+
+  // Fetch partner info
   useEffect(() => {
-    if (!user || !partnerId) return;
+    if (partnerId) {
+      FirestoreService.getUserById(partnerId).then((fetchedUser) => {
+        if (fetchedUser) setPartner(fetchedUser as User);
+      });
+    }
+  }, [partnerId]);
 
-    // Get all messages between current user and partner
-    const allMessages = MockDataService.getMessages();
-    const conversationMessages = allMessages
-      .filter(msg => 
-        (msg.senderId === user.id && msg.receiverId === partnerId) ||
-        (msg.senderId === partnerId && msg.receiverId === user.id)
-      )
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    
-    setMessages(conversationMessages);
-  }, [user, partnerId]);
+  // Subscribe to messages
+  useEffect(() => {
+    if (!user || !conversationId) return;
+
+    setLoadingMessages(true);
+    const unsubscribe = chatService.subscribeToMessages(conversationId, (msgs) => {
+      setMessages(msgs);
+      setLoadingMessages(false);
+    });
+
+    return () => unsubscribe();
+  }, [user, conversationId]);
+
+  // Mark as read when entering or messages update
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user && conversationId && messages.length > 0) {
+        chatService.markAsRead(conversationId, user.id);
+      }
+    }, [user, conversationId, messages.length])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: false });
-    }, 100);
-  }, [messages]);
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 200);
+  }, [messages.length]);
 
   // Update header when screen is focused or partner changes
   const updateHeader = React.useCallback(() => {
-    console.log('[ChatDetailScreen] updateHeader - Setting header options, partner:', partner ? {
-      id: partner.id,
-      name: partner.name,
-      role: partner.role,
-      hasAvatar: !!partner.avatar,
-    } : null);
-    
     navigation.setOptions({
       headerBackTitle: '',
       headerTintColor: palette.text.primary,
       headerStyle: {
         backgroundColor: palette.background,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: palette.border,
       },
       headerTitle: () => <HeaderTitle partner={partner} palette={palette} t={t} />,
+      headerTitleAlign: 'left',
+      headerTitleContainerStyle: {
+        marginLeft: Platform.OS === 'ios' ? 0 : -10,
+        flex: 1
+      },
     });
   }, [navigation, partner, palette, t]);
 
@@ -207,35 +212,27 @@ export const ChatDetailScreen: React.FC = () => {
 
   const shouldShowDateSeparator = (currentMessage: Message, previousMessage: Message | null): boolean => {
     if (!previousMessage) return true;
-    
+
     const currentDate = new Date(currentMessage.createdAt);
     const previousDate = new Date(previousMessage.createdAt);
-    
+
     return currentDate.toDateString() !== previousDate.toDateString();
   };
 
-  const handleSend = () => {
-    if (!inputText.trim() || !user || !partnerId) return;
+  const handleSend = async () => {
+    if (!inputText.trim() || !user || !partnerId || isMessageBlocked) return;
 
-    const newMessage: Message = {
-      id: `message_${Date.now()}`,
-      senderId: user.id,
-      receiverId: partnerId,
-      message: inputText.trim(),
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages([...messages, newMessage]);
+    const messageToSend = inputText.trim();
     setInputText('');
-    
-    // Scroll to bottom
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+
+    try {
+      await chatService.sendMessage(user.id, partnerId, messageToSend);
+    } catch (e) {
+      console.error('Error sending message:', e);
+    }
   };
 
-  if (!partner) {
+  if (!partnerId) {
     return (
       <View style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.errorContainer}>
@@ -252,8 +249,8 @@ export const ChatDetailScreen: React.FC = () => {
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <ScrollView
           ref={scrollViewRef}
@@ -261,99 +258,119 @@ export const ChatDetailScreen: React.FC = () => {
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
         >
-        {messages.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons
-              name="chat-bubble-outline"
-              size={64}
-              color={palette.text.secondary + '80'}
-            />
-            <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {t('chat.noMessages')}
-            </Text>
-          </View>
-        ) : (
-          messages.map((message, index) => {
-            const isSent = message.senderId === user?.id;
-            const previousMessage = index > 0 ? messages[index - 1] : null;
-            const showDateSeparator = shouldShowDateSeparator(message, previousMessage);
+          {loadingMessages ? (
+            <View style={styles.emptyState}>
+              <ActivityIndicator size="large" color={palette.primary} />
+            </View>
+          ) : messages.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MaterialIcons
+                name="chat-bubble-outline"
+                size={64}
+                color={palette.text.secondary + '80'}
+              />
+              <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
+                {t('chat.noMessages')}
+              </Text>
+            </View>
+          ) : (
+            messages.map((message, index) => {
+              const isSent = message.senderId === user?.id;
+              const previousMessage = index > 0 ? messages[index - 1] : null;
+              const showDateSeparator = shouldShowDateSeparator(message, previousMessage);
 
-            return (
-              <React.Fragment key={message.id}>
-                {showDateSeparator && (
-                  <View style={styles.dateSeparator}>
-                    <Text style={[styles.dateSeparatorText, { color: palette.text.secondary, backgroundColor: palette.background }]}>
-                      {formatMessageDate(message.createdAt)}
-                    </Text>
-                  </View>
-                )}
-                <View
-                  style={[
-                    styles.messageWrapper,
-                    isSent ? styles.messageWrapperSent : styles.messageWrapperReceived,
-                  ]}
-                >
+              return (
+                <React.Fragment key={message.id}>
+                  {showDateSeparator && (
+                    <View style={styles.dateSeparator}>
+                      <Text style={[styles.dateSeparatorText, { color: palette.text.secondary, backgroundColor: palette.background }]}>
+                        {formatMessageDate(message.createdAt)}
+                      </Text>
+                    </View>
+                  )}
                   <View
                     style={[
-                      styles.messageBubble,
-                      isSent ? { backgroundColor: palette.primary } : { backgroundColor: palette.card },
+                      styles.messageWrapper,
+                      isSent ? styles.messageWrapperSent : styles.messageWrapperReceived,
                     ]}
                   >
-                    <Text
+                    <View
                       style={[
-                        styles.messageText,
-                        isSent ? styles.messageTextSent : { color: palette.text.primary },
+                        styles.messageBubble,
+                        isSent ? { backgroundColor: palette.primary } : { backgroundColor: palette.card },
                       ]}
                     >
-                      {message.message}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.messageTime,
-                        isSent ? styles.messageTimeSent : { color: palette.text.secondary },
-                      ]}
-                    >
-                      {formatMessageTime(message.createdAt)}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.messageText,
+                          isSent ? styles.messageTextSent : { color: palette.text.primary },
+                        ]}
+                      >
+                        {message.message}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.messageTime,
+                          isSent ? styles.messageTimeSent : { color: palette.text.secondary },
+                        ]}
+                      >
+                        {formatMessageTime(message.createdAt)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </React.Fragment>
-            );
-          })
-        )}
+                </React.Fragment>
+              );
+            })
+          )}
         </ScrollView>
 
         {/* Input Area */}
         <SafeAreaView edges={['bottom']} style={[styles.inputSafeArea, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
-          <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-            <TouchableOpacity style={styles.attachButton}>
+          {isMessageBlocked && (
+            <View style={[styles.blockedBanner, { backgroundColor: palette.primary + '18', borderBottomColor: palette.border }]}>
+              <MaterialIcons name="info-outline" size={16} color={palette.primary} />
+              <Text style={[styles.blockedBannerText, { color: palette.primary }]}>
+                {t('chat.messageLimit') || '3 mesaj gönderdiniz ve yanıt bekliyorsunuz. Karşı taraf yanıt verince yazabilirsiniz.'}
+              </Text>
+            </View>
+          )}
+          <View style={styles.inputContainer}>
+            <TouchableOpacity style={styles.attachButton} disabled={isMessageBlocked}>
               <MaterialIcons
                 name="attach-file"
                 size={24}
-                color={palette.text.secondary}
+                color={isMessageBlocked ? palette.text.secondary + '40' : palette.text.secondary}
               />
             </TouchableOpacity>
             <TextInput
-              style={[styles.input, { backgroundColor: palette.card, color: palette.text.primary }]}
-              placeholder={t('chat.typeMessage')}
+              style={[
+                styles.input,
+                { backgroundColor: palette.card, color: palette.text.primary },
+                isMessageBlocked && { opacity: 0.5 }
+              ]}
+              placeholder={isMessageBlocked
+                ? (t('chat.waitingReply') || 'Yanıt bekleniyor...')
+                : t('chat.typeMessage')
+              }
               placeholderTextColor={palette.text.secondary}
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
+              editable={!isMessageBlocked}
             />
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                { backgroundColor: inputText.trim() ? palette.primary : palette.card },
+                { backgroundColor: (!isMessageBlocked && inputText.trim()) ? palette.primary : palette.card },
               ]}
               onPress={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || isMessageBlocked}
             >
               <MaterialIcons
                 name="send"
                 size={24}
-                color={inputText.trim() ? '#ffffff' : palette.text.secondary}
+                color={(!isMessageBlocked && inputText.trim()) ? '#ffffff' : palette.text.secondary + '60'}
               />
             </TouchableOpacity>
           </View>
@@ -374,8 +391,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    width: '100%',
-    maxWidth: '100%',
+    flex: 1,
+    paddingBottom: 8,
   },
   headerAvatar: {
     width: 40,
@@ -384,9 +401,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   headerTitleText: {
-    flex: 1,
-    minWidth: 0,
-    maxWidth: '100%',
+    justifyContent: 'center',
+    flexShrink: 1,
   },
   headerName: {
     fontSize: typography.fontSize.base,
@@ -420,7 +436,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesContent: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.xl,
   },
   dateSeparator: {
@@ -471,6 +488,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
   attachButton: {
@@ -483,11 +501,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minHeight: 40,
-    maxHeight: 100,
-    borderRadius: borderRadius.full,
+    maxHeight: 120,
+    borderRadius: 20,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.base,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   sendButton: {
     width: 40,
@@ -522,6 +542,20 @@ const styles = StyleSheet.create({
   backButton: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
+  },
+  blockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  blockedBannerText: {
+    flex: 1,
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+    lineHeight: 16,
   },
 });
 

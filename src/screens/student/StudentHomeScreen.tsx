@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Switch, TextInput, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -24,37 +24,95 @@ export const StudentHomeScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
   const insets = useSafeAreaInsets();
-  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons } = useLessonStore();
+  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons, refreshLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
-  const filteredLessons = lessons.filter(lesson => {
-    if (selectedCategory && lesson.category !== selectedCategory) return false;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      if (!lesson.title.toLowerCase().includes(query) && 
-          !lesson.description.toLowerCase().includes(query) &&
-          !lesson.category.toLowerCase().includes(query)) return false;
-    }
-    if (minPrice !== null && lesson.price < minPrice) return false;
-    if (maxPrice !== null && lesson.price > maxPrice) return false;
-    if (lesson.rating < minRating) return false;
-    if (maxDuration !== null && lesson.duration > maxDuration) return false;
-    return true;
-  });
 
   const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Modern'];
-  
-  // Filter state
-  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Active Filter States (Listeyi etkileyenler)
+  const [activeMinPrice, setActiveMinPrice] = useState<number | null>(null);
+  const [activeMaxPrice, setActiveMaxPrice] = useState<number | null>(null);
+  const [activeMinRating, setActiveMinRating] = useState<number>(0);
+  const [activeMaxDuration, setActiveMaxDuration] = useState<number | null>(null);
+  const [activeInstructorFilter, setActiveInstructorFilter] = useState<string>('');
+
+  // Modal Filter States (Modal içindeki geçici değerler)
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [minRating, setMinRating] = useState<number>(0);
   const [maxDuration, setMaxDuration] = useState<number | null>(null);
+  const [instructorFilter, setInstructorFilter] = useState<string>('');
+
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Filtreleme Mantığı
+  const filteredLessons = lessons.filter(lesson => {
+    // Kategori (Case-insensitive)
+    if (selectedCategory && (lesson.category || '').toLowerCase() !== selectedCategory.toLowerCase()) {
+      return false;
+    }
+
+    // Arama
+    const instructorName =
+      (lesson.instructorNames && lesson.instructorNames.length > 0
+        ? lesson.instructorNames.join(', ')
+        : lesson.instructorName) || '';
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (!(lesson.title || '').toLowerCase().includes(query) &&
+        !(lesson.description || '').toLowerCase().includes(query) &&
+        !(lesson.category || '').toLowerCase().includes(query) &&
+        !instructorName.toLowerCase().includes(query)) return false;
+    }
+
+    // Aktif Filtreler
+    if (activeInstructorFilter && !instructorName.toLowerCase().includes(activeInstructorFilter.toLowerCase())) return false;
+    if (activeMinPrice !== null && lesson.price < activeMinPrice) return false;
+    if (activeMaxPrice !== null && lesson.price > activeMaxPrice) return false;
+    if ((lesson.rating || 0) < activeMinRating) return false;
+    if (activeMaxDuration !== null && (lesson.duration || 0) > activeMaxDuration) return false;
+
+    return true;
+  });
+
+  // Handlers
+  const openFilterModal = () => {
+    setMinPrice(activeMinPrice);
+    setMaxPrice(activeMaxPrice);
+    setMinRating(activeMinRating);
+    setMaxDuration(activeMaxDuration);
+    setInstructorFilter(activeInstructorFilter);
+    setShowFilterModal(true);
+  };
+
+  const applyFilters = () => {
+    setActiveMinPrice(minPrice);
+    setActiveMaxPrice(maxPrice);
+    setActiveMinRating(minRating);
+    setActiveMaxDuration(maxDuration);
+    setActiveInstructorFilter(instructorFilter);
+    setShowFilterModal(false);
+  };
+
+  const resetFilters = () => {
+    setMinPrice(null);
+    setMaxPrice(null);
+    setMinRating(0);
+    setMaxDuration(null);
+    setInstructorFilter('');
+  };
 
   useEffect(() => {
     if (user) {
       loadNotifications(user.id);
     }
   }, [user, loadNotifications]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshLessons();
+    }, [])
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -64,10 +122,10 @@ export const StudentHomeScreen: React.FC = () => {
             source={getAvatarSource(user?.avatar, user?.id)}
             style={styles.avatar}
           />
-          <Text style={[styles.headerTitle, { color: palette.text.primary }] }>
-            {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || 'Ahmet' })}
+          <Text style={[styles.headerTitle, { color: palette.text.primary }]}>
+            {t('studentHome.greeting', { name: user?.name?.split(' ')[0] || t('common.guest') })}
           </Text>
-        </View>
+        </View >
       ),
       headerRight: appConfig.features.notifications ? () => (
         <TouchableOpacity
@@ -78,7 +136,7 @@ export const StudentHomeScreen: React.FC = () => {
         >
           <View style={{ position: 'relative' }}>
             <MaterialIcons
-              name="notifications"
+              name="notifications-none"
               size={24}
               color={palette.text.primary}
             />
@@ -97,7 +155,7 @@ export const StudentHomeScreen: React.FC = () => {
   }, [navigation, user, unreadCount, isDarkMode]);
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}> 
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
 
         {/* Search Bar & Filter */}
@@ -109,17 +167,17 @@ export const StudentHomeScreen: React.FC = () => {
               placeholder={t('studentHome.searchPlaceholder')}
             />
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.filterButton, { backgroundColor: palette.primary }]}
-            onPress={() => setShowFilterModal(true)}
+            onPress={openFilterModal}
           >
             <MaterialIcons name="tune" size={24} color="#ffffff" />
           </TouchableOpacity>
         </View>
 
         {/* Category Chips */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.chipsContainer}
           contentContainerStyle={styles.chipsContent}
@@ -127,7 +185,7 @@ export const StudentHomeScreen: React.FC = () => {
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
-                style={[
+              style={[
                 styles.chip,
                 { backgroundColor: (selectedCategory === category || (category === t('studentHome.categoryAll') && !selectedCategory)) ? palette.primary : palette.card }
               ]}
@@ -146,9 +204,12 @@ export const StudentHomeScreen: React.FC = () => {
         {/* Lessons List */}
         <View style={styles.lessonsContainer}>
           {filteredLessons.map((lesson) => {
-            const instructor = MockDataService.getInstructorForLesson(lesson.id);
+            const instructorName =
+              (lesson.instructorNames && lesson.instructorNames.length > 0
+                ? lesson.instructorNames.join(', ')
+                : lesson.instructorName) || '';
             const isFavorite = favoriteLessons.includes(lesson.id);
-            
+
             return (
               <TouchableOpacity
                 key={lesson.id}
@@ -160,49 +221,55 @@ export const StudentHomeScreen: React.FC = () => {
                   });
                 }}
               >
-              <Card style={styles.lessonCard}>
-                <View style={styles.lessonImageContainer}>
-                  {lesson.imageUrl && (
-                    <Image
-                      source={getLessonImageSource(lesson.imageUrl)}
-                      style={styles.lessonImage}
-                      resizeMode="cover"
-                    />
-                  )}
-                  <TouchableOpacity
-                    style={styles.favoriteButton}
-                    onPress={() => toggleFavorite(lesson.id)}
-                  >
-                    <MaterialIcons 
-                      name={isFavorite ? "favorite" : "favorite-border"} 
-                      size={24} 
-                      color="#ffffff" 
-                    />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.lessonContent}>
-                  <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
-                    {t('studentHome.instructorLabel')}: {instructor?.name || t('studentHome.unknown')}
-                  </Text>
-                  <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
-                  <View style={styles.lessonFooter}>
-                    <View style={styles.ratingContainer}>
-                      <AntDesign name="star" size={20} color={colors.student.secondary} />
-                      <Text style={[styles.rating, { color: palette.text.primary }] }>
-                        {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
+                <Card style={styles.lessonCard}>
+                  <View style={styles.lessonImageContainer}>
+                    {lesson.imageUrl && (
+                      <Image
+                        source={getLessonImageSource(lesson.imageUrl)}
+                        style={styles.lessonImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    {/* <TouchableOpacity
+                      style={styles.favoriteButton}
+                      onPress={() => toggleFavorite(lesson.id)}
+                    >
+                      <MaterialIcons
+                        name={isFavorite ? "favorite" : "favorite-border"}
+                        size={24}
+                        color="#ffffff"
+                      />
+                    </TouchableOpacity> */}
+                  </View>
+                  <View style={styles.lessonContent}>
+                    <Text style={[styles.instructorName, { color: palette.text.secondary }]}>
+                      {t('studentHome.instructorLabel')}: {instructorName || t('studentHome.unknown')}
+                    </Text>
+                    <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+                    <View style={styles.lessonFooter}>
+                      <View style={styles.ratingContainer}>
+                        <AntDesign name="star" size={20} color={colors.student.rating} />
+                        <Text style={[styles.rating, { color: palette.text.primary }]}>
+                          {lesson.rating.toFixed(1)} <Text style={[styles.reviewCount, { color: palette.text.secondary }]}>({lesson.reviewCount})</Text>
+                        </Text>
+                      </View>
+                      <Text style={[styles.price, { color: palette.text.primary }]}>
+                        {formatPrice(lesson.price)}
+                        <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
                       </Text>
                     </View>
-                    <Text style={[styles.price, { color: palette.text.primary }]}>
-                      {(() => {
-                        const instructor = MockDataService.getInstructorForLesson(lesson.id);
-                        const currency = instructor?.currency || 'USD';
-                        return formatPrice(lesson.price, currency);
-                      })()}
-                      <Text style={[styles.priceUnit, { color: palette.text.secondary }]}> {t('studentHome.priceUnit')}</Text>
-                    </Text>
+
+                    {/* Participant Stats */}
+                    {(lesson.participantStats) && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <MaterialIcons name="people" size={14} color={palette.text.secondary} />
+                        <Text style={{ fontSize: 12, color: palette.text.secondary, marginLeft: 4 }}>
+                          {lesson.participantStats.female} {t('lessons.female')}, {lesson.participantStats.male} {t('lessons.male')}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                </View>
-              </Card>
+                </Card>
               </TouchableOpacity>
             );
           })}
@@ -224,8 +291,22 @@ export const StudentHomeScreen: React.FC = () => {
                 <MaterialIcons name="close" size={24} color={palette.text.primary} />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Instructor Filter */}
+              <View style={styles.filterSection}>
+                <Text style={[styles.filterSectionTitle, { color: palette.text.primary }]}>
+                  {t('lessons.instructor')}
+                </Text>
+                <TextInput
+                  style={[styles.priceInputField, { backgroundColor: palette.background, color: palette.text.primary, borderColor: palette.border }]}
+                  placeholder={t('studentHome.searchPlaceholder')}
+                  placeholderTextColor={palette.text.secondary}
+                  value={instructorFilter}
+                  onChangeText={setInstructorFilter}
+                />
+              </View>
+
               {/* Price Range */}
               <View style={styles.filterSection}>
                 <Text style={[styles.filterSectionTitle, { color: palette.text.primary }]}>
@@ -272,7 +353,7 @@ export const StudentHomeScreen: React.FC = () => {
                       key={rating}
                       style={[
                         styles.ratingChip,
-                        { 
+                        {
                           backgroundColor: minRating === rating ? palette.primary : palette.background,
                           borderColor: palette.border,
                         }
@@ -301,7 +382,7 @@ export const StudentHomeScreen: React.FC = () => {
                       key={duration || 'all'}
                       style={[
                         styles.durationChip,
-                        { 
+                        {
                           backgroundColor: maxDuration === duration ? palette.primary : palette.background,
                           borderColor: palette.border,
                         }
@@ -322,20 +403,15 @@ export const StudentHomeScreen: React.FC = () => {
             </ScrollView>
 
             <View style={[
-              styles.modalFooter, 
-              { 
+              styles.modalFooter,
+              {
                 borderTopColor: palette.border,
                 paddingBottom: Math.max(insets.bottom, spacing.md),
               }
             ]}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.resetButton, { backgroundColor: palette.background }]}
-                onPress={() => {
-                  setMinPrice(null);
-                  setMaxPrice(null);
-                  setMinRating(0);
-                  setMaxDuration(null);
-                }}
+                onPress={resetFilters}
               >
                 <Text style={[styles.modalButtonText, { color: palette.text.primary }]}>
                   {t('studentHome.reset')}
@@ -343,7 +419,7 @@ export const StudentHomeScreen: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.applyButton, { backgroundColor: palette.primary }]}
-                onPress={() => setShowFilterModal(false)}
+                onPress={applyFilters}
               >
                 <Text style={styles.modalButtonTextWhite}>
                   {t('studentHome.apply')}
@@ -584,11 +660,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: spacing.md,
     fontSize: typography.fontSize.base,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
   },
   ratingChip: {
     paddingHorizontal: spacing.md,

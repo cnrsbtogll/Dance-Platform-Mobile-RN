@@ -27,11 +27,17 @@ const getNotificationIcon = (type: NotificationType): string => {
     case 'lesson_reminder':
       return 'schedule';
     case 'lesson_updated':
+    case 'course_update':
       return 'edit';
     case 'new_booking':
+    case 'new_course':
       return 'event';
+    case 'announcement':
+      return 'campaign';
     case 'system':
       return 'info';
+    case 'instructor_verification_request':
+      return 'how-to-reg';
     default:
       return 'notifications';
   }
@@ -41,7 +47,7 @@ const getNotificationIconColor = (type: NotificationType, isRead: boolean): stri
   if (isRead) {
     return colors.student.text.secondaryLight;
   }
-  
+
   switch (type) {
     case 'booking_confirmed':
     case 'payment_received':
@@ -55,11 +61,17 @@ const getNotificationIconColor = (type: NotificationType, isRead: boolean): stri
     case 'lesson_reminder':
       return '#9B59B6';
     case 'lesson_updated':
+    case 'course_update':
       return '#3498DB';
     case 'new_booking':
+    case 'new_course':
       return '#1ABC9C';
+    case 'announcement':
+      return '#F39C12';
     case 'system':
       return '#95A5A6';
+    case 'instructor_verification_request':
+      return '#E67E22'; // Orange tint for verification requests
     default:
       return colors.student.primary;
   }
@@ -72,9 +84,10 @@ export const NotificationScreen: React.FC = () => {
   const { notifications, unreadCount, loadNotifications, markAsRead, markAllAsRead } = useNotificationStore();
 
   const { isDarkMode } = useThemeStore();
-  const theme = user?.role === 'instructor' ? colors.instructor : colors.student;
-  const palette = getPalette(user?.role === 'instructor' ? 'instructor' : 'student', isDarkMode);
+  const role = user?.role === 'instructor' ? 'instructor' : (user?.role === 'school' ? 'school' : 'student');
+  const palette = getPalette(role, isDarkMode);
   const isInstructor = user?.role === 'instructor';
+  const isSchool = user?.role === 'school';
 
   useEffect(() => {
     if (user) {
@@ -108,9 +121,11 @@ export const NotificationScreen: React.FC = () => {
             <Text style={{
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: isInstructor 
-                ? colors.instructor.secondary 
-                : colors.student.primary,
+              color: isInstructor
+                ? colors.instructor.secondary
+                : isSchool
+                  ? colors.school.primary
+                  : colors.student.primary,
             }}>
               {t('notifications.markAllAsRead')}
             </Text>
@@ -118,7 +133,7 @@ export const NotificationScreen: React.FC = () => {
         ) : null
       ),
     });
-  }, [navigation, user, unreadCount, markAllAsRead, t, palette, isInstructor]);
+  }, [navigation, user, unreadCount, markAllAsRead, t, palette, isInstructor, isSchool]);
 
   const unreadNotifications = useMemo(() => {
     return notifications.filter(n => !n.isRead);
@@ -134,25 +149,30 @@ export const NotificationScreen: React.FC = () => {
     }
 
     // Navigate based on notification type
-    if (notification.lessonId) {
+    const courseId = notification.data?.courseId;
+    if (courseId) {
       (navigation as any).navigate('LessonDetail', {
-        lessonId: notification.lessonId,
+        lessonId: courseId,
         isInstructor: isInstructor,
       });
     } else if (notification.type === 'new_message') {
       // Navigate to chat if implemented
       // (navigation as any).navigate('ChatDetail', { ... });
+    } else if (notification.type === 'instructor_verification_request') {
+      if (isSchool || user?.role === 'admin') {
+        (navigation as any).navigate('InstructorVerification');
+      }
     }
   };
 
   if (notifications.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}> 
+      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
         <View style={styles.emptyState}>
-          <MaterialIcons 
-            name="notifications-none" 
-            size={64} 
-            color={(isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight) + '80'} 
+          <MaterialIcons
+            name="notifications-none"
+            size={64}
+            color={(isInstructor ? colors.instructor.text.lightSecondary : colors.student.text.secondaryLight) + '80'}
           />
           <Text style={[styles.emptyStateTitle, { color: isInstructor ? colors.instructor.text.lightPrimary : colors.student.text.primaryLight }]}>
             {t('notifications.noNotificationsTitle')}
@@ -166,9 +186,9 @@ export const NotificationScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}> 
-      <ScrollView 
-        style={styles.scrollView} 
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
+      <ScrollView
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
       >
@@ -182,7 +202,15 @@ export const NotificationScreen: React.FC = () => {
               {unreadNotifications.map((notification) => (
                 <TouchableOpacity
                   key={notification.id}
-                  style={[styles.notificationItem, { backgroundColor: palette.card }, !notification.isRead && styles.unreadNotification]}
+                  style={[
+                    styles.notificationItem,
+                    {
+                      backgroundColor: !notification.isRead
+                        ? (isDarkMode ? '#243442' : (isInstructor ? '#E6F7F4' : (isSchool ? '#FFFBEB' : '#FDEEF1')))
+                        : palette.card
+                    },
+                    !notification.isRead && { ...styles.unreadNotification, borderLeftColor: isInstructor ? colors.instructor.secondary : (isSchool ? colors.school.primary : colors.student.primary) }
+                  ]}
                   onPress={() => handleNotificationPress(notification)}
                   activeOpacity={0.7}
                 >
@@ -205,7 +233,7 @@ export const NotificationScreen: React.FC = () => {
                     </Text>
                   </View>
                   {!notification.isRead && (
-                    <View style={[styles.unreadDot, { backgroundColor: isInstructor ? colors.instructor.secondary : colors.student.primary }]} />
+                    <View style={[styles.unreadDot, { backgroundColor: isInstructor ? colors.instructor.secondary : (isSchool ? colors.school.primary : colors.student.primary) }]} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -265,7 +293,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollViewContent: {
-    paddingTop: 0,
+    paddingTop: spacing.sm,
   },
   section: {
     paddingHorizontal: spacing.md,
@@ -293,7 +321,6 @@ const styles = StyleSheet.create({
   },
   unreadNotification: {
     borderLeftWidth: 4,
-    borderLeftColor: colors.student.primary,
   },
   notificationIconContainer: {
     width: 48,

@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Platform } from 'react-native';
+import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { appConfig } from '../../config/appConfig';
+import { authService } from '../../services/backendService';
+import { signInWithGoogle, signInWithApple, statusCodes } from '../../services/firebase/auth';
+import { Alert } from 'react-native';
+import { getFirebaseErrorKey } from '../../utils/firebaseErrorMessages';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -13,12 +18,21 @@ export const LoginScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const route = useRoute<any>();
+  const [isSignUp, setIsSignUp] = useState(route.params?.mode !== 'login');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Update mode when params change
+  useEffect(() => {
+    if (route.params?.mode) {
+      setIsSignUp(route.params.mode !== 'login');
+    }
+  }, [route.params?.mode]);
+
 
   // Update header title when switching between login/signup
   useEffect(() => {
@@ -30,41 +44,116 @@ export const LoginScreen: React.FC = () => {
   const handleCreateAccount = async () => {
     // Validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      // Show error message - in real app use Alert or Toast
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
-    
+
     if (password !== confirmPassword) {
-      // Show error message - passwords don't match
+      Alert.alert(t('common.error'), t('auth.passwordsDoNotMatch'));
       return;
     }
-    
-    // Mock: Create account and auto-login
-    // In real app, this would call Firebase Auth
-    const mockUser = {
-      id: `user_${Date.now()}`,
-      name: `${firstName} ${lastName}`,
-      email: email,
-      role: 'student' as const,
-      avatar: '',
-      bio: '',
-      rating: 0,
-      totalLessons: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setUser(mockUser);
-    navigation.goBack();
+
+    try {
+      // name variable constructed for other purposes if needed, or remove if unused
+      const result = await authService.register(email, password, firstName, lastName);
+
+      if (result.success) {
+        // After successful registration, the store's initialize() 
+        // will handle the onAuthStateChanged and set the user.
+        navigation.goBack();
+      } else {
+        if (result.error) {
+          const errorKey = getFirebaseErrorKey(result.error.code);
+          Alert.alert(t('common.error'), t(errorKey));
+        } else {
+          Alert.alert(t('common.error'), t('auth.registrationFailed'));
+        }
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Registration error:', error);
+      const errorKey = error.code ? getFirebaseErrorKey(error.code) : 'auth.errors.unknown';
+      Alert.alert(t('common.error'), t(errorKey));
+    }
   };
 
+
   const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
-      navigation.goBack();
+    // Basic validation
+    if (!email || !password) {
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
+      return;
+    }
+
+    const result = await login(email, password);
+    if (result.success) {
+      const currentUser = useAuthStore.getState().user;
+
+      if (currentUser?.role === 'instructor') {
+        // Reset navigation to Instructor stack
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Instructor' }],
+          })
+        );
+      } else {
+        navigation.goBack();
+      }
+    } else {
+      // Handle error
+      if (result.error) {
+        const errorKey = getFirebaseErrorKey(result.error.code);
+        Alert.alert(t('common.error'), t(errorKey));
+      } else {
+        Alert.alert(t('common.error'), t('auth.errors.unknown'));
+      }
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        // Navigation is handled by the auth state listener in RootNavigator (if exists) 
+        // OR we need to manually navigate like in handleLogin
+        const currentUser = useAuthStore.getState().user; // State might not be updated yet due to async
+        // For safety, let's just goBack for now, or copy handleLogin logic if possible.
+        // But better pattern:
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Google login error', error);
+
+      if (error.message === 'GOOGLE_SIGN_IN_NOT_SUPPORTED_IN_EXPO_GO') {
+        Alert.alert(t('common.notice'), t('auth.googleSignInNotSupportedInExpoGo'));
+        return;
+      }
+
+      // Check for cancellation code from GoogleSignin (statusCodes.SIGN_IN_CANCELLED is not directly exported to JS easily without import, but error.code is available)
+      if (error.code === statusCodes.SIGN_IN_CANCELLED || error.message?.includes('cancelled')) {
+      } else {
+        Alert.alert(t('common.error'), t('auth.loginError'));
+      }
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    try {
+      const user = await signInWithApple();
+      if (user) {
+        navigation.goBack();
+      }
+    } catch (error: any) {
+      console.error('[LoginScreen] Apple login error', error);
+      if (error.code === 'ERR_REQUEST_CANCELED' || error.message?.includes('canceled')) {
+      } else {
+        Alert.alert(t('common.error'), t('auth.loginError'));
+      }
     }
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.container, { backgroundColor: palette.background }]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
@@ -73,7 +162,11 @@ export const LoginScreen: React.FC = () => {
         {/* Illustration */}
         <View style={styles.illustrationContainer}>
           <Image
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZDbnf1_BcJpeGVAiB82q62bj9gF-jZ3vF-3Xgx7nBrahcw7B-XjftsO-2q1TdxaCJgv1zq_YLmIikUlvRXmrjRr8J7p7HRpUi6QY-7HXNi89ZrAoUarJ4YIVJAMVWWGWCdk4-AwotV7jmdKBlI1hVffZCkDPCySd-TDhvb6GagMdBlNVOXubiUxh-LcC6HH4Kv7CeF8s50hMhXGOg63xZC4rvq9_nhvmb4QtMpOuCCpRCvQtyQ77szSweIg_unHz1oypoeuQrt1xr' }}
+            source={
+              appConfig.brand === 'feriha'
+                ? require('../../../assets/splash-feriha.png')
+                : require('../../../assets/splash.png')
+            }
             style={styles.illustration}
             resizeMode="contain"
           />
@@ -193,16 +286,22 @@ export const LoginScreen: React.FC = () => {
           </View>
 
           <View style={styles.socialButtons}>
-            <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
-              <Image
-                source={{ uri: 'https://www.google.com/favicon.ico' }}
-                style={styles.socialIcon}
-              />
+            <TouchableOpacity
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleGoogleLogin}
+            >
+              <AntDesign name="google" size={24} color={palette.text.primary} />
+              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialButton, { borderColor: palette.border }]}>
-              <MaterialIcons name="apple" size={24} color={palette.text.primary} />
-              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
-            </TouchableOpacity>
+            {/* Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={[styles.socialButton, { borderColor: palette.border }]}
+                onPress={handleAppleLogin}
+              >
+                <MaterialIcons name="apple" size={24} color={palette.text.primary} />
+                <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
+              </TouchableOpacity>
+            ) */}
           </View>
         </View>
 

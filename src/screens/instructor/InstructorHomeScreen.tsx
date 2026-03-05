@@ -1,7 +1,8 @@
 import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { openWhatsApp } from '../../utils/whatsapp';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -9,54 +10,105 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { appConfig } from '../../config/appConfig';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
-import { MockDataService } from '../../services/mockDataService';
+import { FirestoreService } from '../../services/firebase/firestore';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getLessonImageSource } from '../../utils/imageHelper';
+import { Lesson, Booking } from '../../types';
+import { Alert } from 'react-native';
+import { VerificationGateModal } from '../../components/common/VerificationGateModal';
 
 export const InstructorHomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { user, refreshProfile } = useAuthStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
   const insets = useSafeAreaInsets();
-  
-  // Get instructor's lessons
-  const instructorLessons = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return MockDataService.getLessonsByInstructor(user.id);
-  }, [user]);
+  const { getUserBookings, fetchUserBookings } = useBookingStore();
+  const instructorBookings = getUserBookings();
 
-  // Get instructor's bookings
-  const instructorBookings = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return MockDataService.getBookingsByInstructor(user.id);
-  }, [user]);
+  const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [hasSubmittedRequest, setHasSubmittedRequest] = React.useState(false);
+  const [gateVisible, setGateVisible] = React.useState(false);
+  const [pendingSchoolName, setPendingSchoolName] = React.useState<string | null>(null);
+
+  // Fetch instructor's lessons from Firestore
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchLessons = async () => {
+        if (!user || user.role !== 'instructor') {
+          setInstructorLessons([]);
+          setLoading(false);
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+          setInstructorLessons(lessons);
+        } catch (error) {
+          console.error('Error fetching instructor lessons:', error);
+          setInstructorLessons([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const checkRequestStatus = async () => {
+        if (user?.id) {
+          const status = await FirestoreService.getInstructorRequestStatus(user.id);
+          setHasSubmittedRequest(!!status);
+
+          console.log('[HomeScreen] verificationStatus:', user.verificationStatus, '| verificationMethod:', user.verificationMethod, '| schoolId:', user.schoolId);
+
+          // Okul onayı bekliyorsa okul adını getir (verificationMethod olmasa da schoolId varsa)
+          if (user.verificationStatus === 'pending' && user.schoolId) {
+            try {
+              const school = await FirestoreService.getUserById(user.schoolId);
+              setPendingSchoolName((school as any)?.schoolName || (school as any)?.name || null);
+            } catch (_) {
+              setPendingSchoolName(null);
+            }
+          }
+        }
+      };
+
+      refreshProfile();
+      fetchLessons();
+      fetchUserBookings();
+      checkRequestStatus();
+    }, [user?.id, user?.role, refreshProfile, fetchUserBookings])
+  );
+
 
   // Calculate stats
   const stats = useMemo(() => {
-    const activeLessons = instructorLessons.filter(l => l.isActive).length;
-    const totalStudents = new Set(instructorBookings.map(b => b.studentId)).size;
+    const activeInstructorBookings = instructorBookings.filter((b: any) => b.status !== 'cancelled');
+    const activeLessonsCount = instructorLessons.filter(l => l.isActive).length;
+
+    // @ts-ignore - Booking type might need update or mock implementation fix
+    const totalStudents = new Set(activeInstructorBookings.map((b: any) => b.studentId)).size;
     const avgRating = instructorLessons.reduce((sum, l) => sum + l.rating, 0) / (instructorLessons.length || 1);
-    
-    // Calculate earnings (mock data)
-    const thisMonthEarnings = instructorBookings
-      .filter(b => {
+
+    // Calculate earnings
+    const thisMonthEarnings = activeInstructorBookings
+      .filter((b: any) => {
         const bookingDate = new Date(b.date);
         const now = new Date();
-        return bookingDate.getMonth() === now.getMonth() && 
-               bookingDate.getFullYear() === now.getFullYear();
+        return bookingDate.getMonth() === now.getMonth() &&
+          bookingDate.getFullYear() === now.getFullYear();
       })
-      .reduce((sum, b) => sum + b.price, 0);
-    
-    const totalEarnings = instructorBookings.reduce((sum, b) => sum + b.price, 0);
+      .reduce((sum: number, b: any) => sum + (b.price || 0), 0);
+
+    const totalEarnings = activeInstructorBookings.reduce((sum: number, b: any) => sum + (b.price || 0), 0);
 
     return {
-      activeLessons,
+      activeLessons: activeLessonsCount,
       totalStudents,
       avgRating: avgRating.toFixed(1),
       thisMonthEarnings,
@@ -64,36 +116,62 @@ export const InstructorHomeScreen: React.FC = () => {
     };
   }, [instructorLessons, instructorBookings]);
 
-  // Get upcoming bookings (next 3)
-  const upcomingBookings = useMemo(() => {
-    const now = new Date();
-    return instructorBookings
-      .filter(b => {
-        const bookingDate = new Date(`${b.date}T${b.time}`);
-        return bookingDate > now && b.status !== 'cancelled';
-      })
-      .sort((a, b) => {
-        const dateA = new Date(`${a.date}T${a.time}`).getTime();
-        const dateB = new Date(`${b.date}T${b.time}`).getTime();
-        return dateA - dateB;
-      })
-      .slice(0, 3);
-  }, [instructorBookings]);
-
   // Get active lessons
   const activeLessons = useMemo(() => {
     return instructorLessons.filter(l => l.isActive);
   }, [instructorLessons]);
 
-  // If user is not instructor, set instructor1 as default for development
-  useEffect(() => {
-    if (!user || user.role !== 'instructor') {
-      const instructor1 = MockDataService.getUserById('instructor1');
-      if (instructor1) {
-        useAuthStore.getState().setUser(instructor1);
-      }
-    }
-  }, [user]);
+  // Get upcoming bookings and recurring lessons
+  const upcomingBookings = useMemo(() => {
+    const now = new Date();
+
+    // Get upcoming bookings and recurring lessons
+    const oneWeekFromNow = new Date(now);
+    oneWeekFromNow.setDate(now.getDate() + 7);
+
+    // Get explicit bookings
+    const explicitBookings = instructorBookings
+      .filter(b => {
+        // @ts-ignore
+        const bookingDate = new Date(`${b.date}T${b.time}`);
+        // @ts-ignore
+        return bookingDate > now && bookingDate <= oneWeekFromNow && b.status !== 'cancelled';
+      })
+      .map(b => ({
+        ...b,
+        // @ts-ignore
+        dateTime: new Date(`${b.date}T${b.time}`),
+        isRecurring: false,
+      }));
+
+    // Get recurring lessons (lessons with daysOfWeek)
+    const recurringLessons = activeLessons
+      .filter(lesson => lesson.daysOfWeek && lesson.daysOfWeek.length > 0 && lesson.time)
+      .flatMap(lesson => {
+        const { getNextLessonOccurrence } = require('../../utils/helpers');
+        // Fetch up to 7 occurrences to cover daily lessons for a week
+        const nextOccurrences = getNextLessonOccurrence(lesson.daysOfWeek!, lesson.time!, 7);
+
+        return nextOccurrences
+          .filter((dateTime: Date) => dateTime <= oneWeekFromNow)
+          .map((dateTime: Date) => ({
+            id: `${lesson.id}-${dateTime.getTime()}`,
+            lessonId: lesson.id,
+            date: dateTime.toISOString().split('T')[0],
+            time: dateTime.toTimeString().slice(0, 5),
+            dateTime: dateTime,
+            isRecurring: true,
+            studentName: null,
+            status: 'scheduled',
+          }));
+      });
+
+    // Combine and sort by date/time
+    const allUpcoming = [...explicitBookings, ...recurringLessons]
+      .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime()); // Remove limit, show all within week
+
+    return allUpcoming;
+  }, [instructorBookings, activeLessons]);
 
   useEffect(() => {
     if (user) {
@@ -128,51 +206,234 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
       ),
       headerRight: appConfig.features.notifications ? () => (
-        <TouchableOpacity
-          style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
-          onPress={() => {
-            (navigation as any).getParent()?.navigate('Notification');
-          }}
-        >
-          <View style={{ position: 'relative' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs }}
+            onPress={() => {
+              if (user && !user.onboardingCompleted) {
+                Alert.alert(
+                  t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
+                  t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
+                  [{
+                    text: t('common.ok'),
+                    onPress: () => {
+                      // @ts-ignore
+                      navigation.navigate('InstructorOnboarding');
+                    }
+                  }]
+                );
+              } else {
+                (navigation as any).navigate('CreateLesson');
+              }
+            }}
+          >
             <MaterialIcons
-              name="notifications"
+              name="add"
               size={28}
               color={palette.text.primary}
             />
-            {unreadCount > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                minWidth: 18,
-                height: 18,
-                borderRadius: 9,
-                backgroundColor: '#e53e3e',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 4,
-                borderWidth: 2,
-                borderColor: palette.background,
-              }}>
-                <Text style={{
-                  fontSize: 10,
-                  fontWeight: typography.fontWeight.bold,
-                  color: '#ffffff',
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm }}
+            onPress={() => {
+              (navigation as any).getParent()?.navigate('Notification');
+            }}
+          >
+            <View style={{ position: 'relative' }}>
+              <MaterialIcons
+                name="notifications-none"
+                size={24}
+                color={palette.text.primary}
+              />
+              {unreadCount > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  backgroundColor: '#e53e3e',
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: 4,
+                  borderWidth: 2,
+                  borderColor: palette.background,
                 }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+                  <Text style={{
+                    fontSize: 10,
+                    fontWeight: typography.fontWeight.bold,
+                    color: '#ffffff',
+                  }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
       ) : undefined,
     });
   }, [navigation, unreadCount, isDarkMode, palette, t]);
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
+      {/* Verification Gate Modal */}
+      <VerificationGateModal
+        visible={gateVisible}
+        onClose={() => setGateVisible(false)}
+        onSchoolApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('SchoolSelection');
+        }}
+        onDocumentApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('Verification');
+        }}
+      />
+
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
+        {/* Pending School Approval Banner */}
+        {user?.verificationStatus === 'pending' && !!user?.schoolId && (
+          <View style={[styles.pendingBanner, {
+            backgroundColor: isDarkMode ? '#1E293B' : '#FFFBEB',
+            borderColor: '#F59E0B',
+          }]}>
+            <View style={styles.pendingBannerHeader}>
+              <View style={[styles.pendingIconWrap, { backgroundColor: '#F59E0B20' }]}>
+                <MaterialIcons name="hourglass-top" size={20} color="#F59E0B" />
+              </View>
+              <Text style={[styles.pendingBannerTitle, { color: palette.text.primary }]}>
+                {t('instructor.pendingSchoolApproval')}
+              </Text>
+            </View>
+            {pendingSchoolName && (
+              <Text style={[styles.pendingBannerDesc, { color: palette.text.secondary }]}>
+                {t('instructor.pendingSchoolApprovalDesc', { school: pendingSchoolName })}
+              </Text>
+            )}
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs }}>
+              <TouchableOpacity
+                style={styles.changeSchoolBtn}
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('SchoolSelection');
+                }}
+              >
+                <MaterialIcons name="swap-horiz" size={14} color="#F59E0B" />
+                <Text style={styles.changeSchoolText}>{t('instructor.changeSchool')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.changeSchoolBtn, { borderColor: '#EF4444', backgroundColor: '#FEF2F2' }]}
+                onPress={() => {
+                  Alert.alert(
+                    t('instructor.cancelRequestTitle') || 'Başvuruyu İptal Et',
+                    t('instructor.cancelRequestDesc') || 'Okul başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.',
+                    [
+                      { text: t('common.cancel'), style: 'cancel' },
+                      {
+                        text: t('common.confirm') || 'Evet, İptal Et',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await FirestoreService.cancelInstructorRequest(user!.id);
+                            await refreshProfile();
+                          } catch (err) {
+                            Alert.alert(t('common.error'), t('common.errorDesc'));
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+              >
+                <MaterialIcons name="close" size={14} color="#EF4444" />
+                <Text style={[styles.changeSchoolText, { color: '#EF4444' }]}>
+                  {t('instructor.cancelRequest') || 'İptal Et'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Verification Banner (draft-instructor without pending school) */}
+        {user?.role === 'draft-instructor' && user?.verificationStatus !== 'pending' && (
+          <View style={[styles.verificationBanner, { backgroundColor: isDarkMode ? palette.card : '#F0FDFA', borderColor: colors.instructor.primary }]}>
+            <View style={styles.verificationBannerHeader}>
+              <View style={[styles.infoIconContainer, { backgroundColor: colors.instructor.primary + '20' }]}>
+                <MaterialIcons name="rocket-launch" size={20} color={colors.instructor.primary} />
+              </View>
+              <Text style={[styles.verificationBannerTitle, { color: palette.text.primary }]}>
+                {t('instructor.verificationRequired') || 'Aramıza Hoş Geldiniz!'}
+              </Text>
+            </View>
+
+            <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
+              {t('instructor.verificationStepDesc') || 'Eğitmen olarak kurs vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!'}
+            </Text>
+
+            <View style={styles.bannerActions}>
+              <TouchableOpacity
+                style={[
+                  styles.onboardingButton,
+                  { backgroundColor: user?.onboardingCompleted ? '#10B981' : colors.instructor.primary }
+                ]}
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('InstructorOnboarding');
+                }}
+              >
+                <View style={styles.buttonContent}>
+                  <MaterialIcons
+                    name={user?.onboardingCompleted ? "check-circle" : "person-outline"}
+                    size={18}
+                    color="#ffffff"
+                  />
+                  <Text style={styles.verificationButtonText}>
+                    {user?.onboardingCompleted
+                      ? (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')
+                      : (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.whatsappBannerButton,
+                  { backgroundColor: hasSubmittedRequest ? '#25D366' : '#E5E7EB' }
+                ]}
+                onPress={() => {
+                  if (hasSubmittedRequest) {
+                    const waMessage = `${t('instructor.verificationWhatsappMessage') || 'Merhaba, eğitmen başvurumu hızlandırmak istiyorum.'} (ID: ${user?.id})`;
+                    openWhatsApp('+90 0555 005 98 76', waMessage);
+                  } else {
+                    Alert.alert(
+                      t('instructor.requestRequiredTitle') || 'Başvuru Yapılmadı',
+                      t('instructor.requestRequiredDesc') || 'Destek ile iletişime geçmeden önce lütfen başvurunuzun alındığından emin olun.',
+                      [{ text: t('common.ok') }]
+                    );
+                  }
+                }}
+                activeOpacity={hasSubmittedRequest ? 0.7 : 1}
+              >
+                <View style={styles.buttonContent}>
+                  <FontAwesome
+                    name="whatsapp"
+                    size={18}
+                    color={hasSubmittedRequest ? "#ffffff" : "#9CA3AF"}
+                  />
+                  <Text style={[styles.whatsappBannerButtonText, { color: hasSubmittedRequest ? '#ffffff' : '#9CA3AF' }]}>
+                    {t('instructor.contactSupportWhatsapp') || 'WhatsApp ile Hızlandır'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Earnings Card */}
         <View style={[styles.section, styles.earningsSection]}>
           <View style={[styles.earningsCard, { backgroundColor: palette.card }]}>
@@ -192,12 +453,12 @@ export const InstructorHomeScreen: React.FC = () => {
               </View>
               <View style={styles.earningsRow}>
                 <View style={styles.earningsAmountContainer}>
-                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings, user?.currency || 'USD')}</Text>
+                  <Text style={[styles.earningsAmount, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{formatPrice(stats.thisMonthEarnings, user?.currency)}</Text>
                   <Text style={[styles.earningsTotal, { color: palette.text.primary }]}>
-                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency || 'USD')}
+                    {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency)}
                   </Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.detailsButton}
                   onPress={() => (navigation as any).navigate('EarningsDetails')}
                 >
@@ -209,19 +470,36 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
 
         {/* Stats Cards */}
+        {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
-          </Card>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
-          </Card>
-          <Card style={[styles.statCard, { backgroundColor: palette.card }]}>
-            <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
-            <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
-          </Card>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={0.7}
+            onPress={() => (navigation as any).navigate('Lessons', { initialTab: 'active' })}
+          >
+            <Card style={[styles.statCard, { backgroundColor: palette.card, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.activeLessons')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.activeLessons}</Text>
+            </Card>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={0.7}
+            onPress={() => (navigation as any).navigate('InstructorStudents')}
+          >
+            <Card style={[styles.statCard, { backgroundColor: palette.card, borderColor: colors.instructor.primary + '30', borderWidth: 1, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.totalStudents')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.totalStudents}</Text>
+            </Card>
+          </TouchableOpacity>
+
+          <View style={{ flex: 1 }}>
+            <Card style={[styles.statCard, { backgroundColor: palette.card, minWidth: 0 }]}>
+              <Text style={[styles.statLabel, { color: palette.text.primary }]}>{t('instructorHome.rating')}</Text>
+              <Text style={[styles.statValue, { color: isDarkMode ? '#E0E0E0' : colors.instructor.primary }]}>{stats.avgRating}</Text>
+            </Card>
+          </View>
         </View>
 
         {/* Upcoming Lessons */}
@@ -238,44 +516,51 @@ export const InstructorHomeScreen: React.FC = () => {
               style={styles.upcomingScrollView}
               contentContainerStyle={styles.upcomingContent}
             >
-              {upcomingBookings.map((booking) => {
-                const lesson = MockDataService.getLessonById(booking.lessonId);
-                const student = MockDataService.getUserById(booking.studentId);
+              {upcomingBookings.map((booking: any) => {
+                const lesson = instructorLessons.find(l => l.id === booking.lessonId);
                 if (!lesson) return null;
 
                 return (
-                  <View 
-                    key={booking.id} 
-                    style={[
-                      styles.upcomingCard, 
-                      { 
-                        backgroundColor: palette.card,
-                        borderWidth: 2,
-                        borderColor: isDarkMode ? palette.border : '#E5E7EB',
-                      }
-                    ]}
+                  <TouchableOpacity
+                    key={booking.id}
+                    style={[styles.upcomingCard, { backgroundColor: palette.card }]}
+                    onPress={() => {
+                      (navigation as any).navigate('LessonDetail', {
+                        lessonId: lesson.id,
+                        bookingId: booking.id,
+                        isInstructor: true
+                      });
+                    }}
                   >
-                    {lesson.imageUrl ? (
+                    {lesson.imageUrl && (
                       <Image
                         source={getLessonImageSource(lesson.imageUrl)}
                         style={styles.upcomingImage}
                         resizeMode="cover"
-                        onError={(error) => {
-                          console.log('Image load error:', error);
-                        }}
                       />
-                    ) : (
-                      <View style={[styles.upcomingImage, { backgroundColor: palette.border, justifyContent: 'center', alignItems: 'center' }]}>
-                        <MaterialIcons name="image" size={32} color={palette.text.secondary} />
-                      </View>
                     )}
                     <View style={styles.upcomingInfo}>
-                      <Text style={[styles.upcomingTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
-                      <Text style={[styles.upcomingDetails, { color: palette.text.secondary }]}>
-                        {formatDate(booking.date)}, {formatTime(booking.time)} - {student?.name || t('instructorHome.student')}
+                      <Text style={[styles.upcomingTitle, { color: palette.text.primary }]} numberOfLines={1}>
+                        {lesson.title}
                       </Text>
+                      <Text style={[styles.upcomingStudent, { color: palette.text.secondary }]} numberOfLines={1}>
+                        {booking.isRecurring
+                          ? t('instructorHome.recurringLesson')
+                          : (booking.studentName || t('instructorHome.student'))
+                        }
+                      </Text>
+                      <View style={styles.upcomingDateTime}>
+                        <MaterialIcons name="event" size={14} color={palette.text.secondary} />
+                        <Text style={[styles.upcomingDateText, { color: palette.text.secondary }]}>
+                          {formatDate(booking.date)}
+                        </Text>
+                        <MaterialIcons name="access-time" size={14} color={palette.text.secondary} style={{ marginLeft: 8 }} />
+                        <Text style={[styles.upcomingTimeText, { color: palette.text.secondary }]}>
+                          {formatTime(booking.time)}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>
@@ -292,18 +577,18 @@ export const InstructorHomeScreen: React.FC = () => {
           ) : (
             <View style={styles.activeLessonsList}>
               {activeLessons.map((lesson) => {
-                const lessonBookings = instructorBookings.filter(b => b.lessonId === lesson.id);
-                const enrolledCount = lessonBookings.length;
-                const maxStudents = 12; // Mock max students
+                const activeLessonBookings = instructorBookings.filter((b: any) => b.lessonId === lesson.id && b.status !== 'cancelled');
+                const enrolledCount = (lesson as any)?.participantStats?.total ?? activeLessonBookings.length;
+                const maxStudents = (lesson as any).capacity || 12;
 
                 return (
                   <TouchableOpacity
                     key={lesson.id}
                     style={[styles.activeLessonCard, { backgroundColor: palette.card }]}
                     onPress={() => {
-                      (navigation as any).navigate('LessonDetail', { 
+                      (navigation as any).navigate('LessonDetail', {
                         lessonId: lesson.id,
-                        isInstructor: true 
+                        isInstructor: true
                       });
                     }}
                   >
@@ -334,27 +619,9 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Bottom spacing for FAB */}
         <View style={{ height: 20 }} />
-      </ScrollView>
+      </ScrollView >
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => {
-          (navigation as any).navigate('CreateLesson');
-        }}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={[colors.instructor.secondary, colors.instructor.secondary]}
-          style={styles.fabGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <MaterialIcons name="add" size={28} color="#ffffff" />
-          <Text style={styles.fabText}>{t('instructorHome.createNewLesson')}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+    </View >
   );
 };
 
@@ -368,6 +635,76 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
+  },
+  verificationBanner: {
+    margin: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    ...shadows.md,
+    elevation: 4,
+  },
+  verificationBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verificationBannerTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    flex: 1,
+  },
+  verificationBannerText: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
+  },
+  bannerActions: {
+    gap: spacing.sm,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  onboardingButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  verificationButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  whatsappBannerButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    ...shadows.sm,
+  },
+  verificationButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
+  },
+  whatsappBannerButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.bold,
   },
   earningsSection: {
     marginTop: spacing.md,
@@ -449,27 +786,29 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
-    flexWrap: 'wrap',
   },
   statCard: {
-    flex: 1,
-    minWidth: 158,
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: spacing.sm,
+    gap: 4,
     marginBottom: 0,
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 80,
   },
   statLabel: {
-    fontSize: typography.fontSize.base,
+    fontSize: 12,
     fontWeight: typography.fontWeight.medium,
+    textAlign: 'center',
+    height: 36, // İki satıra izin verir ama kartı bozmaz
   },
   statValue: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: typography.fontWeight.bold,
-    letterSpacing: -0.5,
+    textAlign: 'center',
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: 22,
@@ -507,6 +846,24 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
   },
+  upcomingStudent: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  upcomingDateTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.xs,
+  },
+  upcomingDateText: {
+    fontSize: typography.fontSize.xs,
+    marginLeft: 4,
+  },
+  upcomingTimeText: {
+    fontSize: typography.fontSize.xs,
+    marginLeft: 4,
+  },
   activeLessonsList: {
     gap: spacing.sm,
   },
@@ -540,7 +897,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.md,
     zIndex: 20,
-    bottom: 10 ,
+    bottom: 10,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     ...shadows.lg,
@@ -565,5 +922,53 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: typography.fontSize.base,
+  },
+  pendingBanner: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1.5,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  pendingBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: 4,
+  },
+  pendingIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingBannerTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    flex: 1,
+  },
+  pendingBannerDesc: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: 20,
+    marginLeft: 34 + spacing.sm,
+  },
+  changeSchoolBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    marginLeft: 34 + spacing.sm,
+    marginTop: 4,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: '#F59E0B15',
+    borderRadius: borderRadius.full,
+  },
+  changeSchoolText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    color: '#F59E0B',
   },
 });

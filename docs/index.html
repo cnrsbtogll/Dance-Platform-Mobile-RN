@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,10 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 </head>
+
 <body>
     <div class="container">
         <nav class="sidebar" id="sidebar">
@@ -39,7 +42,9 @@
         <main class="content">
             <section id="introduction">
                 <h1>Introduction</h1>
-                <p>Dancer Community is a comprehensive mobile application that connects dance students with professional instructors. Built with React Native, TypeScript, and Expo, it provides a seamless experience for both students and instructors.</p>
+                <p>Dancer Community is a comprehensive mobile application that connects dance students with professional
+                    instructors. Built with React Native, TypeScript, and Expo, it provides a seamless experience for
+                    both students and instructors.</p>
 
                 <h2>Project Overview</h2>
                 <p>The application supports multiple dance styles including:</p>
@@ -116,7 +121,8 @@ cd ..</code></pre>
 
             <section id="branding">
                 <h1>Branding Your App</h1>
-                <p>Before diving into development, you should customize your app's branding elements. This includes the app name, logo, splash screen, and other visual assets.</p>
+                <p>Before diving into development, you should customize your app's branding elements. This includes the
+                    app name, logo, splash screen, and other visual assets.</p>
 
                 <h2>App Name</h2>
                 <p>To change your app name, you need to update the configuration in <code>app.config.js</code>:</p>
@@ -133,8 +139,11 @@ cd ..</code></pre>
 };</code></pre>
                     </li>
                 </ol>
-                <p><strong>Important:</strong> Update the <code>name</code> property inside the <code>codecanyon</code> brand object.</p>
-                <p><strong>Note:</strong> The app name will also appear in the About screen. You can customize it further in the translation files (<code>src/locales/tr.json</code> and <code>src/locales/en.json</code>) under the <code>about.appNameCodecanyon</code> key.</p>
+                <p><strong>Important:</strong> Update the <code>name</code> property inside the <code>codecanyon</code>
+                    brand object.</p>
+                <p><strong>Note:</strong> The app name will also appear in the About screen. You can customize it
+                    further in the translation files (<code>src/locales/tr.json</code> and
+                    <code>src/locales/en.json</code>) under the <code>about.appNameCodecanyon</code> key.</p>
 
                 <h2>App Icon</h2>
                 <p>To replace the app icon:</p>
@@ -143,7 +152,8 @@ cd ..</code></pre>
                         <ul>
                             <li><strong>iOS:</strong> 1024x1024px PNG (no transparency)</li>
                             <li><strong>Android:</strong> 1024x1024px PNG (no transparency)</li>
-                            <li><strong>Adaptive Icon (Android):</strong> 1024x1024px PNG with safe zone (foreground should be centered in 768x768px area)</li>
+                            <li><strong>Adaptive Icon (Android):</strong> 1024x1024px PNG with safe zone (foreground
+                                should be centered in 768x768px area)</li>
                         </ul>
                     </li>
                     <li>Replace the icon files in the <code>assets/</code> folder:
@@ -175,7 +185,8 @@ cd ..</code></pre>
                 <ol>
                     <li>Create your splash screen image:
                         <ul>
-                            <li><strong>Recommended size:</strong> 1242x2436px (iPhone X and newer) or 2048x2732px (iPad)</li>
+                            <li><strong>Recommended size:</strong> 1242x2436px (iPhone X and newer) or 2048x2732px
+                                (iPad)</li>
                             <li><strong>Format:</strong> PNG with transparency support</li>
                             <li><strong>Content:</strong> Your logo or app branding centered on the screen</li>
                         </ul>
@@ -200,9 +211,11 @@ splash: {
   backgroundColor: '#ffffff', // Change this to match your design
 }</code></pre>
                     </li>
-                    <li>Customize the background color in <code>app.config.js</code> to match your splash screen design</li>
+                    <li>Customize the background color in <code>app.config.js</code> to match your splash screen design
+                    </li>
                 </ol>
-                <p><strong>Note:</strong> The splash screen also appears in the About screen. Make sure your splash image is appropriate for both contexts.</p>
+                <p><strong>Note:</strong> The splash screen also appears in the About screen. Make sure your splash
+                    image is appropriate for both contexts.</p>
 
                 <h2>Favicon (Web)</h2>
                 <p>For web builds, you'll need a favicon:</p>
@@ -232,14 +245,16 @@ splash: {
   resizeMode="contain"
 /&gt;</code></pre>
                     </li>
-                    <li>If you want to use a different image for the About screen, replace the <code>require()</code> path with your custom logo file</li>
+                    <li>If you want to use a different image for the About screen, replace the <code>require()</code>
+                        path with your custom logo file</li>
                 </ol>
 
                 <h2>Lesson Images</h2>
                 <p>To customize lesson images displayed throughout the app:</p>
                 <ol>
                     <li>Add your lesson images to the <code>assets/lessons/</code> folder</li>
-                    <li>Update <code>src/screens/instructor/CreateLessonScreen.tsx</code> and <code>src/screens/instructor/EditLessonScreen.tsx</code>:
+                    <li>Update <code>src/screens/instructor/CreateLessonScreen.tsx</code> and
+                        <code>src/screens/instructor/EditLessonScreen.tsx</code>:
                         <pre><code class="language-typescript">// In CreateLessonScreen.tsx and EditLessonScreen.tsx
 const LESSON_IMAGES = [
   require('../../../assets/lessons/salsa-1.jpg'),
@@ -248,7 +263,8 @@ const LESSON_IMAGES = [
   // Add your custom lesson images here
 ];</code></pre>
                     </li>
-                    <li>Update the <code>imageUrl</code> values in <code>src/data/lessons.json</code> to match your image filenames</li>
+                    <li>Update the <code>imageUrl</code> values in <code>src/data/lessons.json</code> to match your
+                        image filenames</li>
                 </ol>
                 <p><strong>Recommended Image Specifications:</strong></p>
                 <ul>
@@ -262,7 +278,8 @@ const LESSON_IMAGES = [
                 <p>To change your app's bundle identifier (iOS) and package name (Android):</p>
                 <ol>
                     <li>Open <code>app.config.js</code></li>
-                    <li>Update the <code>bundleIdentifier</code> (iOS) and <code>package</code> (Android) for your brand:
+                    <li>Update the <code>bundleIdentifier</code> (iOS) and <code>package</code> (Android) for your
+                        brand:
                         <pre><code class="language-javascript">const brands = {
   codecanyon: {
     bundleIdentifier: 'com.yourcompany.yourapp', // iOS
@@ -271,7 +288,8 @@ const LESSON_IMAGES = [
   }
 };</code></pre>
                     </li>
-                    <li><strong>Important:</strong> Once you publish to app stores, you cannot change these identifiers. Choose them carefully!</li>
+                    <li><strong>Important:</strong> Once you publish to app stores, you cannot change these identifiers.
+                        Choose them carefully!</li>
                 </ol>
                 <p><strong>Naming Convention:</strong></p>
                 <ul>
@@ -310,8 +328,10 @@ const LESSON_IMAGES = [
                     <li>✅ Adaptive icon for Android (<code>assets/adaptive-icon.png</code>)</li>
                     <li>✅ Splash screen (<code>assets/splash.png</code>)</li>
                     <li>✅ Favicon for web (<code>assets/favicon.png</code>)</li>
-                    <li>✅ Bundle identifier and package name → Update <code>brands.codecanyon.bundleIdentifier</code> and <code>brands.codecanyon.package</code></li>
-                    <li>✅ App name in translation files → Update <code>about.appNameCodecanyon</code> in <code>src/locales/tr.json</code> and <code>src/locales/en.json</code></li>
+                    <li>✅ Bundle identifier and package name → Update <code>brands.codecanyon.bundleIdentifier</code>
+                        and <code>brands.codecanyon.package</code></li>
+                    <li>✅ App name in translation files → Update <code>about.appNameCodecanyon</code> in
+                        <code>src/locales/tr.json</code> and <code>src/locales/en.json</code></li>
                     <li>✅ Copyright text in translation files → Update <code>about.copyrightCodecanyon</code></li>
                     <li>✅ Lesson images (if customizing)</li>
                 </ul>
@@ -362,9 +382,11 @@ npm run android</code></pre>
                 <h2>Navigation Structure</h2>
                 <p>The app uses a nested navigation structure:</p>
                 <ul>
-                    <li><strong>RootNavigator:</strong> Top-level navigator switching between Student and Instructor modes</li>
+                    <li><strong>RootNavigator:</strong> Top-level navigator switching between Student and Instructor
+                        modes</li>
                     <li><strong>StudentNavigator:</strong> Stack navigator for student screens with bottom tabs</li>
-                    <li><strong>InstructorNavigator:</strong> Stack navigator for instructor screens with bottom tabs</li>
+                    <li><strong>InstructorNavigator:</strong> Stack navigator for instructor screens with bottom tabs
+                    </li>
                 </ul>
 
                 <h2>Data Flow</h2>
@@ -405,7 +427,7 @@ npm run android</code></pre>
                 <ol>
                     <li>Select a lesson from the home screen</li>
                     <li>View lesson details (LessonDetailScreen)</li>
-                    <li>Click "Derse Kaydol" (Register for Lesson)</li>
+                    <li>Click "Kurse Kaydol" (Register for Lesson)</li>
                     <li>If not logged in, redirect to LoginScreen</li>
                     <li>After login, navigate to PaymentScreen</li>
                     <li>Complete payment (currently mock)</li>
@@ -495,7 +517,8 @@ npm run android</code></pre>
             <section id="api-reference">
                 <h1>API Reference (Mock Data Service)</h1>
 
-                <p>The application uses a mock data service located in <code>src/services/mockDataService.ts</code>. This service provides methods to access and manipulate mock data.</p>
+                <p>The application uses a mock data service located in <code>src/services/mockDataService.ts</code>.
+                    This service provides methods to access and manipulate mock data.</p>
 
                 <h2>Service Methods</h2>
 
@@ -757,25 +780,32 @@ npx tsc --noEmit</code></pre>
                 <h1>Frequently Asked Questions</h1>
 
                 <h3>Q: How do I switch between student and instructor modes?</h3>
-                <p>A: Use the "Switch to Instructor Mode" button in the student profile, or "Switch to Student Mode" in the instructor profile.</p>
+                <p>A: Use the "Switch to Instructor Mode" button in the student profile, or "Switch to Student Mode" in
+                    the instructor profile.</p>
 
                 <h3>Q: Can I use real backend APIs instead of mock data?</h3>
-                <p>A: Yes, replace the <code>MockDataService</code> calls with actual API calls. The service layer is designed to be easily replaceable.</p>
+                <p>A: Yes, replace the <code>MockDataService</code> calls with actual API calls. The service layer is
+                    designed to be easily replaceable.</p>
 
                 <h3>Q: How do I add a new dance category?</h3>
-                <p>A: Add the category to the category filter chips in <code>StudentHomeScreen.tsx</code> and ensure lessons with that category exist in <code>lessons.json</code>.</p>
+                <p>A: Add the category to the category filter chips in <code>StudentHomeScreen.tsx</code> and ensure
+                    lessons with that category exist in <code>lessons.json</code>.</p>
 
                 <h3>Q: How do I change the app name and icon?</h3>
-                <p>A: Update <code>app.json</code> with your app name, and replace the icon files in the <code>assets/</code> folder.</p>
+                <p>A: Update <code>app.json</code> with your app name, and replace the icon files in the
+                    <code>assets/</code> folder.</p>
 
                 <h3>Q: Is Firebase integration included?</h3>
-                <p>A: Firebase integration is planned but not yet implemented. The structure is in place in <code>src/services/firebase/</code>.</p>
+                <p>A: Firebase integration is planned but not yet implemented. The structure is in place in
+                    <code>src/services/firebase/</code>.</p>
 
                 <h3>Q: How do I enable Stripe payments?</h3>
-                <p>A: The Stripe package is installed but not yet configured. You'll need to add your Stripe keys and implement the payment flow in <code>PaymentScreen.tsx</code>.</p>
+                <p>A: The Stripe package is installed but not yet configured. You'll need to add your Stripe keys and
+                    implement the payment flow in <code>PaymentScreen.tsx</code>.</p>
 
                 <h3>Q: Can I customize the color scheme?</h3>
-                <p>A: Yes, edit <code>src/utils/theme.ts</code> to modify colors for both student and instructor themes, including dark mode variants.</p>
+                <p>A: Yes, edit <code>src/utils/theme.ts</code> to modify colors for both student and instructor themes,
+                    including dark mode variants.</p>
             </section>
 
             <footer>
@@ -787,5 +817,5 @@ npx tsc --noEmit</code></pre>
 
     <script src="scripts.js"></script>
 </body>
-</html>
 
+</html>

@@ -1,297 +1,486 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  sendPasswordResetEmail,
+} from 'firebase/auth';
+import { auth } from '../../services/firebase/config';
+import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Card } from '../../components/common/Card';
 
+// ─── Toast helper ────────────────────────────────────────────────────────────
+type ToastType = 'success' | 'error' | 'info';
+
+interface ToastState {
+  visible: boolean;
+  message: string;
+  type: ToastType;
+}
+
+// ─── Firebase error → i18n key ────────────────────────────────────────────────
+const mapFirebaseError = (code: string, t: (key: string) => string): string => {
+  switch (code) {
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return t('changePassword.wrongCurrentPassword');
+    case 'auth/network-request-failed':
+      return t('changePassword.networkError');
+    case 'auth/too-many-requests':
+      return t('changePassword.tooManyRequests');
+    default:
+      return t('common.unknownError');
+  }
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export const ChangePasswordScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette(user?.role || 'student', isDarkMode);
 
+  // @ts-ignore
+  const mode = route.params?.mode || user?.role || 'student';
+  const palette = getPalette(mode, isDarkMode);
+
+  // ── Provider check ──────────────────────────────────────────────────────────
+  const firebaseUser = auth?.currentUser;
+  const providers = firebaseUser?.providerData.map((p) => p.providerId) ?? [];
+  const isEmailPasswordUser = providers.includes('password');
+  const isGoogleUser = providers.includes('google.com') && !isEmailPasswordUser;
+
+  // ── Form state ──────────────────────────────────────────────────────────────
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [isChanging, setIsChanging] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
+  // ── Toast state ─────────────────────────────────────────────────────────────
+  const [toast, setToast] = useState<ToastState>({ visible: false, message: '', type: 'info' });
+  const toastOpacity = React.useRef(new Animated.Value(0)).current;
+
+  const showToast = useCallback((message: string, type: ToastType) => {
+    setToast({ visible: true, message, type });
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.delay(2800),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setToast((prev) => ({ ...prev, visible: false })));
+  }, [toastOpacity]);
+
+  // ── Header ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     navigation.setOptions({
       headerTitle: t('profile.changePassword'),
       headerTintColor: palette.text.primary,
-      headerStyle: {
-        backgroundColor: palette.background,
-      },
-      headerTitleStyle: {
-        fontSize: typography.fontSize.lg,
-        fontWeight: typography.fontWeight.bold,
-        color: palette.text.primary,
-      },
+      headerStyle: { backgroundColor: palette.background },
+      headerTitleStyle: { fontWeight: 'bold' },
+      headerShadowVisible: false,
     });
-  }, [navigation, isDarkMode, palette, t, user?.role]);
+  }, [navigation, isDarkMode, palette, t]);
 
+  // ── Validation ──────────────────────────────────────────────────────────────
   const validateForm = (): boolean => {
-    if (!currentPassword) {
-      Alert.alert(t('common.error'), t('changePassword.enterCurrentPassword'));
-      return false;
-    }
-    if (!newPassword) {
-      Alert.alert(t('common.error'), t('changePassword.enterNewPassword'));
-      return false;
-    }
-    if (newPassword.length < 6) {
-      Alert.alert(t('common.error'), t('changePassword.passwordTooShort'));
-      return false;
-    }
-    if (newPassword !== confirmPassword) {
-      Alert.alert(t('common.error'), t('changePassword.passwordsDoNotMatch'));
-      return false;
-    }
-    if (currentPassword === newPassword) {
-      Alert.alert(t('common.error'), t('changePassword.samePassword'));
-      return false;
-    }
+    if (!currentPassword) { showToast(t('changePassword.enterCurrentPassword'), 'error'); return false; }
+    if (!newPassword) { showToast(t('changePassword.enterNewPassword'), 'error'); return false; }
+    if (newPassword.length < 6) { showToast(t('changePassword.passwordTooShort'), 'error'); return false; }
+    if (newPassword !== confirmPassword) { showToast(t('changePassword.passwordsDoNotMatch'), 'error'); return false; }
+    if (currentPassword === newPassword) { showToast(t('changePassword.samePassword'), 'error'); return false; }
     return true;
   };
 
-  const handleChangePassword = () => {
-    if (!validateForm()) return;
+  // ── Change Password ─────────────────────────────────────────────────────────
+  const handleChangePassword = async () => {
+    if (!validateForm() || !firebaseUser || !user?.email) return;
 
-    // In real app, this would call API to change password
-    Alert.alert(
-      t('common.success'),
-      t('changePassword.passwordChanged'),
-      [
-        {
-          text: t('common.ok'),
-          onPress: () => {
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-            navigation.goBack();
+    try {
+      setIsChanging(true);
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(firebaseUser, credential);
+      await updatePassword(firebaseUser, newPassword);
+
+      showToast(t('changePassword.passwordChanged'), 'success');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      setTimeout(() => navigation.goBack(), 1800);
+    } catch (err: any) {
+      showToast(mapFirebaseError(err?.code ?? '', t), 'error');
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
+  // ── Send Reset Email ────────────────────────────────────────────────────────
+  const handleSendResetEmail = async () => {
+    if (!user?.email || !auth) return;
+
+    try {
+      setIsSendingReset(true);
+      await sendPasswordResetEmail(auth, user.email);
+      showToast(t('changePassword.resetMailSent'), 'success');
+    } catch (err: any) {
+      showToast(t('changePassword.resetMailError'), 'error');
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
+  // ── Derived ─────────────────────────────────────────────────────────────────
+  const isMinLength = newPassword.length >= 6;
+  const hasNumber = /\d/.test(newPassword);
+  const successColor = '#10B981';
+  const canSubmit = !isChanging && currentPassword.length > 0 && newPassword.length >= 6 && confirmPassword.length > 0;
+
+  // ── Input renderer ──────────────────────────────────────────────────────────
+  const renderInput = (
+    label: string,
+    value: string,
+    setValue: (v: string) => void,
+    showPass: boolean,
+    setShowPass: (v: boolean) => void,
+    inputKey: string,
+  ) => {
+    const isFocused = focusedInput === inputKey;
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: palette.text.secondary }]}>{label}</Text>
+        <View style={[
+          styles.inputWrapper,
+          {
+            backgroundColor: palette.card,
+            borderColor: isFocused ? palette.primary : palette.border,
+            borderWidth: isFocused ? 1.5 : 1,
           },
-        },
-      ]
+        ]}>
+          <MaterialIcons
+            name="lock-outline"
+            size={20}
+            color={isFocused ? palette.primary : palette.text.secondary}
+            style={styles.inputIcon}
+          />
+          <TextInput
+            style={[styles.input, { color: palette.text.primary }]}
+            value={value}
+            onChangeText={setValue}
+            secureTextEntry={!showPass}
+            placeholderTextColor={palette.text.secondary + '80'}
+            onFocus={() => setFocusedInput(inputKey)}
+            onBlur={() => setFocusedInput(null)}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeIcon}>
+            <MaterialIcons
+              name={showPass ? 'visibility' : 'visibility-off'}
+              size={20}
+              color={palette.text.secondary}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   };
 
+  // ─── Toast color ─────────────────────────────────────────────────────────────
+  const toastBg = toast.type === 'success' ? '#10B981' : toast.type === 'error' ? '#EF4444' : '#3B82F6';
+
+  // ─── UI ───────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
-            {t('changePassword.title')}
-          </Text>
-          <Text style={[styles.sectionDescription, { color: palette.text.secondary }]}>
-            {t('changePassword.description')}
-          </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['bottom']}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          <Card style={[styles.formCard, { backgroundColor: palette.card }]}>
-            {/* Current Password */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: palette.text.secondary }]}>
-                {t('changePassword.currentPassword')}
-              </Text>
-              <View style={styles.passwordInputContainer}>
-                <TextInput
-                  style={[styles.passwordInput, { borderColor: palette.border, backgroundColor: palette.background, color: palette.text.primary }]}
-                  placeholder={t('changePassword.currentPasswordPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={currentPassword}
-                  onChangeText={setCurrentPassword}
-                  secureTextEntry={!showCurrentPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                >
-                  <MaterialIcons
-                    name={showCurrentPassword ? 'visibility' : 'visibility-off'}
-                    size={20}
-                    color={palette.text.secondary}
-                  />
-                </TouchableOpacity>
-              </View>
+          {/* ── Header icon ── */}
+          <View style={styles.headerSection}>
+            <View style={[styles.iconCircle, { backgroundColor: palette.primary + '15' }]}>
+              <MaterialIcons name="security" size={32} color={palette.primary} />
             </View>
-
-            {/* New Password */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: palette.text.secondary }]}>
-                {t('changePassword.newPassword')}
-              </Text>
-              <View style={styles.passwordInputContainer}>
-                <TextInput
-                  style={[styles.passwordInput, { borderColor: palette.border, backgroundColor: palette.background, color: palette.text.primary }]}
-                  placeholder={t('changePassword.newPasswordPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  secureTextEntry={!showNewPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowNewPassword(!showNewPassword)}
-                >
-                  <MaterialIcons
-                    name={showNewPassword ? 'visibility' : 'visibility-off'}
-                    size={20}
-                    color={palette.text.secondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Confirm Password */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: palette.text.secondary }]}>
-                {t('changePassword.confirmPassword')}
-              </Text>
-              <View style={styles.passwordInputContainer}>
-                <TextInput
-                  style={[styles.passwordInput, { borderColor: palette.border, backgroundColor: palette.background, color: palette.text.primary }]}
-                  placeholder={t('changePassword.confirmPasswordPlaceholder')}
-                  placeholderTextColor={palette.text.secondary}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  style={styles.eyeButton}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  <MaterialIcons
-                    name={showConfirmPassword ? 'visibility' : 'visibility-off'}
-                    size={20}
-                    color={palette.text.secondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Password Requirements */}
-            <View style={[styles.requirementsContainer, { backgroundColor: palette.background }]}>
-              <Text style={[styles.requirementsTitle, { color: palette.text.secondary }]}>
-                {t('changePassword.requirements')}
-              </Text>
-              <Text style={[styles.requirementItem, { color: palette.text.secondary }]}>
-                • {t('changePassword.minLength')}
-              </Text>
-              <Text style={[styles.requirementItem, { color: palette.text.secondary }]}>
-                • {t('changePassword.includeNumbers')}
-              </Text>
-            </View>
-          </Card>
-
-          {/* Change Password Button */}
-          <TouchableOpacity
-            style={[styles.changeButton, { backgroundColor: colors.student.primary }]}
-            onPress={handleChangePassword}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.changeButtonText}>
-              {t('changePassword.changePassword')}
+            <Text style={[styles.title, { color: palette.text.primary }]}>
+              {t('changePassword.title')}
             </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <Text style={[styles.subtitle, { color: palette.text.secondary }]}>
+              {t('changePassword.description')}
+            </Text>
+          </View>
+
+          {/* ── Google user info ── */}
+          {isGoogleUser ? (
+            <View style={[styles.googleBanner, {
+              backgroundColor: isDarkMode ? '#1E293B' : '#F0F9FF',
+              borderColor: isDarkMode ? '#334155' : '#BAE6FD',
+            }]}>
+              <View style={styles.googleBannerHeader}>
+                <MaterialIcons name="info-outline" size={22} color="#0EA5E9" />
+                <Text style={[styles.googleBannerTitle, { color: palette.text.primary }]}>
+                  {t('changePassword.googleUserTitle')}
+                </Text>
+              </View>
+              <Text style={[styles.googleBannerDesc, { color: palette.text.secondary }]}>
+                {t('changePassword.googleUserDesc')}
+              </Text>
+            </View>
+          ) : (
+            /* ── Email/password form ── */
+            <View style={styles.formSection}>
+              {renderInput(t('changePassword.currentPassword'), currentPassword, setCurrentPassword, showCurrent, setShowCurrent, 'current')}
+              {renderInput(t('changePassword.newPassword'), newPassword, setNewPassword, showNew, setShowNew, 'new')}
+
+              {/* Requirements */}
+              <View style={styles.requirements}>
+                <View style={styles.reqItem}>
+                  <MaterialIcons
+                    name={isMinLength ? 'check-circle' : 'radio-button-unchecked'}
+                    size={16}
+                    color={isMinLength ? successColor : palette.text.secondary}
+                  />
+                  <Text style={[styles.reqText, { color: isMinLength ? palette.text.primary : palette.text.secondary }]}>
+                    {t('changePassword.minLength')}
+                  </Text>
+                </View>
+                <View style={styles.reqItem}>
+                  <MaterialIcons
+                    name={hasNumber ? 'check-circle' : 'radio-button-unchecked'}
+                    size={16}
+                    color={hasNumber ? successColor : palette.text.secondary}
+                  />
+                  <Text style={[styles.reqText, { color: hasNumber ? palette.text.primary : palette.text.secondary }]}>
+                    {t('changePassword.includeNumbers')}
+                  </Text>
+                </View>
+              </View>
+
+              {renderInput(t('changePassword.confirmPassword'), confirmPassword, setConfirmPassword, showConfirm, setShowConfirm, 'confirm')}
+            </View>
+          )}
+
+          {/* ── Reset mail section (shown for all) ── */}
+          <View style={[styles.resetSection, {
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+            borderColor: palette.border,
+          }]}>
+            <View style={styles.resetSectionHeader}>
+              <MaterialIcons name="mail-outline" size={20} color={palette.text.secondary} />
+              <Text style={[styles.resetSectionTitle, { color: palette.text.primary }]}>
+                {t('changePassword.resetMailSection')}
+              </Text>
+            </View>
+            <Text style={[styles.resetSectionDesc, { color: palette.text.secondary }]}>
+              {isGoogleUser
+                ? t('changePassword.googleUserResetDesc')
+                : t('changePassword.resetMailDesc')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.resetBtn, { borderColor: palette.primary }]}
+              onPress={handleSendResetEmail}
+              disabled={isSendingReset}
+            >
+              {isSendingReset ? (
+                <ActivityIndicator size="small" color={palette.primary} />
+              ) : (
+                <>
+                  <MaterialIcons name="send" size={16} color={palette.primary} />
+                  <Text style={[styles.resetBtnText, { color: palette.primary }]}>
+                    {t('changePassword.sendResetMail')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+        </ScrollView>
+
+        {/* ── Submit button (hidden for Google users) ── */}
+        {!isGoogleUser && (
+          <View style={[styles.footer, { borderTopColor: palette.border }]}>
+            <TouchableOpacity
+              style={[styles.button, {
+                backgroundColor: palette.primary,
+                opacity: canSubmit ? 1 : 0.6,
+              }]}
+              onPress={handleChangePassword}
+              disabled={!canSubmit}
+            >
+              {isChanging ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>{t('changePassword.changePassword')}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+
+      {/* ── Inline Toast ── */}
+      {toast.visible && (
+        <Animated.View style={[styles.toast, { backgroundColor: toastBg, opacity: toastOpacity }]}>
+          <MaterialIcons
+            name={toast.type === 'success' ? 'check-circle' : toast.type === 'error' ? 'error-outline' : 'info-outline'}
+            size={18}
+            color="#fff"
+          />
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    padding: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    marginBottom: spacing.sm,
-    letterSpacing: -0.015,
-  },
-  sectionDescription: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.normal,
-    marginBottom: spacing.lg,
-    lineHeight: 20,
-  },
-  formCard: {
-    marginBottom: spacing.lg,
-  },
-  inputGroup: {
+  container: { flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  headerSection: { alignItems: 'center', marginBottom: spacing.xl },
+  iconCircle: {
+    width: 64, height: 64, borderRadius: 32,
+    alignItems: 'center', justifyContent: 'center',
     marginBottom: spacing.md,
   },
-  label: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
+  title: {
+    fontSize: typography.fontSize.xl,
+    fontWeight: 'bold',
     marginBottom: spacing.xs,
   },
-  passwordInputContainer: {
-    position: 'relative',
+  subtitle: {
+    fontSize: typography.fontSize.sm,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
   },
-  passwordInput: {
-    width: '100%',
+  // Google banner
+  googleBanner: {
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingRight: 48,
-    paddingVertical: spacing.sm,
-    fontSize: typography.fontSize.base,
-    ...shadows.sm,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: spacing.sm,
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    padding: spacing.xs,
-  },
-  requirementsContainer: {
-    marginTop: spacing.md,
     padding: spacing.md,
-    borderRadius: borderRadius.md,
-    gap: spacing.xs,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
   },
-  requirementsTitle: {
+  googleBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  googleBannerTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: '700',
+  },
+  googleBannerDesc: {
     fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    marginBottom: spacing.xs,
+    lineHeight: 20,
   },
-  requirementItem: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.normal,
+  // Form
+  formSection: { gap: spacing.md, marginBottom: spacing.lg },
+  inputContainer: { gap: spacing.xs },
+  label: { fontSize: typography.fontSize.sm, fontWeight: '600', marginLeft: 4 },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    height: 50,
   },
-  changeButton: {
-    width: '100%',
-    borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
+  inputIcon: { marginRight: spacing.sm },
+  input: { flex: 1, fontSize: typography.fontSize.base, height: '100%' },
+  eyeIcon: { padding: spacing.xs },
+  requirements: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    marginVertical: spacing.xs,
+    paddingHorizontal: 4,
+  },
+  reqItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  reqText: { fontSize: typography.fontSize.xs },
+  // Reset section
+  resetSection: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  resetSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  resetSectionTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: '700',
+  },
+  resetSectionDesc: {
+    fontSize: typography.fontSize.sm,
+    lineHeight: 20,
+  },
+  resetBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.lg,
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
   },
-  changeButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.bold,
-    color: '#ffffff',
+  resetBtnText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: '700',
+  },
+  // Footer
+  footer: { padding: spacing.lg, borderTopWidth: 1 },
+  button: {
+    height: 50,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonText: { color: '#fff', fontSize: typography.fontSize.base, fontWeight: 'bold' },
+  // Toast
+  toast: {
+    position: 'absolute',
+    bottom: 90,
+    left: spacing.lg,
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  toastText: {
+    color: '#fff',
+    fontSize: typography.fontSize.sm,
+    fontWeight: '600',
+    flex: 1,
   },
 });
-

@@ -10,6 +10,7 @@ import { MockDataService } from '../../services/mockDataService';
 import { useBookingStore } from '../../store/useBookingStore';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
+import { useLessonStore } from '../../store/useLessonStore';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { paymentService } from '../../services/backendService';
 import { appConfig } from '../../config/appConfig';
@@ -22,13 +23,15 @@ export const PaymentScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
-  
+
   const { createBooking } = useBookingStore();
-  
+  const { lessons } = useLessonStore();
+
   const lessonId = params?.lessonId;
-  const lesson = lessonId ? MockDataService.getLessonById(lessonId) : null;
+  const lesson = lessonId ? lessons.find(l => l.id === lessonId) : null;
+
   const instructor = lesson ? MockDataService.getInstructorForLesson(lesson.id) : null;
-  
+
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer'>('card');
   const [cardNumber, setCardNumber] = useState('');
   const [cardholderName, setCardholderName] = useState('');
@@ -103,8 +106,8 @@ export const PaymentScreen: React.FC = () => {
 
       if (paymentResult.success) {
         // Create booking
-        const booking = createBooking(lesson.id, params.date, params.time, lesson.price);
-        
+        const booking = await createBooking(lesson.id, params.date, params.time, lesson.price);
+
         // Navigate back or to success screen
         navigation.goBack();
       } else {
@@ -135,8 +138,8 @@ export const PaymentScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
@@ -166,11 +169,11 @@ export const PaymentScreen: React.FC = () => {
           <Card style={styles.paymentDetailsCard}>
             <View style={[styles.paymentRow, { borderBottomColor: palette.border }]}>
               <Text style={[styles.paymentLabel, { color: palette.text.secondary }]}>{t('payment.lessonFee')}</Text>
-              <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price, instructor?.currency || 'USD')}</Text>
+              <Text style={[styles.paymentValue, { color: palette.text.primary }]}>{formatPrice(lesson.price)}</Text>
             </View>
             <View style={[styles.paymentRow, styles.paymentRowTotal]}>
               <Text style={[styles.paymentLabelTotal, { color: palette.text.primary }]}>{t('payment.totalAmount')}</Text>
-              <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount, instructor?.currency || 'USD')}</Text>
+              <Text style={[styles.paymentValueTotal, { color: palette.text.primary }]}>{formatPrice(totalAmount)}</Text>
             </View>
           </Card>
         </View>
@@ -182,7 +185,7 @@ export const PaymentScreen: React.FC = () => {
               <View style={styles.paymentMethodContent}>
                 <View style={styles.paymentMethodLeft}>
                   <View style={styles.cardBrandIcon}>
-                    <MaterialIcons name="credit-card" size={24} color={colors.student.primary} />
+                    <MaterialIcons name="credit-card" size={24} color={palette.primary} />
                   </View>
                   <Text style={[styles.savedCardText, { color: palette.text.primary }]}>
                     {savedCard.brand} **** {savedCard.last4}
@@ -257,7 +260,7 @@ export const PaymentScreen: React.FC = () => {
                 <Switch
                   value={saveCard}
                   onValueChange={setSaveCard}
-                  trackColor={{ false: palette.border, true: colors.student.primary }}
+                  trackColor={{ false: palette.border, true: palette.primary }}
                   thumbColor="#ffffff"
                 />
                 <Text style={[styles.saveCardText, { color: palette.text.primary }]}>
@@ -266,7 +269,7 @@ export const PaymentScreen: React.FC = () => {
               </View>
 
               {/* Use Saved Card Option */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.useSavedCardButton}
                 onPress={() => setUseSavedCard(true)}
               >
@@ -293,7 +296,7 @@ export const PaymentScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={styles.payButtonText}>
-            {formatPrice(totalAmount, instructor?.currency || 'USD')} {t('payment.pay')}
+            {formatPrice(totalAmount)} {t('payment.pay')}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>

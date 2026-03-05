@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Lesson, Review } from '../types';
 import { MockDataService } from '../services/mockDataService';
+import { dataService } from '../services/backendService';
 
 interface LessonState {
   lessons: Lesson[];
@@ -15,15 +16,24 @@ interface LessonState {
   setSelectedCategory: (category: string | null) => void;
   getFilteredLessons: () => Lesson[];
   getLessonReviews: (lessonId: string) => Review[];
-  refreshLessons: () => void;
+  refreshLessons: () => Promise<void>;
+  updateLesson: (lessonId: string, updates: Partial<Lesson>) => void;
 }
 
 export const useLessonStore = create<LessonState>((set, get) => {
-  // Store'u başlatırken dersleri yükle
-  const initialLessons = MockDataService.getActiveLessons();
+  // Store'u başlatırken kursları yükle
+  // Async initialization
+  dataService.getLessons()
+    .then((lessons) => {
+      set({ lessons });
+    })
+    .catch((error) => {
+      console.error('[useLessonStore] Error fetching lessons during init:', error);
+      set({ lessons: [] });
+    });
   
   return {
-    lessons: initialLessons,
+    lessons: [], // Initial state empty until loaded
     selectedLesson: null,
     favoriteLessons: [],
     searchQuery: '',
@@ -54,8 +64,11 @@ export const useLessonStore = create<LessonState>((set, get) => {
     }
     
     if (searchQuery) {
-      filtered = MockDataService.searchLessons(searchQuery).filter(lesson =>
-        filtered.some(l => l.id === lesson.id)
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(lesson => 
+        lesson.title.toLowerCase().includes(lowerQuery) ||
+        lesson.description.toLowerCase().includes(lowerQuery) ||
+        lesson.category.toLowerCase().includes(lowerQuery)
       );
     }
     
@@ -66,9 +79,25 @@ export const useLessonStore = create<LessonState>((set, get) => {
     return MockDataService.getReviewsByLesson(lessonId);
   },
   
-  refreshLessons: () => {
-    set({ lessons: MockDataService.getActiveLessons() });
+  refreshLessons: async () => {
+    try {
+      const lessons = await dataService.getLessons();
+      set({ lessons });
+    } catch (error) {
+      console.error('[useLessonStore] Error refreshing lessons:', error);
+    }
   },
+
+  updateLesson: (lessonId: string, updates: Partial<Lesson>) =>
+    set((state) => ({
+      lessons: state.lessons.map((lesson) =>
+        lesson.id === lessonId ? { ...lesson, ...updates } : lesson
+      ),
+      selectedLesson:
+        state.selectedLesson?.id === lessonId
+          ? { ...state.selectedLesson, ...updates }
+          : state.selectedLesson,
+    })),
   };
 });
 

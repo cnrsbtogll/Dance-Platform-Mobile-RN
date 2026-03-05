@@ -3,17 +3,19 @@
 export const colors = {
   // Student Home Page
   student: {
-    primary: '#005f73',
-    secondary: '#ee9b00',
+    primary: '#C7416C', // Deep Maroon (Bordo) - More dominant and premium
+    secondary: '#C7416C', // Warm Dusty Rose (Lighter, closer to pink)
+    accent: '#C7416C',
+    rating: '#FFB800', // Classic star yellow
     background: {
       light: '#F8F9FA',
       dark: '#101922',
     },
     text: {
-      primaryLight: '#343A40',
+      primaryLight: '#2D3436', // Slightly softer than black
       primaryDark: '#E9ECEF',
-      secondaryLight: '#617589',
-      secondaryDark: '#C8D0D8',
+      secondaryLight: '#636E72', // Softer grey for secondary text
+      secondaryDark: '#adb5bd',
     },
     card: {
       light: '#ffffff',
@@ -27,8 +29,8 @@ export const colors = {
   
   // Instructor Home Page
   instructor: {
-    primary: '#2C3E50',
-    secondary: '#1ABC9C',
+    primary: '#1ABC9C',
+    secondary: '#005f73',
     background: {
       light: '#F8F9FA',
       dark: '#101922',
@@ -37,7 +39,6 @@ export const colors = {
       lightPrimary: '#34495E',
       lightSecondary: '#617589',
       dark: '#E0E0E0',
-      darkSecondary: '#B8C5D1',
     },
     card: {
       light: '#FFFFFF',
@@ -46,6 +47,29 @@ export const colors = {
     border: {
       light: '#dbe0e6',
       dark: '#34495E',
+    },
+  },
+  
+  // School Home Page
+  school: {
+    primary: '#D97706', // Yellow-brown / Amber
+    secondary: '#92400E',
+    background: {
+      light: '#FFFBEB',
+      dark: '#101922',
+    },
+    text: {
+      lightPrimary: '#451A03',
+      lightSecondary: '#78350F',
+      dark: '#FEF3C7',
+    },
+    card: {
+      light: '#FFFFFF',
+      dark: '#1a2632',
+    },
+    border: {
+      light: '#FDE68A',
+      dark: '#78350F',
     },
   },
   
@@ -150,24 +174,30 @@ export const shadows = {
 };
 
 // Helper function to get theme based on user role
-export const getTheme = (role: 'student' | 'instructor' = 'student') => {
+export const getTheme = (role: 'student' | 'instructor' | 'school' = 'student') => {
+  if (role === 'school') return colors.school;
   return role === 'student' ? colors.student : colors.instructor;
 };
 
-export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
-  const base = role === 'student' ? colors.student : colors.instructor;
+export const getPalette = (role: 'student' | 'instructor' | 'school', dark: boolean) => {
+  const base = role === 'school' ? colors.school : (role === 'student' ? colors.student : colors.instructor);
   const background = dark ? base.background.dark : base.background.light;
   const card = dark ? base.card.dark : base.card.light;
   const border = dark ? base.border.dark : base.border.light;
   const text = role === 'student'
     ? {
         primary: dark ? colors.student.text.primaryDark : colors.student.text.primaryLight,
-        secondary: dark ? colors.student.text.secondaryDark : colors.student.text.secondaryLight,
+        secondary: dark ? '#CBD5E1' : colors.student.text.secondaryLight,
       }
-    : {
-        primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
-        secondary: dark ? colors.instructor.text.darkSecondary : colors.instructor.text.lightSecondary,
-      };
+    : role === 'school'
+      ? {
+          primary: dark ? colors.school.text.dark : colors.school.text.lightPrimary,
+          secondary: dark ? '#FDE68A' : colors.school.text.lightSecondary,
+        }
+      : {
+          primary: dark ? colors.instructor.text.dark : colors.instructor.text.lightPrimary,
+          secondary: dark ? '#CBD5E1' : colors.instructor.text.lightSecondary,
+        };
   return {
     primary: base.primary,
     secondary: base.secondary,
@@ -177,4 +207,3 @@ export const getPalette = (role: 'student' | 'instructor', dark: boolean) => {
     text,
   };
 };
-

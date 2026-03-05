@@ -1,13 +1,16 @@
 import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { MockDataService } from '../../services/mockDataService';
+import { useBookingStore } from '../../store/useBookingStore';
+import { FirestoreService } from '../../services/firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
+import { Lesson, Booking } from '../../types';
 import { formatPrice, formatDate, formatTime } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 
@@ -16,23 +19,49 @@ export const EarningsDetailsScreen: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
-  const palette = getPalette('instructor', isDarkMode);
+  const isSchool = user?.role === 'school' || user?.role === 'draft-school';
+  const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
+
+  const { getUserBookings, fetchUserBookings } = useBookingStore();
+  const [instructorLessons, setInstructorLessons] = React.useState<Lesson[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchLessons = async () => {
+        if (!user || (user.role !== 'instructor' && !isSchool)) return;
+        try {
+          const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+          setInstructorLessons(lessons);
+        } catch (error) {
+          console.error('Error fetching lessons', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchUserBookings();
+      fetchLessons();
+    }, [user])
+  );
 
   // Get instructor's bookings
   const instructorBookings = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return MockDataService.getBookingsByInstructor(user.id).sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
-      return dateB - dateA; // Most recent first
-    });
-  }, [user]);
+    if (!user || (user.role !== 'instructor' && !isSchool)) return [];
+    return getUserBookings()
+      .filter((b: any) => b.status !== 'cancelled')
+      .sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return dateB - dateA; // Most recent first
+      });
+  }, [user, getUserBookings]);
 
   // Calculate monthly earnings (last 6 months)
   const monthlyEarnings = useMemo(() => {
     const months: { [key: string]: number } = {};
     const now = new Date();
-    
+
     // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -41,11 +70,11 @@ export const EarningsDetailsScreen: React.FC = () => {
     }
 
     // Calculate earnings per month
-    instructorBookings.forEach(booking => {
+    instructorBookings.forEach((booking: any) => {
       const bookingDate = new Date(booking.date);
       const key = `${bookingDate.getFullYear()}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
       if (months.hasOwnProperty(key)) {
-        months[key] += booking.price;
+        months[key] += (booking.price || 0);
       }
     });
 
@@ -58,7 +87,7 @@ export const EarningsDetailsScreen: React.FC = () => {
 
   // Calculate total and average
   const totalEarnings = useMemo(() => {
-    return instructorBookings.reduce((sum, b) => sum + b.price, 0);
+    return instructorBookings.reduce((sum: number, b: any) => sum + (b.price || 0), 0);
   }, [instructorBookings]);
 
   const averageEarnings = useMemo(() => {
@@ -96,20 +125,15 @@ export const EarningsDetailsScreen: React.FC = () => {
     return monthNames[date.getMonth()];
   };
 
-  const getStudentName = (studentId: string): string => {
-    const student = MockDataService.getUserById(studentId);
-    return student?.name || t('studentHome.unknown');
-  };
-
   const getLessonTitle = (lessonId: string): string => {
-    const lesson = MockDataService.getLessonById(lessonId);
+    const lesson = instructorLessons.find(l => l.id === lessonId);
     return lesson?.title || t('earnings.unknownLesson');
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]} edges={['top']}>
-      <ScrollView 
-        style={[styles.scrollView, { backgroundColor: palette.background }]} 
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: palette.background }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Summary Cards */}
@@ -120,7 +144,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.totalEarnings')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(totalEarnings, user?.currency || 'USD')}
+                {formatPrice(totalEarnings, user?.currency)}
               </Text>
             </Card>
             <Card style={[styles.summaryCard, { backgroundColor: palette.card }]}>
@@ -128,7 +152,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                 {t('earnings.averageMonthly')}
               </Text>
               <Text style={[styles.summaryValue, { color: palette.text.primary }]}>
-                {formatPrice(averageEarnings, user?.currency || 'USD')}
+                {formatPrice(averageEarnings, user?.currency)}
               </Text>
             </Card>
           </View>
@@ -151,7 +175,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                           styles.chartBar,
                           {
                             height: `${barHeight}%`,
-                            backgroundColor: colors.instructor.secondary,
+                            backgroundColor: isSchool ? colors.school.primary : colors.instructor.secondary,
                           },
                         ]}
                       />
@@ -160,7 +184,7 @@ export const EarningsDetailsScreen: React.FC = () => {
                       {getMonthName(item.date).substring(0, 3)}
                     </Text>
                     <Text style={[styles.chartValueLabel, { color: palette.text.primary }]}>
-                      {formatPrice(item.earnings, user?.currency || 'USD')}
+                      {formatPrice(item.earnings, user?.currency)}
                     </Text>
                   </View>
                 );
@@ -182,27 +206,27 @@ export const EarningsDetailsScreen: React.FC = () => {
               </Text>
             </Card>
           ) : (
-            instructorBookings.map((booking) => {
-              const lesson = MockDataService.getLessonById(booking.lessonId);
-              const student = MockDataService.getUserById(booking.studentId);
-              
+            instructorBookings.map((booking: any) => {
+              const lessonTitle = getLessonTitle(booking.lessonId);
+              const studentName = booking.studentName || t('studentHome.unknown');
+
               return (
                 <Card key={booking.id} style={[styles.earningItem, { backgroundColor: palette.card }]}>
                   <View style={styles.earningItemContent}>
                     <View style={styles.earningItemLeft}>
-                      <View style={[styles.earningIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
+                      <View style={[styles.earningIconContainer, { backgroundColor: (isSchool ? colors.school.primary : colors.instructor.secondary) + '15' }]}>
                         <MaterialIcons
                           name="account-balance-wallet"
                           size={20}
-                          color={colors.instructor.secondary}
+                          color={isSchool ? colors.school.primary : colors.instructor.secondary}
                         />
                       </View>
                       <View style={styles.earningItemInfo}>
                         <Text style={[styles.earningLessonTitle, { color: palette.text.primary }]} numberOfLines={1}>
-                          {lesson?.title || t('earnings.unknownLesson')}
+                          {lessonTitle}
                         </Text>
                         <Text style={[styles.earningStudentName, { color: palette.text.secondary }]} numberOfLines={1}>
-                          {student?.name || t('studentHome.unknown')}
+                          {studentName}
                         </Text>
                         <Text style={[styles.earningDate, { color: palette.text.secondary }]}>
                           {formatDate(booking.date)} • {formatTime(booking.time)}
@@ -210,8 +234,8 @@ export const EarningsDetailsScreen: React.FC = () => {
                       </View>
                     </View>
                     <View style={styles.earningItemRight}>
-                      <Text style={[styles.earningAmount, { color: colors.instructor.primary }]}>
-                        {formatPrice(booking.price, user?.currency || 'USD')}
+                      <Text style={[styles.earningAmount, { color: isSchool ? colors.school.primary : colors.instructor.primary }]}>
+                        {formatPrice(booking.price, user?.currency)}
                       </Text>
                       <View style={[styles.earningStatusBadge, { backgroundColor: booking.paymentStatus === 'paid' ? '#10B981' + '20' : '#F59E0B' + '20' }]}>
                         <Text style={[styles.earningStatusText, { color: booking.paymentStatus === 'paid' ? '#10B981' : '#F59E0B' }]}>
@@ -226,7 +250,7 @@ export const EarningsDetailsScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

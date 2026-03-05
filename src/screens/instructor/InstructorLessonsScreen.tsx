@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -9,32 +9,64 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { MockDataService } from '../../services/mockDataService';
 import { Card } from '../../components/common/Card';
 import { Lesson } from '../../types';
+import { FirestoreService } from '../../services/firebase/firestore';
+import { NotificationBell } from '../../components/common/NotificationBell';
+import { VerificationGateModal } from '../../components/common/VerificationGateModal';
 
 type TabType = 'active' | 'past';
 
 export const InstructorLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<TabType>('active');
+  const params = (route.params as any);
+  const [activeTab, setActiveTab] = useState<TabType>(params?.initialTab ?? 'active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
+  const [gateVisible, setGateVisible] = useState(false);
 
-  const instructorLessons = useMemo(() => {
-    if (!user || user.role !== 'instructor') return [];
-    return MockDataService.getLessonsByInstructor(user.id);
-  }, [user]);
+  // State for lessons
+  const [instructorLessons, setInstructorLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get bookings for each lesson to calculate student count
+  // Fetch lessons from Firestore when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Sync tab with navigation params if provided
+      if (params?.initialTab) {
+        setActiveTab(params.initialTab);
+      }
+
+      const fetchLessons = async () => {
+        if (!user || (user.role !== 'instructor' && user.role !== 'draft-instructor')) {
+          setInstructorLessons([]);
+          setLoading(false);
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const lessons = await FirestoreService.getLessonsByInstructor(user.id);
+          setInstructorLessons(lessons);
+        } catch (error) {
+          console.error('Error fetching instructor lessons:', error);
+          setInstructorLessons([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchLessons();
+    }, [user])
+  );
+
+  // Lessons with stats (stats currently mocked/simplified until Firestore bookings/reviews are implemented)
   const lessonsWithStats = useMemo(() => {
     return instructorLessons.map(lesson => {
-      const bookings = MockDataService.getBookingsByLesson(lesson.id);
-      const reviews = MockDataService.getReviewsByLesson(lesson.id);
-      
-      const studentCount = new Set(bookings.map(b => b.studentId)).size;
-      const averageRating = reviews.length > 0
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
-        : 0;
+      // TODO: Implement Firestore service for bookings and reviews
+      const studentCount = lesson.currentParticipants || lesson.participantStats?.total || 0;
+      const averageRating = lesson.rating || 0;
 
       return {
         ...lesson,
@@ -45,11 +77,24 @@ export const InstructorLessonsScreen: React.FC = () => {
   }, [instructorLessons]);
 
   const activeLessons = useMemo(() => {
-    return lessonsWithStats.filter(lesson => lesson.isActive);
+    const today = new Date().toISOString().split('T')[0];
+    return lessonsWithStats.filter(lesson => {
+      // Must be active
+      if (!lesson.isActive) return false;
+      // If date exists, must be today or future
+      if (lesson.date && lesson.date < today) return false;
+      return true;
+    });
   }, [lessonsWithStats]);
 
   const pastLessons = useMemo(() => {
-    return lessonsWithStats.filter(lesson => !lesson.isActive);
+    const today = new Date().toISOString().split('T')[0];
+    return lessonsWithStats.filter(lesson => {
+      // Either explicitly inactive OR date is in past
+      if (!lesson.isActive) return true;
+      if (lesson.date && lesson.date < today) return true;
+      return false;
+    });
   }, [lessonsWithStats]);
 
   const displayedLessons = activeTab === 'active' ? activeLessons : pastLessons;
@@ -85,21 +130,29 @@ export const InstructorLessonsScreen: React.FC = () => {
         </View>
       ),
       headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: spacing.md }}
-          onPress={() => {
-            (navigation as any).navigate('CreateLesson');
-          }}
-        >
-          <MaterialIcons
-            name="add"
-            size={28}
-            color={palette.text.primary}
-          />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (user?.role !== 'instructor') {
+                setGateVisible(true);
+              } else {
+                (navigation as any).navigate('CreateLesson');
+              }
+            }}
+            style={{
+              padding: spacing.xs,
+              marginRight: -spacing.xs,
+            }}
+          >
+            <MaterialIcons name="add" size={26} color={palette.text.primary} />
+          </TouchableOpacity>
+          <NotificationBell role="instructor" />
+        </View>
       ),
     });
-  }, [navigation, isDarkMode, t]);
+  }, [navigation, isDarkMode, t, user?.role]);
+
+
 
   const handleEdit = (lesson: Lesson) => {
     (navigation as any).navigate('EditLesson', {
@@ -107,59 +160,114 @@ export const InstructorLessonsScreen: React.FC = () => {
     });
   };
 
-  const handleDelete = (lesson: Lesson) => {
-    // TODO: Implement delete functionality
-    console.log('Delete lesson:', lesson.id);
+  const handleToggleStatus = async (lesson: Lesson) => {
+    if (user?.role !== 'instructor') {
+      // Doğrulama kapısını aç
+      setGateVisible(true);
+      return;
+    }
+
+    try {
+      const newActiveState = !lesson.isActive;
+
+      // Optimistic update
+      setInstructorLessons(prev =>
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: newActiveState, status: newActiveState ? 'active' : 'inactive' } : l)
+      );
+
+      await FirestoreService.updateLesson(lesson.id, {
+        isActive: newActiveState,
+        status: newActiveState ? 'active' : 'inactive'
+      });
+    } catch (error) {
+      console.error('Error updating lesson status:', error);
+      // Revert optimization
+      setInstructorLessons(prev =>
+        prev.map(l => l.id === lesson.id ? { ...l, isActive: !lesson.isActive, status: !lesson.isActive ? 'active' : 'inactive' } : l)
+      );
+      Alert.alert(t('common.error'), 'Error updating status');
+    }
   };
 
   const renderLessonCard = (lesson: Lesson & { studentCount: number; averageRating: number }) => (
-    <Card key={lesson.id} style={styles.lessonCard}>
-      <View style={styles.lessonCardHeader}>
-        <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
-        <View style={styles.lessonActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleEdit(lesson)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleDelete(lesson)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <MaterialIcons name="delete" size={20} color={palette.text.secondary} />
-          </TouchableOpacity>
+    <TouchableOpacity
+      key={lesson.id}
+      onPress={() => (navigation as any).navigate('LessonDetail', { lessonId: lesson.id, isInstructor: true })}
+      activeOpacity={0.9}
+    >
+      <Card style={styles.lessonCard}>
+        <View style={styles.lessonCardHeader}>
+          <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
+          <View style={styles.lessonActions}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: lesson.isActive ? colors.general.warning : colors.general.success,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+              }}
+              onPress={() => handleToggleStatus(lesson)}
+            >
+              <Text style={{
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: '600'
+              }}>
+                {lesson.isActive ? t('lessons.deactivateLesson') : t('lessons.activateLesson')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleEdit(lesson)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons name="edit" size={20} color={palette.text.secondary} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.lessonStatus}>
-        <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
-        <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
-          {lesson.isActive ? t('lessons.active') : t('lessons.inactive')}
-        </Text>
-      </View>
-
-      <View style={styles.lessonStats}>
-        <View style={styles.statItem}>
-          <MaterialIcons name="people" size={18} color={palette.text.secondary} />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>
-            {lesson.studentCount} {t('lessons.registeredStudent')}
+        <View style={styles.lessonStatus}>
+          <View style={[styles.statusDot, { backgroundColor: palette.text.secondary }, lesson.isActive && styles.statusDotActive]} />
+          <Text style={[styles.statusText, { color: palette.text.secondary }, lesson.isActive && styles.statusTextActive]}>
+            {lesson.status === 'draft' ? (t('lessons.draft') || 'Taslak') : (lesson.isActive ? t('lessons.active') : t('lessons.inactive'))}
           </Text>
         </View>
-        <View style={styles.statItem}>
-          <MaterialIcons name="star" size={18} color="#FFB800" />
-          <Text style={[styles.statText, { color: palette.text.secondary }]}>
-            {lesson.averageRating.toFixed(1)} {t('lessons.averageRating')}
-          </Text>
+
+        <View style={styles.lessonStats}>
+          <View style={styles.statItem}>
+            <MaterialIcons name="people" size={18} color={palette.text.secondary} />
+            <Text style={[styles.statText, { color: palette.text.secondary }]}>
+              {lesson.studentCount} {t('lessons.registeredStudent')}
+            </Text>
+          </View>
+          <View style={styles.statItem}>
+            <MaterialIcons name="star" size={18} color="#FFB800" />
+            <Text style={[styles.statText, { color: palette.text.secondary }]}>
+              {lesson.averageRating.toFixed(1)} {t('lessons.averageRating')}
+            </Text>
+          </View>
         </View>
-      </View>
-    </Card>
+      </Card >
+    </TouchableOpacity >
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }] }>
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
+      {/* Verification Gate Modal */}
+      <VerificationGateModal
+        visible={gateVisible}
+        onClose={() => setGateVisible(false)}
+        onSchoolApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('SchoolSelection');
+        }}
+        onDocumentApproval={() => {
+          setGateVisible(false);
+          // @ts-ignore
+          navigation.navigate('Verification');
+        }}
+      />
       {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
@@ -177,7 +285,7 @@ export const InstructorLessonsScreen: React.FC = () => {
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, { color: palette.text.primary }, activeTab === 'past' && styles.tabTextActive]}>
-            {t('lessons.pastLessons')}
+            {t('lessons.inactiveLessons')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -196,7 +304,7 @@ export const InstructorLessonsScreen: React.FC = () => {
               color={palette.text.secondary}
             />
             <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
-              {activeTab === 'active' ? t('lessons.noActiveLessons') : t('lessons.noPastLessons')}
+              {activeTab === 'active' ? t('lessons.noActiveLessons') : t('lessons.noInactiveLessons')}
             </Text>
           </View>
         )}

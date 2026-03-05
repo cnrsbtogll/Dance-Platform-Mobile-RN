@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -11,17 +11,60 @@ import { MockDataService } from '../../services/mockDataService';
 import { formatDate, formatTime, getUpcomingBookings, getPastBookings } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { getLessonImageSource } from '../../utils/imageHelper';
+import { Lesson } from '../../types';
+import { FirestoreService } from '../../services/firebase/firestore';
 
 type TabType = 'active' | 'past';
+
 
 export const MyLessonsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { getUserBookings } = useBookingStore();
+  const { getUserBookings, fetchUserBookings } = useBookingStore();
   const bookings = getUserBookings();
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
+
+  const [lessonsMap, setLessonsMap] = useState<Record<string, Lesson>>({});
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserBookings('student');
+    }, [])
+  );
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      const newLessonsMap: Record<string, Lesson> = { ...lessonsMap };
+      let hasChanges = false;
+
+      for (const booking of bookings) {
+        if (!newLessonsMap[booking.lessonId]) {
+          // Check store first? No, direct fetch is safer for consistent details here or check LessonStore
+          let lesson = await FirestoreService.getLessonById(booking.lessonId);
+
+          // Fallback to mock for compatibility
+          if (!lesson) {
+            lesson = MockDataService.getLessonById(booking.lessonId) || null;
+          }
+
+          if (lesson) {
+            newLessonsMap[booking.lessonId] = lesson;
+            hasChanges = true;
+          }
+        }
+      }
+
+      if (hasChanges) {
+        setLessonsMap(newLessonsMap);
+      }
+    };
+
+    if (bookings.length > 0) {
+      fetchLessons();
+    }
+  }, [bookings]);
 
   const upcomingBookings = getUpcomingBookings(bookings);
   const pastBookings = getPastBookings(bookings);
@@ -49,15 +92,6 @@ export const MyLessonsScreen: React.FC = () => {
     return diffDays <= 3 && diffDays > 0;
   };
 
-  // Debug: Log bookings to see what's happening
-  useEffect(() => {
-    const user = useAuthStore.getState().user;
-    console.log('User:', user);
-    console.log('All bookings:', bookings);
-    console.log('Upcoming bookings:', upcomingBookings);
-    console.log('Past bookings:', pastBookings);
-  }, [bookings, upcomingBookings, pastBookings]);
-
   return (
     <View style={[styles.container, { backgroundColor: palette.background }]}>
       <ScrollView style={[styles.scrollView, { backgroundColor: palette.background }]} showsVerticalScrollIndicator={false}>
@@ -67,8 +101,9 @@ export const MyLessonsScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.segmentedButton,
-                activeTab === 'active' && styles.segmentedButtonActive
-              ]}
+                activeTab === 'active' && [styles.segmentedButtonActive, { backgroundColor: palette.primary }]
+              ]
+              }
               onPress={() => setActiveTab('active')}
             >
               <Text style={[
@@ -82,7 +117,7 @@ export const MyLessonsScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.segmentedButton,
-                activeTab === 'past' && styles.segmentedButtonActive
+                activeTab === 'past' && [styles.segmentedButtonActive, { backgroundColor: palette.primary }]
               ]}
               onPress={() => setActiveTab('past')}
             >
@@ -105,14 +140,18 @@ export const MyLessonsScreen: React.FC = () => {
               <Text style={[styles.emptyStateText, { color: palette.text.secondary }]}>
                 {t('lessons.discoverLessonsText')}
               </Text>
-              <TouchableOpacity style={styles.emptyStateButton}>
+              <TouchableOpacity
+                style={[styles.emptyStateButton, { backgroundColor: palette.primary }]}
+                onPress={() => (navigation as any).navigate('Home')}
+              >
                 <Text style={styles.emptyStateButtonText}>{t('lessons.discoverLessons')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
             displayBookings.map((booking) => {
-              const lesson = MockDataService.getLessonById(booking.lessonId);
-              const instructor = MockDataService.getInstructorForLesson(booking.lessonId);
+              const lesson = lessonsMap[booking.lessonId];
+              // const instructor = MockDataService.getInstructorForLesson(booking.lessonId); // Instructor fetch also needed if not in lesson
+              const instructorName = lesson?.instructorName || t('studentHome.unknown'); // Use lesson's instructorName
               const dayName = getDayName(booking.date);
               const isUpcomingSoon = isUpcoming(booking.date, booking.time);
 
@@ -143,23 +182,23 @@ export const MyLessonsScreen: React.FC = () => {
                         <View style={styles.lessonInfo}>
                           <Text style={[styles.lessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                           <Text style={[styles.lessonInstructor, { color: palette.text.secondary }]}>
-                            {t('lessons.instructor')}: {instructor?.name || t('studentHome.unknown')}
+                            {t('lessons.instructor')}: {instructorName}
                           </Text>
                           <Text style={[styles.lessonDateTime, { color: palette.text.secondary }]}>
                             {formatDate(booking.date)}, {dayName} - {formatTime(booking.time)}
                           </Text>
                           {isUpcomingSoon && activeTab === 'active' && (
-                            <View style={styles.upcomingBadge}>
-                              <Text style={styles.upcomingBadgeText}>{t('lessons.upcoming')}</Text>
+                            <View style={[styles.upcomingBadge, { backgroundColor: `${palette.secondary}33` }]}>
+                              <Text style={[styles.upcomingBadgeText, { color: palette.secondary }]}>{t('lessons.upcoming')}</Text>
                             </View>
                           )}
                         </View>
                       </View>
                       <View style={styles.lessonCardRight}>
-                        <MaterialIcons 
-                          name="chevron-right" 
-                          size={24} 
-                          color={palette.text.secondary} 
+                        <MaterialIcons
+                          name="chevron-right"
+                          size={24}
+                          color={palette.text.secondary}
                         />
                       </View>
                     </View>
@@ -199,7 +238,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   segmentedButtonActive: {
-    backgroundColor: '#4A90E2',
     ...shadows.sm,
   },
   segmentedButtonText: {
@@ -253,7 +291,6 @@ const styles = StyleSheet.create({
   },
   upcomingBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(245, 166, 35, 0.2)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.full,
@@ -262,7 +299,6 @@ const styles = StyleSheet.create({
   upcomingBadgeText: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.medium,
-    color: '#F5A623',
   },
   lessonCardRight: {
     width: 24,
@@ -290,7 +326,6 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   emptyStateButton: {
-    backgroundColor: '#4A90E2',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.full,
