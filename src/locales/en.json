@@ -37,7 +37,8 @@
     "pleaseFillRequiredFields": "Please fill in all required fields.",
     "firstName": "First Name",
     "lastName": "Last Name",
-    "email": "Email"
+    "email": "Email",
+    "phone": "Phone"
   },
   "auth": {
     "login": "Sign In",

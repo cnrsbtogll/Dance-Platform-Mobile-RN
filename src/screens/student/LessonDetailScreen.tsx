@@ -779,7 +779,14 @@ export const LessonDetailScreen: React.FC = () => {
                     data={enrolledStudents}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
-                      <View style={[styles.studentItem, { borderBottomColor: palette.border }]}>
+                      <TouchableOpacity
+                        style={[styles.studentItem, { borderBottomColor: palette.border }]}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setShowStudentsModal(false);
+                          (navigation as any).navigate('StudentDetail', { studentId: item.studentId });
+                        }}
+                      >
                         <Image
                           source={getAvatarSource(null, item.studentName)}
                           style={styles.studentAvatar}
@@ -797,7 +804,7 @@ export const LessonDetailScreen: React.FC = () => {
                             {item.status}
                           </Text>
                         </View>
-                      </View>
+                      </TouchableOpacity>
                     )}
                     contentContainerStyle={{ paddingBottom: 20 }}
                   />
@@ -950,9 +957,9 @@ export const LessonDetailScreen: React.FC = () => {
       ) : (
         <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border, paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.md }]}>
           <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
-             <Text style={{ fontSize: 12, color: palette.text.secondary, textAlign: 'center', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)', padding: 8, borderRadius: 8, overflow: 'hidden' }}>
-               <MaterialIcons name="info-outline" size={12} color={palette.text.secondary} /> Platformumuz üzerinden herhangi bir ödeme alınmamaktadır. Ödemenizi doğrudan eğitmene veya okula gerçekleştireceksiniz.
-             </Text>
+            <Text style={{ fontSize: 12, color: palette.text.secondary, textAlign: 'center', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)', padding: 8, borderRadius: 8, overflow: 'hidden' }}>
+              <MaterialIcons name="info-outline" size={12} color={palette.text.secondary} /> Platformumuz üzerinden herhangi bir ödeme alınmamaktadır. Ödemenizi doğrudan eğitmene veya okula gerçekleştireceksiniz.
+            </Text>
           </View>
           <View style={[styles.bottomBar, { paddingTop: spacing.xs }]}>
             <View style={styles.priceContainer}>

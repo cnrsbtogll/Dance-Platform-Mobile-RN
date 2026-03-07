@@ -44,6 +44,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
     const [selectedLessonId, setSelectedLessonId] = useState<string>(initialLessonId || '');
     const [lessons, setLessons] = useState<Lesson[]>([]);
 
@@ -85,6 +87,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
         setEmail('');
         setFirstName('');
         setLastName('');
+        setPhone('');
+        setGender('');
         setSelectedLessonId(initialLessonId || '');
         setActiveTab('new');
         setSearchText('');
@@ -126,7 +130,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
     const handleSave = async () => {
         if (activeTab === 'new') {
-            if (!email.trim() || !firstName.trim() || !lastName.trim() || !selectedLessonId) {
+            if (!email.trim() || !firstName.trim() || !lastName.trim() || !phone.trim() || !gender || !selectedLessonId) {
                 Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen tüm alanları doldurunuz.');
                 return;
             }
@@ -171,6 +175,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                     displayName: displayName,
                     firstName: firstName.trim(),
                     lastName: lastName.trim(),
+                    phoneNumber: phone.trim(),
+                    gender: gender as any,
                     role: 'student',
                     isVerified: false,
                     onboardingCompleted: false,
@@ -325,6 +331,52 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                         keyboardType="email-address"
                                         placeholderTextColor={palette.text.secondary}
                                     />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.phone') || 'Telefon Numarası'}</Text>
+                                    <TextInput
+                                        style={[styles.input, { borderColor: palette.border, color: palette.text.primary, backgroundColor: palette.card }]}
+                                        value={phone}
+                                        onChangeText={setPhone}
+                                        placeholder="+905554443322"
+                                        keyboardType="phone-pad"
+                                        placeholderTextColor={palette.text.secondary}
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.gender', 'Cinsiyet')}</Text>
+                                    <View style={styles.genderOptions}>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.genderBtn,
+                                                { borderColor: palette.border, backgroundColor: palette.card },
+                                                gender === 'male' && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
+                                            ]}
+                                            onPress={() => setGender('male')}
+                                        >
+                                            <Text style={[
+                                                styles.genderText,
+                                                { color: palette.text.secondary },
+                                                gender === 'male' && { color: palette.primary, fontWeight: 'bold' }
+                                            ]}>{t('common.male', 'Erkek')}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.genderBtn,
+                                                { borderColor: palette.border, backgroundColor: palette.card },
+                                                gender === 'female' && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
+                                            ]}
+                                            onPress={() => setGender('female')}
+                                        >
+                                            <Text style={[
+                                                styles.genderText,
+                                                { color: palette.text.secondary },
+                                                gender === 'female' && { color: palette.primary, fontWeight: 'bold' }
+                                            ]}>{t('common.female', 'Kadın')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </>
                         ) : (
@@ -516,6 +568,20 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: typography.fontSize.base,
         fontWeight: 'bold',
+    },
+    genderOptions: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    genderBtn: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderRadius: borderRadius.md,
+    },
+    genderText: {
+        fontSize: typography.fontSize.sm,
     },
     tabsContainer: {
         flexDirection: 'row',

@@ -37,7 +37,8 @@
     "pleaseFillRequiredFields": "Lütfen zorunlu alanları doldurun.",
     "firstName": "Ad",
     "lastName": "Soyad",
-    "email": "E-posta"
+    "email": "E-posta",
+    "phone": "Telefon"
   },
   "auth": {
     "login": "Giriş Yap",
