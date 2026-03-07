@@ -948,11 +948,16 @@ export const LessonDetailScreen: React.FC = () => {
 
         </SafeAreaView>
       ) : (
-        <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
-          <View style={styles.bottomBar}>
+        <SafeAreaView edges={['bottom']} style={[styles.bottomBarContainer, { backgroundColor: palette.background, borderTopColor: palette.border, paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.md }]}>
+          <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
+             <Text style={{ fontSize: 12, color: palette.text.secondary, textAlign: 'center', backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)', padding: 8, borderRadius: 8, overflow: 'hidden' }}>
+               <MaterialIcons name="info-outline" size={12} color={palette.text.secondary} /> Platformumuz üzerinden herhangi bir ödeme alınmamaktadır. Ödemenizi doğrudan eğitmene veya okula gerçekleştireceksiniz.
+             </Text>
+          </View>
+          <View style={[styles.bottomBar, { paddingTop: spacing.xs }]}>
             <View style={styles.priceContainer}>
-              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee')}</Text>
-              <Text style={[styles.priceValue, { color: colors.student.primary }]}>
+              <Text style={[styles.priceLabel, { color: palette.text.secondary }]}>{t('lessons.fee') || 'Ders Ücreti'}</Text>
+              <Text style={[styles.priceValue, { color: palette.text.primary, fontSize: 18 }]}>
                 {formatPrice(lesson.price)}
               </Text>
             </View>

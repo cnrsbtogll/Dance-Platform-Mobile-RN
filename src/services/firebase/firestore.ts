@@ -136,6 +136,34 @@ export class FirestoreService {
     }
   }
 
+  static async searchStudents(searchText: string): Promise<User[]> {
+    try {
+      const usersRef = collection(db, COLLECTIONS.USERS);
+      // Firestore API does not support full-text search directly.
+      // We will perform a basic prefix search by email, or if it's not an email, we fetch recent students and filter locally.
+      const q = query(
+        usersRef,
+        where('role', '==', 'student'),
+        limit(200)
+      );
+      const snapshot = await getDocs(q);
+      const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+      
+      if (!searchText.trim()) return users.slice(0, 20);
+
+      const lowerSearch = searchText.toLowerCase().trim();
+      return users.filter(u => 
+        (u.email && u.email.toLowerCase().includes(lowerSearch)) ||
+        (u.name && u.name.toLowerCase().includes(lowerSearch)) ||
+        (u.firstName && u.firstName.toLowerCase().includes(lowerSearch)) ||
+        (u.lastName && u.lastName.toLowerCase().includes(lowerSearch))
+      ).slice(0, 20);
+    } catch (error) {
+      console.error('Error searching students:', error);
+      return [];
+    }
+  }
+
   // Instructor Verifications
   static async createVerificationRequest(data: {
     userId: string;

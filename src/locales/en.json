@@ -34,7 +34,10 @@
     "hourShort": "h",
     "minuteShort": "min",
     "guest": "Dancer",
-    "pleaseFillRequiredFields": "Please fill in all required fields."
+    "pleaseFillRequiredFields": "Please fill in all required fields.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email"
   },
   "auth": {
     "login": "Sign In",
@@ -246,6 +249,17 @@
     "active": "Active",
     "inactive": "Inactive",
     "registeredStudent": "Registered Student",
+    "selectStudentAndLesson": "Please select a student and a lesson.",
+    "studentAlreadyEnrolled": "The student is already enrolled in this lesson.",
+    "studentAddedSuccessfully": "Student successfully added to the lesson.",
+    "newRegistration": "New Registration",
+    "searchStudent": "Search Student",
+    "searchStudentPlaceholder": "Search by name or email...",
+    "studentNotFound": "Registered student not found.",
+    "assignToLesson": "Assign to Lesson",
+    "noActiveLessonsModal": "You have no active lessons.",
+    "newStudentNote": "Note: A student account will be created with the email address and a link will be sent to the student to set a password.",
+    "addStudent": "Add Student",
     "noActiveLessons": "No active lessons",
     "noInactiveLessons": "No inactive lessons",
     "activateLesson": "Activate Lesson",
@@ -607,6 +621,7 @@
     "noActiveLessons": "No active lessons",
     "studentsCount": "{{count}}/{{max}} Students",
     "createNewLesson": "Create New Lesson",
+    "addLesson": "Add Lesson",
     "student": "Student",
     "recurringLesson": "Recurring Lesson"
   },

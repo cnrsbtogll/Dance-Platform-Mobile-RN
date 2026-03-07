@@ -73,9 +73,9 @@ const MainTabs: React.FC = () => {
                     name="Home"
                     component={SchoolHomeScreen}
                     options={{
-                        title: t('navigation.home'),
+                        title: t('navigation.schoolHome'),
                         headerShown: true,
-                        headerTitle: t('navigation.home'),
+                        headerTitle: '',
                         headerLeft: () => (
                             <View style={{
                                 backgroundColor: colors.school.primary,

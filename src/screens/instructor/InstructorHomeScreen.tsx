@@ -181,6 +181,7 @@ export const InstructorHomeScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
+      headerTitle: '',
       headerStyle: {
         backgroundColor: palette.background,
       },
@@ -436,14 +437,20 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Earnings Card */}
         <View style={[styles.section, styles.earningsSection]}>
-          <View style={[styles.earningsCard, { backgroundColor: palette.card }]}>
+          <TouchableOpacity
+            style={[styles.earningsCard, { backgroundColor: palette.card, paddingVertical: spacing.md }]}
+            activeOpacity={0.8}
+            onPress={() => (navigation as any).navigate('EarningsDetails')}
+          >
             <View style={styles.earningsContent}>
               <View style={styles.earningsHeader}>
                 <View style={styles.earningsHeaderLeft}>
                   <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>{t('instructorHome.earningsSummary')}</Text>
                   <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>{t('instructorHome.thisMonthEarnings')}</Text>
                 </View>
-                <View style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
+                <View
+                  style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}
+                >
                   <MaterialIcons
                     name="account-balance-wallet"
                     size={32}
@@ -458,15 +465,12 @@ export const InstructorHomeScreen: React.FC = () => {
                     {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency)}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.detailsButton}
-                  onPress={() => (navigation as any).navigate('EarningsDetails')}
-                >
+                <View style={styles.detailsButton}>
                   <Text style={styles.detailsButtonText}>{t('instructorHome.viewDetails')}</Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Stats Cards */}
@@ -618,9 +622,34 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
 
         {/* Bottom spacing for FAB */}
-        <View style={{ height: 20 }} />
+        <View style={{ height: 80 }} />
       </ScrollView >
 
+      {/* FAB for Creating Lesson */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: palette.secondary, shadowColor: palette.secondary }]}
+        onPress={() => {
+          if (user && !user.onboardingCompleted) {
+            Alert.alert(
+              t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
+              t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
+              [{
+                text: t('common.ok'),
+                onPress: () => {
+                  (navigation as any).navigate('InstructorOnboarding');
+                }
+              }]
+            );
+          } else {
+            (navigation as any).navigate('CreateLesson');
+          }
+        }}
+      >
+        <View style={styles.fabGradient}>
+          <MaterialIcons name="add" size={24} color="#ffffff" />
+          <Text style={styles.fabText}>{t('instructorHome.addLesson') || 'Kurs Ekle'}</Text>
+        </View>
+      </TouchableOpacity>
     </View >
   );
 };
@@ -895,9 +924,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: spacing.md,
+    left: spacing.xl,
     zIndex: 20,
-    bottom: 10,
+    bottom: spacing.xl + 20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     ...shadows.lg,

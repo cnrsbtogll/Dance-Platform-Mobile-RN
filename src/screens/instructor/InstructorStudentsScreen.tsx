@@ -21,6 +21,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { User, Booking, Lesson } from '../../types';
+import { AddStudentModal } from '../../components/instructor/AddStudentModal';
 
 interface StudentEntry {
     user: User;
@@ -42,12 +43,13 @@ export const InstructorStudentsScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [actionStates, setActionStates] = useState<Record<string, { reset: ActionState; verify: ActionState }>>({});
+    const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
     // ── Header ────────────────────────────────────────────────────────────────────
     React.useEffect(() => {
         navigation.setOptions({
             headerShown: true,
-            headerTitle: t('instructorStudents.title'),
+            headerTitle: '',
             headerStyle: { backgroundColor: palette.background },
             headerTintColor: palette.text.primary,
             headerTitleStyle: { fontWeight: 'bold', color: palette.text.primary },
@@ -56,69 +58,70 @@ export const InstructorStudentsScreen: React.FC = () => {
     }, [navigation, palette, t]);
 
     // ── Load students ─────────────────────────────────────────────────────────────
+    const loadStudents = async () => {
+        if (!user?.id) return;
+        setLoading(true);
+        try {
+            let bookings: Booking[] = [];
+            let lessons: Lesson[] = [];
+
+            if (user.role === 'school' || user.role === 'draft-school') {
+                lessons = await FirestoreService.getLessonsBySchool(user.id);
+                // Fetch bookings for all lessons of the school
+                const bookingsPromises = lessons.map(lesson => FirestoreService.getBookingsByLesson(lesson.id));
+                const bookingsArrays = await Promise.all(bookingsPromises);
+                bookings = bookingsArrays.flat();
+            } else {
+                const [b, l] = await Promise.all([
+                    FirestoreService.getBookingsByInstructor(user.id),
+                    FirestoreService.getLessonsByInstructor(user.id),
+                ]);
+                bookings = b;
+                lessons = l;
+            }
+
+            // Unique students
+            const studentMap = new Map<string, { bookings: Booking[]; lessons: Set<string> }>();
+            bookings
+                .filter(b => b.status !== 'cancelled' && b.studentId)
+                .forEach(b => {
+                    if (!studentMap.has(b.studentId)) {
+                        studentMap.set(b.studentId, { bookings: [], lessons: new Set() });
+                    }
+                    const entry = studentMap.get(b.studentId)!;
+                    entry.bookings.push(b);
+                    if (b.lessonId) entry.lessons.add(b.lessonId);
+                });
+
+            // Fetch user profiles — silinmiş kullanıcılar (null) listede gösterilmez
+            const rawEntries = await Promise.all(
+                Array.from(studentMap.entries()).map(async ([studentId, data]) => {
+                    const studentUser = await FirestoreService.getUserById(studentId);
+                    if (!studentUser) return null; // Hesap silinmiş, atla
+                    const enrolledLessons = lessons.filter(l => data.lessons.has(l.id));
+                    return {
+                        user: studentUser,
+                        lessons: enrolledLessons,
+                        bookingCount: data.bookings.length,
+                    } as StudentEntry;
+                })
+            );
+
+            const entries = rawEntries.filter((e): e is StudentEntry => e !== null);
+
+            // Sort by name
+            entries.sort((a, b) => (a.user.name || '').localeCompare(b.user.name || '', 'tr'));
+            setStudents(entries);
+        } catch (err) {
+            console.error('[InstructorStudentsScreen] load error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useFocusEffect(
         useCallback(() => {
-            if (!user?.id) return;
-            const load = async () => {
-                setLoading(true);
-                try {
-                    let bookings: Booking[] = [];
-                    let lessons: Lesson[] = [];
-
-                    if (user.role === 'school' || user.role === 'draft-school') {
-                        lessons = await FirestoreService.getLessonsBySchool(user.id);
-                        // Fetch bookings for all lessons of the school
-                        const bookingsPromises = lessons.map(lesson => FirestoreService.getBookingsByLesson(lesson.id));
-                        const bookingsArrays = await Promise.all(bookingsPromises);
-                        bookings = bookingsArrays.flat();
-                    } else {
-                        const [b, l] = await Promise.all([
-                            FirestoreService.getBookingsByInstructor(user.id),
-                            FirestoreService.getLessonsByInstructor(user.id),
-                        ]);
-                        bookings = b;
-                        lessons = l;
-                    }
-
-                    // Unique students
-                    const studentMap = new Map<string, { bookings: Booking[]; lessons: Set<string> }>();
-                    bookings
-                        .filter(b => b.status !== 'cancelled' && b.studentId)
-                        .forEach(b => {
-                            if (!studentMap.has(b.studentId)) {
-                                studentMap.set(b.studentId, { bookings: [], lessons: new Set() });
-                            }
-                            const entry = studentMap.get(b.studentId)!;
-                            entry.bookings.push(b);
-                            if (b.lessonId) entry.lessons.add(b.lessonId);
-                        });
-
-                    // Fetch user profiles — silinmiş kullanıcılar (null) listede gösterilmez
-                    const rawEntries = await Promise.all(
-                        Array.from(studentMap.entries()).map(async ([studentId, data]) => {
-                            const studentUser = await FirestoreService.getUserById(studentId);
-                            if (!studentUser) return null; // Hesap silinmiş, atla
-                            const enrolledLessons = lessons.filter(l => data.lessons.has(l.id));
-                            return {
-                                user: studentUser,
-                                lessons: enrolledLessons,
-                                bookingCount: data.bookings.length,
-                            } as StudentEntry;
-                        })
-                    );
-
-                    const entries = rawEntries.filter((e): e is StudentEntry => e !== null);
-
-                    // Sort by name
-                    entries.sort((a, b) => (a.user.name || '').localeCompare(b.user.name || '', 'tr'));
-                    setStudents(entries);
-                } catch (err) {
-                    console.error('[InstructorStudentsScreen] load error:', err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            load();
+            loadStudents();
         }, [user?.id])
     );
 
@@ -308,6 +311,25 @@ export const InstructorStudentsScreen: React.FC = () => {
                     )}
                 />
             )}
+
+            {/* FAB for adding new student */}
+            <TouchableOpacity
+                style={[styles.fab, { backgroundColor: palette.secondary }]}
+                onPress={() => setIsAddModalVisible(true)}
+                activeOpacity={0.8}
+            >
+                <MaterialIcons name="person-add" size={24} color="#fff" />
+            </TouchableOpacity>
+
+            <AddStudentModal
+                visible={isAddModalVisible}
+                onClose={() => setIsAddModalVisible(false)}
+                instructorId={user?.id || ''}
+                isSchool={isSchool}
+                onSuccess={() => {
+                    loadStudents();
+                }}
+            />
         </SafeAreaView>
     );
 };
@@ -407,4 +429,19 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.xxl * 2,
     },
     emptyText: { fontSize: typography.fontSize.base, textAlign: 'center' },
+    fab: {
+        position: 'absolute',
+        bottom: spacing.xl + 20, // Tab bar margin
+        left: spacing.xl,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
 });

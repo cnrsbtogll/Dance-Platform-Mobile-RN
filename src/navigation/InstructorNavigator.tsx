@@ -83,9 +83,9 @@ const MainTabs: React.FC = () => {
             },
           })}
           options={{
-            title: t('navigation.home'),
+            title: t('navigation.instructorHome'),
             headerShown: true,
-            headerTitle: t('navigation.home'),
+            headerTitle: '',
             headerLeft: () => (
               <View style={{
                 backgroundColor: palette.secondary,
@@ -158,6 +158,47 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="people" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Students"
+          component={InstructorStudentsScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (!user) {
+                e.preventDefault();
+              }
+            },
+          })}
+          options={{
+            title: t('instructorStudents.title'),
+            headerShown: true,
+            headerTitle: t('instructorStudents.title'),
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            headerTintColor: palette.text.primary,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
+              }}>
+                {t('instructorStudents.title')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialIcons
+                name={focused ? "groups" : "groups"} // MaterialIcons doesn't have groups-outline
+                size={size}
+                color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
+              />
             ),
           }}
         />

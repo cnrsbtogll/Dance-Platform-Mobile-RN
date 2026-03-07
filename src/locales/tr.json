@@ -34,7 +34,10 @@
     "hourShort": "sa",
     "minuteShort": "dk",
     "guest": "Dansçı",
-    "pleaseFillRequiredFields": "Lütfen zorunlu alanları doldurun."
+    "pleaseFillRequiredFields": "Lütfen zorunlu alanları doldurun.",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-posta"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -245,6 +248,17 @@
     "active": "Aktif",
     "inactive": "Pasif",
     "registeredStudent": "Kayıtlı Öğrenci",
+    "selectStudentAndLesson": "Lütfen öğrenci ve kurs seçiniz.",
+    "studentAlreadyEnrolled": "Öğrenci bu kursa zaten kayıtlı.",
+    "studentAddedSuccessfully": "Öğrenci başarıyla kursa eklendi.",
+    "newRegistration": "Yeni Kayıt",
+    "searchStudent": "Öğrenci Ara",
+    "searchStudentPlaceholder": "İsim veya e-posta ile ara...",
+    "studentNotFound": "Kayıtlı öğrenci bulunamadı.",
+    "assignToLesson": "Kursa Ata",
+    "noActiveLessonsModal": "Aktif kursunuz bulunmuyor.",
+    "newStudentNote": "Not: E-posta adresiyle öğrenci hesabı oluşturulacak ve öğrenciye şifre belirlemesi için bir bağlantı gönderilecektir.",
+    "addStudent": "Öğrenci Ekle",
     "noActiveLessons": "Yayında kurs bulunmuyor",
     "noInactiveLessons": "Pasif kurs bulunmuyor",
     "selectDanceType": "Dans türü seçin",
@@ -611,6 +625,7 @@
     "noActiveLessons": "Yayında kurs bulunmuyor",
     "studentsCount": "{{count}}/{{max}} Öğrenci",
     "createNewLesson": "Yeni Kurs Oluştur",
+    "addLesson": "Kurs Ekle",
     "student": "Öğrenci",
     "recurringLesson": "Tekrarlayan Kurs"
   },

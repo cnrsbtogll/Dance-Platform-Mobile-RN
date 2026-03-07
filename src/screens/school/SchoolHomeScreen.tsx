@@ -274,13 +274,16 @@ export const SchoolHomeScreen: React.FC = () => {
                                     <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>{t('instructorHome.earningsSummary')}</Text>
                                     <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>{t('instructorHome.thisMonthEarnings')}</Text>
                                 </View>
-                                <View style={[styles.earningsIconContainer, { backgroundColor: colors.school.primary + '15' }]}>
+                                <TouchableOpacity
+                                    style={[styles.earningsIconContainer, { backgroundColor: colors.school.primary + '15' }]}
+                                    onPress={() => (navigation as any).navigate('EarningsDetails')}
+                                >
                                     <MaterialIcons
                                         name="account-balance-wallet"
                                         size={32}
                                         color={colors.school.primary}
                                     />
-                                </View>
+                                </TouchableOpacity>
                             </View>
                             <View style={styles.earningsRow}>
                                 <View style={styles.earningsAmountContainer}>
@@ -423,8 +426,27 @@ export const SchoolHomeScreen: React.FC = () => {
                     )}
                 </View>
 
-                <View style={{ height: 40 }} />
+                <View style={{ height: 80 }} />
             </ScrollView>
+
+            {/* FAB for Creating Lesson */}
+            <TouchableOpacity
+                style={[styles.fab, { backgroundColor: colors.school.secondary, shadowColor: colors.school.secondary }]}
+                onPress={() => {
+                    if (user && !user.onboardingCompleted) {
+                        Alert.alert(
+                            t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
+                            t('school.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen okul profilinizi tamamlayın.',
+                            [{ text: t('common.ok'), onPress: () => (navigation as any).navigate('SchoolOnboarding') }]
+                        );
+                    } else {
+                        (navigation as any).navigate('CreateLesson');
+                    }
+                }}
+            >
+                <MaterialIcons name="add" size={24} color="#ffffff" />
+                <Text style={styles.fabText}>{t('school.createLesson') || 'Kurs Ekle'}</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -475,6 +497,24 @@ const styles = StyleSheet.create({
     upcomingDateText: { fontSize: 10, marginLeft: 4 },
     upcomingTimeText: { fontSize: 10, marginLeft: 4 },
     emptyState: { padding: spacing.xl, alignItems: 'center' },
+    fab: {
+        position: 'absolute',
+        bottom: spacing.xxl,
+        left: spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md + 4,
+        borderRadius: 30,
+        ...shadows.lg,
+        elevation: 6,
+        gap: spacing.xs,
+    },
+    fabText: {
+        color: '#ffffff',
+        fontSize: typography.fontSize.base,
+        fontWeight: typography.fontWeight.bold,
+    },
     emptyStateText: { fontSize: typography.fontSize.sm },
     notificationBadge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#e53e3e', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, borderWidth: 2 },
     notificationBadgeText: { fontSize: 10, fontWeight: typography.fontWeight.bold, color: '#ffffff' },
