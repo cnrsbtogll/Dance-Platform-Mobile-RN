@@ -216,14 +216,16 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             setLoading(true);
             try {
                 // Check if booking already exists
-                const existingBooking = await FirestoreService.getUserBookingForLesson(selectedUserId, selectedLessonId);
+                const selectedLesson = lessons.find(l => l.id === selectedLessonId);
+                const existingBooking = await FirestoreService.getUserBookingForLesson(selectedUserId, selectedLessonId, {
+                    instructorId: selectedLesson?.instructorId || instructorId
+                });
                 if (existingBooking && existingBooking.status !== 'cancelled') {
                     Alert.alert(t('common.info'), t('lessons.studentAlreadyEnrolled'));
                     setLoading(false);
                     return;
                 }
 
-                const selectedLesson = lessons.find(l => l.id === selectedLessonId);
                 if (selectedLesson) {
                     await FirestoreService.createBooking({
                         studentId: selectedUserId,

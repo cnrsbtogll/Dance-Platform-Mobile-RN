@@ -239,7 +239,7 @@ const MainTabs: React.FC = () => {
               ),
               tabBarIcon: ({ color, size, focused }) => (
                 <MaterialIcons
-                  name={focused ? "chat-bubble" : "chat-bubble-outline"}
+                  name="chat-bubble"
                   size={size}
                   color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
                 />
@@ -274,7 +274,7 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size, focused }) => (
               <MaterialIcons
-                name={focused ? "person" : "person-outline"}
+                name="person"
                 size={size}
                 color={color}
               />

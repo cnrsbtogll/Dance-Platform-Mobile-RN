@@ -22,6 +22,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { User, Booking, Lesson } from '../../types';
 import { AddStudentModal } from '../../components/instructor/AddStudentModal';
+import { NotificationBell } from '../../components/common/NotificationBell';
 
 interface StudentEntry {
     user: User;
@@ -50,11 +51,12 @@ export const InstructorStudentsScreen: React.FC = () => {
     React.useEffect(() => {
         navigation.setOptions({
             headerShown: true,
-            headerTitle: '',
+            headerTitle: t('instructorStudents.title'),
             headerStyle: { backgroundColor: palette.background },
             headerTintColor: palette.text.primary,
-            headerTitleStyle: { fontWeight: 'bold', color: palette.text.primary },
+            headerTitleStyle: { fontWeight: 'bold', color: palette.text.primary, fontSize: typography.fontSize.lg },
             headerShadowVisible: false,
+            headerRight: () => <NotificationBell role="instructor" />,
         });
     }, [navigation, palette, t]);
 

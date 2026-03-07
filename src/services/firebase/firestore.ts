@@ -594,12 +594,21 @@ export class FirestoreService {
     }
   }
 
-  static async getUserBookingForLesson(userId: string, lessonId: string): Promise<Booking | null> {
+  static async getUserBookingForLesson(userId: string, lessonId: string, options?: { instructorId?: string; schoolId?: string }): Promise<Booking | null> {
       try {
+          const queryConstraints: any[] = [
+              where('studentId', '==', userId),
+              where('lessonId', '==', lessonId)
+          ];
+          if (options?.instructorId) {
+             queryConstraints.push(where('instructorId', '==', options.instructorId));
+          }
+          if (options?.schoolId) {
+             queryConstraints.push(where('schoolId', '==', options.schoolId));
+          }
           const q = query(
               collection(db, COLLECTIONS.BOOKINGS),
-              where('studentId', '==', userId),
-              where('lessonId', '==', lessonId),
+              ...queryConstraints,
               limit(1)
           );
           const querySnapshot = await getDocs(q);
