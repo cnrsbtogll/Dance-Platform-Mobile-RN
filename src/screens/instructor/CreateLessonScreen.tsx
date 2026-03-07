@@ -193,7 +193,7 @@ export const CreateLessonScreen: React.FC = () => {
         fetchData();
     }, [isSchool, user]);
 
-    // Check if user has completed onboarding or has missing school fields
+    // Check if user has completed onboarding or has missing required fields
     useEffect(() => {
         if (!user) return;
 
@@ -205,8 +205,8 @@ export const CreateLessonScreen: React.FC = () => {
                 isMissingFields = true;
             }
         } else {
-            // Instructor onboarding check
-            if (!user.onboardingCompleted) {
+            // Instructor check - Sadece İsim ve Telefon
+            if (!user.name || !user.phoneNumber) {
                 isMissingFields = true;
             }
         }
@@ -227,13 +227,9 @@ export const CreateLessonScreen: React.FC = () => {
 
                         // Small delay to allow the modal/screen transition
                         setTimeout(() => {
-                            if (isSchool) {
-                                // @ts-ignore
-                                navigation.navigate('EditProfile', { highlightErrors: true });
-                            } else {
-                                // @ts-ignore
-                                navigation.navigate('InstructorOnboarding');
-                            }
+                            // Both school and instructor now go to EditProfile with highlightErrors
+                            // @ts-ignore
+                            navigation.navigate('EditProfile', { highlightErrors: true });
                         }, 100);
                     }
                 }]

@@ -170,7 +170,11 @@
     "requiredFieldsBanner": "These details are required to match with the right partners and get in touch.",
     "requiredFieldsBannerSchool": "Please fill in all required fields marked in red.",
     "requiredFieldsTitle": "Complete your profile",
-    "completeProfile": "Complete Profile"
+    "completeProfile": "Complete Profile",
+    "phoneNumberInstructorReason": "We need your phone number to coordinate with students and for account security.",
+    "showPhoneNumberToStudents": "Show phone number to students",
+    "showPhoneNumberToStudentsDesc": "When enabled, students will be able to see your contact number on lesson details.",
+    "phoneRequiredError": "Phone number is required for instructors."
   },
   "location": {
     "selectCountry": "Select Country",

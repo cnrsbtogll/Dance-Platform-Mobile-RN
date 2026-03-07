@@ -46,5 +46,6 @@ export interface User {
   // Instructor-specific
   yearsOfTeaching?: number;
   certificates?: string;
+  showPhoneNumberToStudents?: boolean;
 }
 

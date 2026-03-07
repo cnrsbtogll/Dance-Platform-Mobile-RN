@@ -211,21 +211,7 @@ export const InstructorHomeScreen: React.FC = () => {
           <TouchableOpacity
             style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs }}
             onPress={() => {
-              if (user && !user.onboardingCompleted) {
-                Alert.alert(
-                  t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-                  t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
-                  [{
-                    text: t('common.ok'),
-                    onPress: () => {
-                      // @ts-ignore
-                      navigation.navigate('InstructorOnboarding');
-                    }
-                  }]
-                );
-              } else {
-                (navigation as any).navigate('CreateLesson');
-              }
+              (navigation as any).navigate('CreateLesson');
             }}
           >
             <MaterialIcons
@@ -380,23 +366,23 @@ export const InstructorHomeScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.onboardingButton,
-                  { backgroundColor: user?.onboardingCompleted ? '#10B981' : colors.instructor.primary }
+                  { backgroundColor: (!user?.name || !user?.phoneNumber) ? colors.instructor.primary : '#10B981' }
                 ]}
                 onPress={() => {
                   // @ts-ignore
-                  navigation.navigate('InstructorOnboarding');
+                  navigation.navigate('EditProfile', { highlightErrors: true });
                 }}
               >
                 <View style={styles.buttonContent}>
                   <MaterialIcons
-                    name={user?.onboardingCompleted ? "check-circle" : "person-outline"}
+                    name={(!user?.name || !user?.phoneNumber) ? "person-outline" : "check-circle"}
                     size={18}
                     color="#ffffff"
                   />
                   <Text style={styles.verificationButtonText}>
-                    {user?.onboardingCompleted
-                      ? (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')
-                      : (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')}
+                    {(!user?.name || !user?.phoneNumber)
+                      ? (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')
+                      : (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -629,20 +615,7 @@ export const InstructorHomeScreen: React.FC = () => {
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: palette.secondary, shadowColor: palette.secondary }]}
         onPress={() => {
-          if (user && !user.onboardingCompleted) {
-            Alert.alert(
-              t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-              t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
-              [{
-                text: t('common.ok'),
-                onPress: () => {
-                  (navigation as any).navigate('InstructorOnboarding');
-                }
-              }]
-            );
-          } else {
-            (navigation as any).navigate('CreateLesson');
-          }
+          (navigation as any).navigate('CreateLesson');
         }}
       >
         <View style={styles.fabGradient}>

@@ -33,6 +33,7 @@ export const EditProfileScreen: React.FC = () => {
     tempGender, tempAge, tempCountry, tempCity,
     tempIsVisibleInPartnerSearch,
     tempYearsOfTeaching, tempCertificates,
+    tempShowPhoneNumberToStudents,
     setTempName, setTempAvatar, setTempBio, setTempPhoneNumber,
     setTempSchoolName, setTempSchoolAddress, setTempContactNumber,
     setTempContactPerson, setTempInstagramHandle,
@@ -40,6 +41,7 @@ export const EditProfileScreen: React.FC = () => {
     setTempGender, setTempAge, setTempCountry, setTempCity,
     setTempIsVisibleInPartnerSearch,
     setTempYearsOfTeaching, setTempCertificates,
+    setTempShowPhoneNumberToStudents,
     loadFromUser, applyChanges,
   } = useProfileStore();
 
@@ -77,7 +79,14 @@ export const EditProfileScreen: React.FC = () => {
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
         return;
       }
+    } else if (isInstructor) {
+      if (!tempPhoneNumber.trim()) {
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.phoneRequiredError'));
+        return;
+      }
     } else {
+      // Student
       if (!tempGender || !tempCity || tempDanceStyles.length === 0) {
         setHighlightErrors(true);
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
@@ -296,7 +305,41 @@ export const EditProfileScreen: React.FC = () => {
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('onboarding.basicInfoTitle')}
             </Text>
-            {renderInputGroup(t('onboarding.phoneLabel'), tempPhoneNumber, setTempPhoneNumber, t('onboarding.phonePlaceholder'), false, 'phone-pad')}
+
+            <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
+              <MaterialIcons name="info-outline" size={18} color={palette.primary} />
+              <Text style={[styles.motivationText, { color: palette.primary }]}>
+                {t('profile.phoneNumberInstructorReason')}
+              </Text>
+            </View>
+
+            {renderInputGroup(
+              t('onboarding.phoneLabel'),
+              tempPhoneNumber,
+              setTempPhoneNumber,
+              t('onboarding.phonePlaceholder'),
+              false,
+              'phone-pad',
+              true
+            )}
+
+            <View style={[styles.switchRow, { marginTop: spacing.sm, marginBottom: spacing.md }]}>
+              <View style={styles.switchTextBlock}>
+                <Text style={[styles.switchLabel, { color: palette.text.primary }]}>
+                  {t('profile.showPhoneNumberToStudents')}
+                </Text>
+                <Text style={[styles.switchDesc, { color: palette.text.secondary }]}>
+                  {t('profile.showPhoneNumberToStudentsDesc')}
+                </Text>
+              </View>
+              <Switch
+                value={tempShowPhoneNumberToStudents}
+                onValueChange={setTempShowPhoneNumberToStudents}
+                trackColor={{ false: palette.border, true: palette.primary + '80' }}
+                thumbColor={tempShowPhoneNumberToStudents ? palette.primary : palette.text.secondary}
+              />
+            </View>
+
             {renderInputGroup(t('onboarding.bioLabel'), tempBio, setTempBio, t('onboarding.bioPlaceholder'), true)}
           </Card>
         )}
@@ -309,12 +352,14 @@ export const EditProfileScreen: React.FC = () => {
             </Text>
 
             {/* Motivation banner */}
-            <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
-              <MaterialIcons name="person-search" size={18} color={palette.primary} />
-              <Text style={[styles.motivationText, { color: palette.primary }]}>
-                {t('profile.requiredFieldsBanner')}
-              </Text>
-            </View>
+            {!isInstructor && (
+              <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
+                <MaterialIcons name="person-search" size={18} color={palette.primary} />
+                <Text style={[styles.motivationText, { color: palette.primary }]}>
+                  {t('profile.requiredFieldsBanner')}
+                </Text>
+              </View>
+            )}
 
             {/* Gender chips — REQUIRED */}
             <Text style={[styles.label, { color: palette.text.secondary, marginBottom: spacing.sm }]}>
@@ -330,7 +375,7 @@ export const EditProfileScreen: React.FC = () => {
                     style={[
                       styles.chip,
                       {
-                        borderColor: (highlightErrors && !tempGender) ? '#ef4444' : palette.border,
+                        borderColor: (highlightErrors && !isInstructor && !tempGender) ? '#ef4444' : palette.border,
                         backgroundColor: palette.card,
                       },
                       selected && { backgroundColor: palette.primary, borderColor: palette.primary },
@@ -346,7 +391,7 @@ export const EditProfileScreen: React.FC = () => {
             </View>
 
             {/* Country + City picker */}
-            {renderLocationPicker(true)}
+            {renderLocationPicker(!isInstructor)}
 
             {/* Age input */}
             {renderInputGroup(
