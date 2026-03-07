@@ -141,11 +141,16 @@ service cloud.firestore {
       // Partner listesini görmek için girişe gerek yok
       allow read: if true;
       
-      // Sadece kendi profilini oluşturabilir/güncelleyebilir. Okullar ise diğer kullanıcıların rol ve onay durumunu güncelleyebilir
-      allow create: if isAuthenticated() && userId == request.auth.uid;
+      // Sadece kendi profilini oluşturabilir/güncelleyebilir. Eğitmenler ve okullar öğrenci profili oluşturabilir. Okullar ise diğer kullanıcıların rol ve onay durumunu güncelleyebilir
+      allow create: if isAuthenticated() && (
+                      userId == request.auth.uid || 
+                      ((isInstructor() || isSchool()) && request.resource.data.role == 'student') ||
+                      isAdmin()
+                    );
       allow update: if isAuthenticated() && (
                       userId == request.auth.uid || 
                       (isSchool() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'verificationStatus', 'updatedAt'])) ||
+                      ((isInstructor() || isSchool()) && resource.data.role == 'student' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneNumber', 'gender', 'updatedAt'])) ||
                       isAdmin()
                     );
       
@@ -228,9 +233,13 @@ service cloud.firestore {
                      resource.data.instructorId == request.auth.uid || 
                      isAdmin());
       
-      // Öğrenci kendisi için rezervasyon oluşturabilir
-      allow create: if isAuthenticated() && 
-                      request.resource.data.studentId == request.auth.uid;
+      // Öğrenci kendisi için rezervasyon oluşturabilir, Eğitmen veya Okul da kendi kursuna öğrenci kaydedebilir
+      allow create: if isAuthenticated() && (
+                      request.resource.data.studentId == request.auth.uid ||
+                      (isInstructor() && request.resource.data.instructorId == request.auth.uid) ||
+                      isSchool() ||
+                      isAdmin()
+                    );
       
       // Eğitmen veya öğrenci rezervasyonu güncelleyebilir (iptal, onay vb.)
       allow update: if isAuthenticated() && 
@@ -238,8 +247,8 @@ service cloud.firestore {
                        resource.data.instructorId == request.auth.uid || 
                        isAdmin());
       
-      // Admin silebilir veya iptal durumuna çekebilir
-      allow delete: if isAdmin();
+      // Admin, Okul veya Eğitmen silebilir veya iptal durumuna çekebilir
+      allow delete: if isAdmin() || isSchool() || (isAuthenticated() && resource.data.instructorId == request.auth.uid);
     }
     
     // ==========================================

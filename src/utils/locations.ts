@@ -135,4 +135,10 @@ export const getCitiesForCountry = (countryName: string): string[] => {
   return LOCATIONS.find(c => c.name === countryName)?.cities ?? [];
 };
 
+export const getCountryCodeByName = (countryName: string | undefined): string => {
+  if (!countryName) return 'TR';
+  const country = LOCATIONS.find(c => c.name === countryName);
+  return country?.code || 'TR';
+};
+
 export const ALL_COUNTRY_NAMES = LOCATIONS.map(c => c.name);

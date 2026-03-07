@@ -16,5 +16,6 @@ export interface Booking {
   studentName?: string;
   lessonTitle?: string;
   studentGender?: 'male' | 'female' | 'other';
+  studentPhoto?: string | null;
 }
 

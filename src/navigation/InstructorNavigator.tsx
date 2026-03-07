@@ -83,9 +83,9 @@ const MainTabs: React.FC = () => {
             },
           })}
           options={{
-            title: t('navigation.home'),
+            title: t('navigation.instructorHome'),
             headerShown: true,
-            headerTitle: t('navigation.home'),
+            headerTitle: '',
             headerLeft: () => (
               <View style={{
                 backgroundColor: palette.secondary,
@@ -124,40 +124,10 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size, focused }) => (
               <MaterialIcons
-                name={focused ? "home" : "home"}
+                name={focused ? "home" : "home-filled"}
                 size={size}
                 color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
               />
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="PartnerSearch"
-          component={PartnerSearchScreen}
-          options={{
-            title: t('navigation.partnerSearch'),
-            headerShown: true,
-            headerStyle: {
-              backgroundColor: palette.background,
-            },
-            headerTitleStyle: {
-              fontSize: typography.fontSize.lg,
-              fontWeight: typography.fontWeight.bold,
-              color: palette.text.primary,
-            },
-            headerTintColor: palette.text.primary,
-            headerRight: () => <NotificationBell role="instructor" />,
-            tabBarLabel: ({ focused, color }) => (
-              <Text style={{
-                fontSize: typography.fontSize.xs,
-                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
-                color,
-              }}>
-                {t('navigation.partnerSearch')}
-              </Text>
-            ),
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="people" size={size} color={color} />
             ),
           }}
         />
@@ -183,11 +153,100 @@ const MainTabs: React.FC = () => {
                 {t('instructor.lessons')}
               </Text>
             ),
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="school" size={size} color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialIcons
+                name={focused ? "school" : "school"} // MaterialIcons doesn't have a direct school outline
+                size={size}
+                color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
+              />
             ),
           }}
         />
+        <Tab.Screen
+          name="Students"
+          component={InstructorStudentsScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              if (!user) {
+                e.preventDefault();
+              }
+            },
+          })}
+          options={{
+            title: t('instructorStudents.title'),
+            headerShown: true,
+            headerTitle: t('instructorStudents.title'),
+            headerStyle: {
+              backgroundColor: palette.background,
+            },
+            headerTitleStyle: {
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.bold,
+              color: palette.text.primary,
+            },
+            headerTintColor: palette.text.primary,
+            tabBarLabel: ({ focused, color }) => (
+              <Text style={{
+                fontSize: typography.fontSize.xs,
+                fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
+              }}>
+                {t('instructorStudents.title')}
+              </Text>
+            ),
+            tabBarIcon: ({ color, size, focused }) => (
+              <MaterialIcons
+                name={focused ? "groups" : "groups"} // MaterialIcons doesn't have groups-outline
+                size={size}
+                color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
+              />
+            ),
+          }}
+        />
+        {appConfig.features.chat && (
+          <Tab.Screen
+            name="Messages"
+            component={InstructorChatScreen}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                if (!user) {
+                  e.preventDefault();
+                }
+              },
+            })}
+            options={{
+              title: t('chat.title'),
+              headerShown: true,
+              headerTitle: t('chat.title'),
+              headerStyle: {
+                backgroundColor: palette.background,
+              },
+              headerTitleStyle: {
+                fontSize: typography.fontSize.lg,
+                fontWeight: typography.fontWeight.bold,
+                color: palette.text.primary,
+              },
+              headerTintColor: palette.text.primary,
+              headerRight: () => <NotificationBell role="instructor" />,
+              tabBarLabel: ({ focused, color }) => (
+                <Text style={{
+                  fontSize: typography.fontSize.xs,
+                  fontWeight: focused ? typography.fontWeight.bold : typography.fontWeight.medium,
+                  color: !user ? (isDarkMode ? '#555555' : '#D1D5DB') : color,
+                }}>
+                  {t('chat.title')}
+                </Text>
+              ),
+              tabBarIcon: ({ color, size, focused }) => (
+                <MaterialIcons
+                  name="chat-bubble"
+                  size={size}
+                  color={!user ? (isDarkMode ? '#555555' : '#D1D5DB') : color}
+                />
+              ),
+            }}
+          />
+        )}
         <Tab.Screen
           name="Profile"
           component={InstructorProfileScreen}
@@ -215,7 +274,7 @@ const MainTabs: React.FC = () => {
             ),
             tabBarIcon: ({ color, size, focused }) => (
               <MaterialIcons
-                name={focused ? "person" : "person-outline"}
+                name="person"
                 size={size}
                 color={color}
               />
@@ -223,7 +282,6 @@ const MainTabs: React.FC = () => {
           }}
         />
       </Tab.Navigator>
-      {appConfig.features.chat && <FloatingChatButton role="instructor" unreadCount={0} />}
     </View>
   );
 };
@@ -248,6 +306,19 @@ export const InstructorNavigator: React.FC = () => {
         name="MainTabs"
         component={MainTabs}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PartnerSearch"
+        component={PartnerSearchScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('navigation.partnerSearch'),
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: { color: palette.text.primary },
+          presentation: 'card',
+        }}
       />
       <Stack.Screen
         name="PartnerDetail"

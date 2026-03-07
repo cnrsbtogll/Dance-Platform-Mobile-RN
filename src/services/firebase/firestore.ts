@@ -136,6 +136,34 @@ export class FirestoreService {
     }
   }
 
+  static async searchStudents(searchText: string): Promise<User[]> {
+    try {
+      const usersRef = collection(db, COLLECTIONS.USERS);
+      // Firestore API does not support full-text search directly.
+      // We will perform a basic prefix search by email, or if it's not an email, we fetch recent students and filter locally.
+      const q = query(
+        usersRef,
+        where('role', '==', 'student'),
+        limit(200)
+      );
+      const snapshot = await getDocs(q);
+      const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+      
+      if (!searchText.trim()) return users.slice(0, 20);
+
+      const lowerSearch = searchText.toLowerCase().trim();
+      return users.filter(u => 
+        (u.email && u.email.toLowerCase().includes(lowerSearch)) ||
+        (u.name && u.name.toLowerCase().includes(lowerSearch)) ||
+        (u.firstName && u.firstName.toLowerCase().includes(lowerSearch)) ||
+        (u.lastName && u.lastName.toLowerCase().includes(lowerSearch))
+      ).slice(0, 20);
+    } catch (error) {
+      console.error('Error searching students:', error);
+      return [];
+    }
+  }
+
   // Instructor Verifications
   static async createVerificationRequest(data: {
     userId: string;
@@ -465,6 +493,29 @@ export class FirestoreService {
       if (docSnap.exists()) {
         return convertDoc<Instructor>(docSnap);
       }
+      
+      // Fallback: check USERS collection since instructors save profile info there
+      const userRef = doc(db, COLLECTIONS.USERS, id);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.role === 'instructor' || userData.role === 'draft-instructor') {
+          return {
+            id: userSnap.id,
+            userId: userSnap.id,
+            displayName: userData.name || userData.displayName || '',
+            email: userData.email || '',
+            photoURL: userData.photoURL || userData.avatar || undefined,
+            phoneNumber: userData.phoneNumber || undefined,
+            role: 'instructor',
+            specialties: userData.danceStyles ? JSON.stringify(userData.danceStyles) : undefined,
+            experience: userData.yearsOfTeaching || 0,
+            bio: userData.bio || undefined,
+            createdAt: userData.createdAt || new Date().toISOString(),
+          } as Instructor;
+        }
+      }
+
       return null;
     } catch (error) {
       console.error('Error getting instructor:', error);
@@ -552,6 +603,16 @@ export class FirestoreService {
     }
   }
 
+  static async deleteBooking(bookingId: string): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      throw error;
+    }
+  }
+
   static async getBookingById(bookingId: string): Promise<Booking | null> {
     try {
       const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);
@@ -566,12 +627,21 @@ export class FirestoreService {
     }
   }
 
-  static async getUserBookingForLesson(userId: string, lessonId: string): Promise<Booking | null> {
+  static async getUserBookingForLesson(userId: string, lessonId: string, options?: { instructorId?: string; schoolId?: string }): Promise<Booking | null> {
       try {
+          const queryConstraints: any[] = [
+              where('studentId', '==', userId),
+              where('lessonId', '==', lessonId)
+          ];
+          if (options?.instructorId) {
+             queryConstraints.push(where('instructorId', '==', options.instructorId));
+          }
+          if (options?.schoolId) {
+             queryConstraints.push(where('schoolId', '==', options.schoolId));
+          }
           const q = query(
               collection(db, COLLECTIONS.BOOKINGS),
-              where('studentId', '==', userId),
-              where('lessonId', '==', lessonId),
+              ...queryConstraints,
               limit(1)
           );
           const querySnapshot = await getDocs(q);

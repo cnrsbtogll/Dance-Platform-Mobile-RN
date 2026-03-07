@@ -467,10 +467,15 @@ export const onCourseCreated = onDocumentCreated('courses/{courseId}', async (ev
       if (bookingsSnapshot.empty) return null;
       const studentIds = bookingsSnapshot.docs.map(doc => doc.data().studentId);
       
+      const isIndependentInstructor = !courseData.schoolId;
+      const notificationBody = isIndependentInstructor 
+          ? `${instructorName} tarafından yeni kurs yayınlandı.`
+          : `${instructorName}, "${courseTitle}" adında yepyeni bir kurs açtı. Kontenjan dolmadan hemen incele!`;
+
       await notifyUsers(
           studentIds,
           'Yeni Kurs Açıldı! 🌟',
-          `${instructorName}, "${courseTitle}" adında yepyeni bir kurs açtı. Kontenjan dolmadan hemen incele!`,
+          notificationBody,
           { courseId: courseId, type: 'new_course' }
       );
 

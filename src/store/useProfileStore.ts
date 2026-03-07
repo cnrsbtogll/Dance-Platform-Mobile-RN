@@ -31,6 +31,8 @@ interface ProfileState {
   // Instructor specific
   tempYearsOfTeaching: string;
   tempCertificates: string;
+  tempShowPhoneNumberToStudents: boolean;
+
 
   setTempName: (name: string) => void;
   setTempAvatar: (avatar: string) => void;
@@ -52,6 +54,8 @@ interface ProfileState {
   setTempIsVisibleInPartnerSearch: (v: boolean) => void;
   setTempYearsOfTeaching: (y: string) => void;
   setTempCertificates: (c: string) => void;
+  setTempShowPhoneNumberToStudents: (v: boolean) => void;
+
 
   loadFromUser: () => void;
   applyChanges: () => Promise<void>;
@@ -78,6 +82,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   tempIsVisibleInPartnerSearch: true,
   tempYearsOfTeaching: '',
   tempCertificates: '',
+  tempShowPhoneNumberToStudents: true,
+
 
   setTempName: (name) => set({ tempName: name }),
   setTempAvatar: (avatar) => set({ tempAvatar: avatar }),
@@ -99,6 +105,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   setTempIsVisibleInPartnerSearch: (v) => set({ tempIsVisibleInPartnerSearch: v }),
   setTempYearsOfTeaching: (y) => set({ tempYearsOfTeaching: y }),
   setTempCertificates: (c) => set({ tempCertificates: c }),
+  setTempShowPhoneNumberToStudents: (v) => set({ tempShowPhoneNumberToStudents: v }),
+
 
   loadFromUser: () => {
     const user = useAuthStore.getState().user;
@@ -126,7 +134,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       tempIsVisibleInPartnerSearch: user?.isVisibleInPartnerSearch !== false, // default true
       tempYearsOfTeaching: user?.yearsOfTeaching != null ? String(user.yearsOfTeaching) : '',
       tempCertificates: user?.certificates || '',
+      tempShowPhoneNumberToStudents: user?.showPhoneNumberToStudents !== false,
     });
+
   },
 
   applyChanges: async () => {
@@ -138,7 +148,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       tempGender, tempAge, tempCountry, tempCity,
       tempIsVisibleInPartnerSearch,
       tempYearsOfTeaching, tempCertificates,
+      tempShowPhoneNumberToStudents,
     } = get();
+
     const { user, setUser } = useAuthStore.getState();
     if (!user) return;
 
@@ -178,7 +190,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (user.role === 'instructor' || user.role === 'draft-instructor') {
       if (tempYearsOfTeaching) updatedFields.yearsOfTeaching = Number(tempYearsOfTeaching) || 0;
       if (tempCertificates) updatedFields.certificates = tempCertificates;
+      updatedFields.showPhoneNumberToStudents = tempShowPhoneNumberToStudents;
     }
+
 
     const updated = { ...user, ...updatedFields };
     setUser(updated);

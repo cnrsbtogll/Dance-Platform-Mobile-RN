@@ -10,5 +10,7 @@
     <array>
       <string>merchant.com.feriha.danceplatform</string>
     </array>
+    <key>aps-environment</key>
+    <string>production</string>
   </dict>
 </plist>

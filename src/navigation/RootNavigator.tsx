@@ -10,13 +10,13 @@ import { User } from '../types';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { EmailVerificationBanner } from '../components/common/EmailVerificationBanner';
 import { useEmailVerification } from '../hooks/useEmailVerification';
+import { navigationRef } from './navigationRef';
 
 const Stack = createStackNavigator();
 
 export const RootNavigator: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const { loadNotifications } = useNotificationStore();
-  const navigationRef = useRef<any>(null);
 
   const previousUserRef = useRef<User | null>(null);
 
@@ -31,7 +31,7 @@ export const RootNavigator: React.FC = () => {
   useEffect(() => {
     const prevUser = previousUserRef.current;
 
-    if (navigationRef.current) {
+    if (navigationRef.isReady()) {
       // 1. Instructor Login
       const isInstructorRole = user?.role === 'instructor' || user?.role === 'draft-instructor';
       const wasInstructorRole = prevUser?.role === 'instructor' || prevUser?.role === 'draft-instructor';
@@ -40,14 +40,14 @@ export const RootNavigator: React.FC = () => {
       const wasSchoolRole = prevUser?.role === 'school' || prevUser?.role === 'draft-school';
 
       if (isInstructorRole && !wasInstructorRole) {
-        navigationRef.current.reset({
+        navigationRef.reset({
           index: 0,
           routes: [{ name: 'Instructor' }],
         });
       }
 
       if (isSchoolRole && !wasSchoolRole) {
-        navigationRef.current.reset({
+        navigationRef.reset({
           index: 0,
           routes: [{ name: 'School' }],
         });
@@ -55,7 +55,7 @@ export const RootNavigator: React.FC = () => {
 
       // 2. Logout / Delete Account / Downgrade (User becomes null, or role changes to student)
       if ((!user || user.role === 'student') && (wasInstructorRole || wasSchoolRole)) {
-        navigationRef.current.reset({
+        navigationRef.reset({
           index: 0,
           routes: [{ name: 'Student' }],
         });
@@ -63,7 +63,7 @@ export const RootNavigator: React.FC = () => {
 
       // 3. Explicit check for null user (Logout/Delete from any state)
       if (!user && prevUser) {
-        navigationRef.current.reset({
+        navigationRef.reset({
           index: 0,
           routes: [{ name: 'Student' }],
         });

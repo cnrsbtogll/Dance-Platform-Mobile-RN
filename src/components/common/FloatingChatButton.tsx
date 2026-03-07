@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TouchableOpacity, StyleSheet, View, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { getPalette, shadows, typography } from '../../utils/theme';
+import { chatService } from '../../services/firebase/chat';
 
 interface FloatingChatButtonProps {
     role: 'student' | 'instructor' | 'school';
@@ -19,6 +20,28 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, un
     const { isDarkMode } = useThemeStore();
     const palette = getPalette(role, isDarkMode);
 
+    const [localUnreadCount, setLocalUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (!user?.id) {
+            setLocalUnreadCount(0);
+            return;
+        }
+
+        const unsubscribe = chatService.subscribeToConversations(user.id, (data) => {
+            let count = 0;
+            data.forEach(convo => {
+                const convoUnread = convo.unreadCount?.[user.id] || 0;
+                if (convoUnread > 0) {
+                    count++; // Sohbet (conversation) bazlı badge: Okunmamış mesajı olan KULLANICI / SOHBET sayısı
+                }
+            });
+            setLocalUnreadCount(count);
+        });
+
+        return () => unsubscribe();
+    }, [user?.id]);
+
     const handlePress = () => {
         if (!user) {
             // Require login
@@ -29,6 +52,8 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, un
         }
         navigation.navigate('Chat');
     };
+
+    const finalUnreadCount = unreadCount > 0 ? unreadCount : localUnreadCount;
 
     return (
         <TouchableOpacity
@@ -41,9 +66,9 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, un
             activeOpacity={0.8}
         >
             <MaterialIcons name="chat-bubble" size={24} color="#FFFFFF" />
-            {unreadCount > 0 && (
+            {finalUnreadCount > 0 && (
                 <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                    <Text style={styles.badgeText}>{finalUnreadCount > 99 ? '99+' : finalUnreadCount}</Text>
                 </View>
             )}
         </TouchableOpacity>
