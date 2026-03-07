@@ -150,6 +150,7 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (
                       userId == request.auth.uid || 
                       (isSchool() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'verificationStatus', 'updatedAt'])) ||
+                      ((isInstructor() || isSchool()) && resource.data.role == 'student' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneNumber', 'gender', 'updatedAt'])) ||
                       isAdmin()
                     );
       
@@ -246,8 +247,8 @@ service cloud.firestore {
                        resource.data.instructorId == request.auth.uid || 
                        isAdmin());
       
-      // Admin silebilir veya iptal durumuna çekebilir
-      allow delete: if isAdmin();
+      // Admin, Okul veya Eğitmen silebilir veya iptal durumuna çekebilir
+      allow delete: if isAdmin() || isSchool() || (isAuthenticated() && resource.data.instructorId == request.auth.uid);
     }
     
     // ==========================================

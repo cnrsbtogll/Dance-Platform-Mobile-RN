@@ -656,7 +656,8 @@
     "bookingHistory": "Rezervasyon Geçmişi",
     "noBookings": "Henüz rezervasyon yok",
     "session": "seans",
-    "actions": "Aksiyonlar"
+    "actions": "Aksiyonlar",
+    "chatInApp": "Feriha'dan Mesaj At"
   },
   "earnings": {
     "totalEarnings": "Toplam Kazanç",

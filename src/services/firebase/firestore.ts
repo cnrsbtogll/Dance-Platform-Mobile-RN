@@ -580,6 +580,16 @@ export class FirestoreService {
     }
   }
 
+  static async deleteBooking(bookingId: string): Promise<void> {
+    try {
+      const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      throw error;
+    }
+  }
+
   static async getBookingById(bookingId: string): Promise<Booking | null> {
     try {
       const docRef = doc(db, COLLECTIONS.BOOKINGS, bookingId);

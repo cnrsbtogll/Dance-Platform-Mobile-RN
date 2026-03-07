@@ -652,7 +652,8 @@
     "bookingHistory": "Booking History",
     "noBookings": "No bookings yet",
     "session": "session",
-    "actions": "Actions"
+    "actions": "Actions",
+    "chatInApp": "Message via Feriha"
   },
   "earnings": {
     "totalEarnings": "Total Earnings",

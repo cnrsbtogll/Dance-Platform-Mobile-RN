@@ -14,6 +14,7 @@ import { useBookingStore } from '../../store/useBookingStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
+import { AddStudentModal } from '../../components/instructor/AddStudentModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
 import { Booking, CourseAnnouncement } from '../../types';
@@ -186,6 +187,7 @@ export const LessonDetailScreen: React.FC = () => {
   // Registered Students
   const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
   const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
   // Gender Selection Modal State
@@ -208,7 +210,33 @@ export const LessonDetailScreen: React.FC = () => {
 
           // If instructor, show the student list
           if (isOwnLesson) {
-            setEnrolledStudents(bookings);
+            // Filter only active bookings
+            const activeEnrolledBookings = bookings.filter(b => b.status !== 'cancelled');
+
+            // Fetch missing names and photos from users collection for backward compatibility
+            const bookingsWithNamesAndPhotos = await Promise.all(activeEnrolledBookings.map(async (booking) => {
+              let photoURL = booking.studentPhoto; // Assuming booking might have studentPhoto, if not it's undefined
+              try {
+                const studentUser = await FirestoreService.getUserById(booking.studentId);
+                if (studentUser) {
+                  const studentName = studentUser.name || studentUser.displayName || `${studentUser.firstName || ''} ${studentUser.lastName || ''}`.trim() || 'Bilinmiyor';
+                  photoURL = studentUser.photoURL || null;
+                  return {
+                    ...booking,
+                    studentName: booking.studentName && booking.studentName !== 'Bilinmiyor' && booking.studentName !== 'unknown'
+                      ? booking.studentName
+                      : studentName,
+                    studentGender: studentUser.gender || booking.studentGender,
+                    studentPhoto: photoURL
+                  };
+                }
+              } catch (err) {
+                console.error('Error fetching student user for booking:', err);
+              }
+              return { ...booking, studentPhoto: photoURL };
+            }));
+
+            setEnrolledStudents(bookingsWithNamesAndPhotos);
             setLoadingStudents(false);
           }
 
@@ -504,6 +532,31 @@ export const LessonDetailScreen: React.FC = () => {
     }
   };
 
+  const removeStudent = (bookingId: string, studentName: string) => {
+    Alert.alert(
+      t('lessons.removeStudentTitle') || 'Öğrenciyi Çıkar',
+      t('lessons.removeStudentDesc', { name: studentName }) || `${studentName} isimli öğrenciyi bu kurstan çıkarmak istiyor musunuz?`,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.remove') || 'Çıkar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await FirestoreService.deleteBooking(bookingId);
+              setEnrolledStudents(prev => prev.filter(b => b.id !== bookingId));
+              const newTotal = Math.max(0, (lesson?.currentParticipants || 1) - 1);
+              setLesson((prev: any) => prev ? { ...prev, currentParticipants: newTotal } : prev);
+            } catch (err) {
+              console.error('Error removing student:', err);
+              Alert.alert(t('common.error'), t('lessons.removeStudentError') || 'Öğrenci çıkarılırken hata oluştu.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
 
 
   return (
@@ -788,7 +841,7 @@ export const LessonDetailScreen: React.FC = () => {
                         }}
                       >
                         <Image
-                          source={getAvatarSource(null, item.studentName)}
+                          source={getAvatarSource(item.studentPhoto || null, item.studentName)}
                           style={styles.studentAvatar}
                         />
                         <View style={{ flex: 1 }}>
@@ -799,19 +852,61 @@ export const LessonDetailScreen: React.FC = () => {
                             {formatDate(item.createdAt)}
                           </Text>
                         </View>
-                        <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#E8F5E9' : '#FFF3E0' }]}>
-                          <Text style={[styles.statusText, { color: item.status === 'confirmed' ? '#2E7D32' : '#EF6C00' }]}>
-                            {item.status}
-                          </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#E8F5E9' : '#FFF3E0', marginRight: isOwnLesson ? 8 : 0 }]}>
+                            <Text style={[styles.statusText, { color: item.status === 'confirmed' ? '#2E7D32' : '#EF6C00' }]}>
+                              {item.status}
+                            </Text>
+                          </View>
+                          {isOwnLesson && (
+                            <TouchableOpacity
+                              onPress={() => removeStudent(item.id, item.studentName || t('studentHome.unknown'))}
+                              style={{ padding: 4 }}
+                            >
+                              <MaterialIcons name="person-remove" size={22} color="#F44336" />
+                            </TouchableOpacity>
+                          )}
                         </View>
                       </TouchableOpacity>
                     )}
                     contentContainerStyle={{ paddingBottom: 20 }}
                   />
                 )}
+
+                {/* Add Student Button for Instructors/Schools */}
+                {isOwnLesson && (
+                  <TouchableOpacity
+                    style={[styles.primaryButton, { margin: 16, backgroundColor: palette.primary }]}
+                    onPress={() => {
+                      setShowStudentsModal(false);
+                      setTimeout(() => setShowAddStudentModal(true), 300);
+                    }}
+                  >
+                    <MaterialIcons name="person-add" size={24} color="#fff" />
+                    <Text style={[styles.primaryButtonText, { marginLeft: 8 }]}>
+                      {t('lessons.addStudent') || 'Öğrenci Ekle'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </Modal>
+
+          <AddStudentModal
+            visible={showAddStudentModal}
+            onClose={() => {
+              setShowAddStudentModal(false);
+              setTimeout(() => setShowStudentsModal(true), 300);
+            }}
+            instructorId={user?.id || ''}
+            isSchool={user?.role === 'school'}
+            onSuccess={() => {
+              setShowAddStudentModal(false);
+              setLesson((prev: any) => prev ? { ...prev } : prev); // Trigger lesson update which fetches students
+              setTimeout(() => setShowStudentsModal(true), 300);
+            }}
+            initialLessonId={lesson.id}
+          />
 
           {/* Gender Selection Modal */}
           <Modal
@@ -1397,6 +1492,18 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     marginHorizontal: spacing.sm,
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
   },
 });
 

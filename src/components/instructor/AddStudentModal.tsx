@@ -199,6 +199,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                         price: selectedLesson.price || 0,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
+                        studentName: displayName,
+                        studentGender: gender as any,
+                        lessonTitle: selectedLesson.title || selectedLesson.name
                     });
                 }
 
@@ -219,6 +222,11 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                 return;
             }
 
+            if (!phone.trim() || !gender || (gender !== 'male' && gender !== 'female')) {
+                Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen telefon ve cinsiyet bilgilerini eksiksiz doldurunuz.');
+                return;
+            }
+
             setLoading(true);
             try {
                 // Check if booking already exists
@@ -232,7 +240,26 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                     return;
                 }
 
+                const selectedUserDetail = searchResults.find(u => u.id === selectedUserId);
+
+                // Update user details if missing phone or gender
+                if (selectedUserDetail) {
+                    const needsUpdate = (selectedUserDetail.phoneNumber !== phone.trim()) || (selectedUserDetail.gender !== gender);
+                    if (needsUpdate) {
+                        try {
+                            await FirestoreService.updateUser(selectedUserId, {
+                                phoneNumber: phone.trim(),
+                                gender: gender as any
+                            });
+                        } catch (err) {
+                            console.error('Error updating existing user info:', err);
+                        }
+                    }
+                }
+
                 if (selectedLesson) {
+                    const studentName = selectedUserDetail?.name || selectedUserDetail?.displayName || `${selectedUserDetail?.firstName || ''} ${selectedUserDetail?.lastName || ''}`.trim() || t('studentHome.unknown');
+
                     await FirestoreService.createBooking({
                         studentId: selectedUserId,
                         lessonId: selectedLessonId,
@@ -244,6 +271,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                         price: selectedLesson.price || 0,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
+                        studentName: studentName,
+                        studentGender: gender as any,
+                        lessonTitle: selectedLesson.title || selectedLesson.name
                     });
                 }
 
@@ -408,7 +438,12 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                                     { borderColor: palette.border, backgroundColor: palette.card },
                                                     selectedUserId === user.id && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
                                                 ]}
-                                                onPress={() => setSelectedUserId(user.id)}
+                                                onPress={() => {
+                                                    setSelectedUserId(user.id);
+                                                    setPhone((user as any).phone || user.phoneNumber || '');
+                                                    const dbGender = (user as any).gender;
+                                                    setGender(dbGender === 'male' || dbGender === 'female' ? dbGender : '');
+                                                }}
                                             >
                                                 <MaterialIcons
                                                     name={selectedUserId === user.id ? 'check-circle' : 'radio-button-unchecked'}
@@ -416,12 +451,66 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                                     color={selectedUserId === user.id ? palette.primary : palette.text.secondary}
                                                 />
                                                 <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                                                    <Text style={[styles.userName, { color: palette.text.primary }]}>{user.name || `${user.firstName} ${user.lastName}`}</Text>
+                                                    <Text style={[styles.userName, { color: palette.text.primary }]}>{user.name || user.displayName || [user.firstName, user.lastName].filter(Boolean).join(' ') || t('studentHome.unknown')}</Text>
                                                     <Text style={[styles.userEmail, { color: palette.text.secondary }]}>{user.email}</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
+                                )}
+
+                                {selectedUserId && (
+                                    <>
+                                        <View style={[styles.inputGroup, { marginTop: spacing.md }]}>
+                                            <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.phone', 'Telefon')} *</Text>
+                                            <TextInput
+                                                style={[styles.input, { borderColor: palette.border, color: palette.text.primary, backgroundColor: palette.card }]}
+                                                value={phone}
+                                                onChangeText={setPhone}
+                                                placeholder="555 555 55 55"
+                                                placeholderTextColor={palette.text.secondary}
+                                                keyboardType="phone-pad"
+                                                maxLength={15}
+                                            />
+                                            <Text style={{ fontSize: 12, color: palette.text.secondary, marginTop: 4 }}>
+                                                Eksik ise lütfen öğrencinin iletişim bilgisini doğrulayın.
+                                            </Text>
+                                        </View>
+
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.gender', 'Cinsiyet')} *</Text>
+                                            <View style={styles.genderOptions}>
+                                                <TouchableOpacity
+                                                    style={[
+                                                        styles.genderBtn,
+                                                        { borderColor: palette.border, backgroundColor: palette.card },
+                                                        gender === 'male' && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
+                                                    ]}
+                                                    onPress={() => setGender('male')}
+                                                >
+                                                    <Text style={[
+                                                        styles.genderText,
+                                                        { color: palette.text.secondary },
+                                                        gender === 'male' && { color: palette.primary, fontWeight: 'bold' }
+                                                    ]}>{t('common.male', 'Erkek')}</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[
+                                                        styles.genderBtn,
+                                                        { borderColor: palette.border, backgroundColor: palette.card },
+                                                        gender === 'female' && { borderColor: palette.primary, backgroundColor: palette.primary + '10' }
+                                                    ]}
+                                                    onPress={() => setGender('female')}
+                                                >
+                                                    <Text style={[
+                                                        styles.genderText,
+                                                        { color: palette.text.secondary },
+                                                        gender === 'female' && { color: palette.primary, fontWeight: 'bold' }
+                                                    ]}>{t('common.female', 'Kadın')}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </>
                                 )}
                             </View>
                         )}
