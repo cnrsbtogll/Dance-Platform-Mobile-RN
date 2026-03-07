@@ -18,7 +18,9 @@ import { uploadAvatar, UploadProgress } from '../../services/storageService';
 import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
-import { DEFAULT_COUNTRY } from '../../utils/locations';
+import { DEFAULT_COUNTRY, getCountryCodeByName } from '../../utils/locations';
+import { isValidPhoneNumber, getPhoneMask } from '../../utils/validation';
+import MaskInput from 'react-native-mask-input';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -79,10 +81,15 @@ export const EditProfileScreen: React.FC = () => {
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
         return;
       }
-    } else if (isInstructor) {
-      if (!tempPhoneNumber.trim()) {
+      if (!isValidPhoneNumber(tempContactNumber)) {
         setHighlightErrors(true);
-        Alert.alert(t('common.error'), t('profile.phoneRequiredError'));
+        Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
+        return;
+      }
+    } else if (isInstructor) {
+      if (!isValidPhoneNumber(tempPhoneNumber)) {
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
         return;
       }
     } else {
@@ -163,6 +170,29 @@ export const EditProfileScreen: React.FC = () => {
     label: string, value: string, onChangeText: (v: string) => void, placeholder?: string, multiline = false, keyboardType = 'default' as any, isRequired = false
   ) => {
     const hasError = highlightErrors && isRequired && !value.trim();
+
+    if (keyboardType === 'phone-pad') {
+      return (
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>
+            {label} {isRequired && <Text style={{ color: '#ef4444' }}>*</Text>}
+          </Text>
+          <MaskInput
+            style={[
+              styles.input,
+              { borderColor: hasError ? '#ef4444' : palette.border, backgroundColor: palette.card, color: palette.text.primary },
+            ]}
+            placeholder={placeholder || "+90 555 444 33 22"}
+            placeholderTextColor={palette.text.secondary}
+            value={value}
+            onChangeText={onChangeText}
+            keyboardType="phone-pad"
+            mask={getPhoneMask(getCountryCodeByName(tempCountry))}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.inputGroup}>
         <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>

@@ -174,7 +174,8 @@
     "phoneNumberInstructorReason": "Eğitmenlerle koordinasyon sağlamak ve hesap güvenliği için telefon numaranıza ihtiyaç duyuyoruz.",
     "showPhoneNumberToStudents": "Telefon numaramı öğrenciler görsün",
     "showPhoneNumberToStudentsDesc": "Açık olduğunda, öğrenciler kurs detaylarında iletişim numaranızı görebilir.",
-    "phoneRequiredError": "Eğitmenler için telefon numarası zorunludur."
+    "phoneRequiredError": "Eğitmenler için telefon numarası zorunludur.",
+    "invalidPhoneNumber": "Geçerli bir telefon numarası giriniz."
   },
   "location": {
     "selectCountry": "Ülke Seç",

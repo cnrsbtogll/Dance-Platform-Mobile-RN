@@ -174,7 +174,8 @@
     "phoneNumberInstructorReason": "We need your phone number to coordinate with students and for account security.",
     "showPhoneNumberToStudents": "Show phone number to students",
     "showPhoneNumberToStudentsDesc": "When enabled, students will be able to see your contact number on lesson details.",
-    "phoneRequiredError": "Phone number is required for instructors."
+    "phoneRequiredError": "Phone number is required for instructors.",
+    "invalidPhoneNumber": "Please enter a valid phone number."
   },
   "location": {
     "selectCountry": "Select Country",

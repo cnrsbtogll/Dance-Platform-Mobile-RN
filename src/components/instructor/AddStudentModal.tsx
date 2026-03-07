@@ -19,6 +19,8 @@ import { FirestoreService } from '../../services/firebase/firestore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { Lesson, User } from '../../types';
+import { isValidPhoneNumber, getPhoneMask } from '../../utils/validation';
+import MaskInput from 'react-native-mask-input';
 
 interface AddStudentModalProps {
     visible: boolean;
@@ -134,6 +136,10 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                 Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen tüm alanları doldurunuz.');
                 return;
             }
+            if (!isValidPhoneNumber(phone)) {
+                Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
+                return;
+            }
 
             setLoading(true);
             try {
@@ -224,6 +230,10 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
             if (!phone.trim() || !gender || (gender !== 'male' && gender !== 'female')) {
                 Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen telefon ve cinsiyet bilgilerini eksiksiz doldurunuz.');
+                return;
+            }
+            if (!isValidPhoneNumber(phone)) {
+                Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
                 return;
             }
 
@@ -365,13 +375,14 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
                                 <View style={styles.inputGroup}>
                                     <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.phone') || 'Telefon Numarası'}</Text>
-                                    <TextInput
+                                    <MaskInput
                                         style={[styles.input, { borderColor: palette.border, color: palette.text.primary, backgroundColor: palette.card }]}
                                         value={phone}
                                         onChangeText={setPhone}
-                                        placeholder="+905554443322"
+                                        placeholder="+90 555 444 33 22"
                                         keyboardType="phone-pad"
                                         placeholderTextColor={palette.text.secondary}
+                                        mask={getPhoneMask('TR')}
                                     />
                                 </View>
 
@@ -463,14 +474,14 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                     <>
                                         <View style={[styles.inputGroup, { marginTop: spacing.md }]}>
                                             <Text style={[styles.label, { color: palette.text.primary }]}>{t('common.phone', 'Telefon')} *</Text>
-                                            <TextInput
+                                            <MaskInput
                                                 style={[styles.input, { borderColor: palette.border, color: palette.text.primary, backgroundColor: palette.card }]}
                                                 value={phone}
                                                 onChangeText={setPhone}
-                                                placeholder="555 555 55 55"
+                                                placeholder="+90 555 444 33 22"
                                                 placeholderTextColor={palette.text.secondary}
                                                 keyboardType="phone-pad"
-                                                maxLength={15}
+                                                mask={getPhoneMask('TR')}
                                             />
                                             <Text style={{ fontSize: 12, color: palette.text.secondary, marginTop: 4 }}>
                                                 Eksik ise lütfen öğrencinin iletişim bilgisini doğrulayın.

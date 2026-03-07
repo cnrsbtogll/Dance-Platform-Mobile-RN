@@ -17,6 +17,8 @@ import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
 import { AddStudentModal } from '../../components/instructor/AddStudentModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
+import { isValidPhoneNumber, getPhoneMask } from '../../utils/validation';
+import MaskInput from 'react-native-mask-input';
 import { Booking, CourseAnnouncement } from '../../types';
 export const LessonDetailScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -413,8 +415,8 @@ export const LessonDetailScreen: React.FC = () => {
 
     // Validation
     if (isGenderMissing && !selectedGender) return;
-    if (isPhoneMissing && (!phoneNumber || phoneNumber.replace(/\D/g, '').length < 10)) {
-      Alert.alert(t('common.error'), t('lessons.invalidPhone') || 'Lütfen geçerli bir telefon numarası girin (en az 10 hane).');
+    if (isPhoneMissing && (!phoneNumber || !isValidPhoneNumber(phoneNumber))) {
+      Alert.alert(t('common.error'), t('profile.invalidPhoneNumber') || 'Lütfen geçerli bir telefon numarası girin (en az 10 hane).');
       return;
     }
 

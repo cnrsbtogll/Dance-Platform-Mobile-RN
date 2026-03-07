@@ -8,6 +8,8 @@ import { colors, spacing, typography, borderRadius, shadows, getPalette } from '
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { FirestoreService } from '../../services/firebase/firestore';
+import MaskInput from 'react-native-mask-input';
+import { getPhoneMask } from '../../utils/validation';
 
 export const SchoolOnboardingScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -117,13 +119,14 @@ export const SchoolOnboardingScreen: React.FC = () => {
 
                         <View style={styles.inputContainer}>
                             <Text style={[styles.label, { color: palette.text.primary }]}>{t('becomeSchool.contactNumberPlaceholder') || 'İletişim Numarası'} *</Text>
-                            <TextInput
+                            <MaskInput
                                 style={[styles.input, { backgroundColor: palette.card, color: palette.text.primary, borderColor: palette.border }]}
                                 placeholder="+90 5XX XXX XX XX"
                                 placeholderTextColor={palette.text.secondary}
                                 value={contactNumber}
                                 onChangeText={setContactNumber}
                                 keyboardType="phone-pad"
+                                mask={getPhoneMask('TR')}
                             />
                         </View>
 
