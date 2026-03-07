@@ -1112,7 +1112,7 @@ export const LessonDetailScreen: React.FC = () => {
             {!user?.phoneNumber && (
               <View style={{ marginBottom: 24 }}>
                 <Text style={{ color: palette.text.primary, fontWeight: '600', marginBottom: 12 }}>{t('lessons.phoneNumber')}</Text>
-                <TextInput
+                <MaskInput
                   style={{
                     backgroundColor: palette.card,
                     color: palette.text.primary,
@@ -1126,7 +1126,8 @@ export const LessonDetailScreen: React.FC = () => {
                   placeholderTextColor={palette.text.secondary}
                   keyboardType="phone-pad"
                   value={phoneNumber}
-                  onChangeText={(text) => setPhoneNumber(text.replace(/[^0-9+\s-]/g, ''))}
+                  onChangeText={(masked) => setPhoneNumber(masked)}
+                  mask={internationalPhoneMask}
                 />
               </View>
             )}

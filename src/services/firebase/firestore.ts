@@ -493,6 +493,29 @@ export class FirestoreService {
       if (docSnap.exists()) {
         return convertDoc<Instructor>(docSnap);
       }
+      
+      // Fallback: check USERS collection since instructors save profile info there
+      const userRef = doc(db, COLLECTIONS.USERS, id);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.role === 'instructor' || userData.role === 'draft-instructor') {
+          return {
+            id: userSnap.id,
+            userId: userSnap.id,
+            displayName: userData.name || userData.displayName || '',
+            email: userData.email || '',
+            photoURL: userData.photoURL || userData.avatar || undefined,
+            phoneNumber: userData.phoneNumber || undefined,
+            role: 'instructor',
+            specialties: userData.danceStyles ? JSON.stringify(userData.danceStyles) : undefined,
+            experience: userData.yearsOfTeaching || 0,
+            bio: userData.bio || undefined,
+            createdAt: userData.createdAt || new Date().toISOString(),
+          } as Instructor;
+        }
+      }
+
       return null;
     } catch (error) {
       console.error('Error getting instructor:', error);
