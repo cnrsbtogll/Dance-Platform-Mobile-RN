@@ -19,7 +19,7 @@ import { FirestoreService } from '../../services/firebase/firestore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { Lesson, User } from '../../types';
-import { isValidPhoneNumber, getPhoneMask } from '../../utils/validation';
+import { isValidPhoneNumber, internationalPhoneMask } from '../../utils/validation';
 import MaskInput from 'react-native-mask-input';
 
 interface AddStudentModalProps {
@@ -382,7 +382,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                         placeholder="+90 555 444 33 22"
                                         keyboardType="phone-pad"
                                         placeholderTextColor={palette.text.secondary}
-                                        mask={getPhoneMask('TR')}
+                                        mask={internationalPhoneMask}
                                     />
                                 </View>
 
@@ -481,7 +481,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                                                 placeholder="+90 555 444 33 22"
                                                 placeholderTextColor={palette.text.secondary}
                                                 keyboardType="phone-pad"
-                                                mask={getPhoneMask('TR')}
+                                                mask={internationalPhoneMask}
                                             />
                                             <Text style={{ fontSize: 12, color: palette.text.secondary, marginTop: 4 }}>
                                                 Eksik ise lütfen öğrencinin iletişim bilgisini doğrulayın.

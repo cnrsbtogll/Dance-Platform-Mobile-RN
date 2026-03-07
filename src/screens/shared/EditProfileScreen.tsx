@@ -19,7 +19,7 @@ import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
 import { DEFAULT_COUNTRY, getCountryCodeByName } from '../../utils/locations';
-import { isValidPhoneNumber, getPhoneMask } from '../../utils/validation';
+import { isValidPhoneNumber, internationalPhoneMask } from '../../utils/validation';
 import MaskInput from 'react-native-mask-input';
 
 export const EditProfileScreen: React.FC = () => {
@@ -187,7 +187,7 @@ export const EditProfileScreen: React.FC = () => {
             value={value}
             onChangeText={onChangeText}
             keyboardType="phone-pad"
-            mask={getPhoneMask(getCountryCodeByName(tempCountry))}
+            mask={internationalPhoneMask}
           />
         </View>
       );

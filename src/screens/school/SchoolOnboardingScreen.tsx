@@ -9,7 +9,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { FirestoreService } from '../../services/firebase/firestore';
 import MaskInput from 'react-native-mask-input';
-import { getPhoneMask } from '../../utils/validation';
+import { internationalPhoneMask } from '../../utils/validation';
 
 export const SchoolOnboardingScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -126,7 +126,7 @@ export const SchoolOnboardingScreen: React.FC = () => {
                                 value={contactNumber}
                                 onChangeText={setContactNumber}
                                 keyboardType="phone-pad"
-                                mask={getPhoneMask('TR')}
+                                mask={internationalPhoneMask}
                             />
                         </View>
 

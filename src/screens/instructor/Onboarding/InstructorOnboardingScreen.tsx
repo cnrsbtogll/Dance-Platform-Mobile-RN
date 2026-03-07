@@ -9,7 +9,7 @@ import { useThemeStore } from '../../../store/useThemeStore';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { FirestoreService } from '../../../services/firebase/firestore';
 import MaskInput from 'react-native-mask-input';
-import { getPhoneMask } from '../../../utils/validation';
+import { internationalPhoneMask } from '../../../utils/validation';
 
 const STEPS = ['BasicInfo', 'Expertise'];
 
@@ -97,7 +97,7 @@ export const InstructorOnboardingScreen: React.FC = () => {
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
                     keyboardType="phone-pad"
-                    mask={getPhoneMask('TR')}
+                    mask={internationalPhoneMask}
                 />
             </View>
 
