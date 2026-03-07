@@ -8,9 +8,10 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -139,6 +140,55 @@ export const InstructorStudentDetailScreen: React.FC = () => {
         );
     };
 
+    const handleWhatsApp = () => {
+        const phone = (student as any)?.phone || student?.phoneNumber;
+        if (!phone) {
+            Alert.alert(t('common.error'), t('studentDetail.noPhone') || 'This student does not have a phone number.');
+            return;
+        }
+        let phoneStr = phone.replace(/[^0-9+]/g, '');
+        if (!phoneStr.startsWith('+')) {
+            if (phoneStr.startsWith('0')) {
+                phoneStr = '+90' + phoneStr.substring(1);
+            } else {
+                phoneStr = '+90' + phoneStr;
+            }
+        }
+        const url = `whatsapp://send?phone=${phoneStr}`;
+        Linking.canOpenURL(url).then(supported => {
+            if (supported) {
+                Linking.openURL(url);
+            } else {
+                Alert.alert('Error', 'WhatsApp is not installed on your device.');
+            }
+        });
+    };
+
+    const handlePhoneCall = () => {
+        const phone = (student as any)?.phone || student?.phoneNumber;
+        if (!phone) {
+            Alert.alert(t('common.error'), t('studentDetail.noPhone') || 'This student does not have a phone number.');
+            return;
+        }
+        const url = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+        Linking.canOpenURL(url).then(supported => {
+            if (supported) {
+                Linking.openURL(url);
+            } else {
+                Alert.alert('Error', 'Unable to make phone calls.');
+            }
+        });
+    };
+
+    const handleInAppChat = () => {
+        if (!student) return;
+        (navigation as any).navigate('ChatDetail', {
+            targetUserId: student.id,
+            recipientName: student.name,
+            recipientRole: student.role
+        });
+    };
+
     // ── Helpers ──────────────────────────────────────────────────────────────────
     const avatarUrl = student?.avatar || student?.photoURL;
     const totalSessions = bookings.length;
@@ -156,26 +206,29 @@ export const InstructorStudentDetailScreen: React.FC = () => {
         </View>
     );
 
-    // ── Action button ────────────────────────────────────────────────────────────
     const ActionButton = ({
-        icon, label, state, color, onPress,
-    }: { icon: string; label: string; state: ActionState; color: string; onPress: () => void }) => (
+        icon, label, state, color, onPress, IconComponent = MaterialIcons, subLabel
+    }: { icon: string; label: string; state?: ActionState; color: string; onPress: () => void; IconComponent?: any, subLabel?: string }) => (
         <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: color + '15', borderColor: color + '40' }]}
+            style={[styles.actionBtn, { borderColor: palette.text.primary }]}
             onPress={onPress}
             disabled={state === 'sending'}
             activeOpacity={0.75}
         >
             {state === 'sending' ? (
-                <ActivityIndicator size={16} color={color} />
+                <ActivityIndicator size={16} color={palette.text.primary} />
             ) : state === 'sent' ? (
                 <MaterialIcons name="check-circle" size={18} color="#10B981" />
             ) : state === 'error' ? (
                 <MaterialIcons name="error-outline" size={18} color="#EF4444" />
             ) : (
-                <MaterialIcons name={icon as any} size={18} color={color} />
+                <IconComponent name={icon as any} size={20} color={palette.text.primary} />
             )}
-            <Text style={[styles.actionBtnText, { color }]}>{label}</Text>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={[styles.actionBtnText, { color: palette.text.primary }]}>{label}</Text>
+                {subLabel && <Text style={{ color: palette.text.primary, fontSize: 11, marginTop: 4, opacity: 0.8 }}>{subLabel}</Text>}
+            </View>
+            <View style={{ width: 20 }} />
         </TouchableOpacity>
     );
 
@@ -301,12 +354,40 @@ export const InstructorStudentDetailScreen: React.FC = () => {
                     <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
                         {t('studentDetail.actions')}
                     </Text>
+
+                    <View style={[styles.actionsRow, { marginBottom: spacing.md }]}>
+                        <ActionButton
+                            icon="chat"
+                            label={t('studentDetail.chatInApp') || 'Feriha\'dan Mesaj At'}
+                            color={colors.instructor.primary}
+                            onPress={handleInAppChat}
+                        />
+                        <ActionButton
+                            icon="whatsapp"
+                            label="WhatsApp"
+                            subLabel={(student as any)?.phone || student?.phoneNumber}
+                            color="#25D366"
+                            IconComponent={MaterialCommunityIcons}
+                            onPress={handleWhatsApp}
+                        />
+                        <ActionButton
+                            icon="phone"
+                            label={t('common.call') || 'Ara'}
+                            subLabel={(student as any)?.phone || student?.phoneNumber}
+                            color="#10B981"
+                            onPress={handlePhoneCall}
+                        />
+                    </View>
+
+                    <Text style={[styles.sectionTitle, { color: palette.text.primary, fontSize: typography.fontSize.sm, marginTop: spacing.md }]}>
+                        {t('studentDetail.accountActions') || 'Account Management'}
+                    </Text>
                     <View style={styles.actionsRow}>
                         <ActionButton
                             icon="lock-reset"
                             label={t('instructorStudents.resetTitle')}
                             state={resetState}
-                            color={colors.instructor.primary}
+                            color={colors.instructor.secondary}
                             onPress={() => sendAction('reset', setResetState)}
                         />
                         <ActionButton
@@ -400,7 +481,7 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.full,
     },
     statusText: { fontSize: typography.fontSize.xs, fontWeight: '600' },
-    actionsRow: { gap: spacing.sm },
+    actionsRow: { gap: spacing.sm, flexDirection: 'column' },
     actionBtn: {
         flexDirection: 'row',
         alignItems: 'center',

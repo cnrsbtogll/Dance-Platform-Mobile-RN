@@ -94,6 +94,12 @@ export const InstructorProfileScreen: React.FC = () => {
 
   const appSettings: SettingItem[] = [
     {
+      id: 'partnerSearch',
+      icon: 'people',
+      title: t('navigation.partnerSearch'),
+      onPress: () => (navigation as any).navigate('PartnerSearch'),
+    },
+    {
       id: 'notifications',
       icon: 'notifications',
       title: t('profile.notifications'),

@@ -38,6 +38,8 @@ export interface Lesson {
     schoolId?: string;
     schoolName?: string;
     customAddress?: string;
+    customCountry?: string;
+    customCity?: string;
   };
   schoolId?: string;
   schoolName?: string;

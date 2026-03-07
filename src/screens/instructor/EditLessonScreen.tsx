@@ -11,6 +11,9 @@ import { useAuthStore } from '../../store/useAuthStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
+import { LocationPickerModal } from '../../components/common/LocationPickerModal';
+import { AddStudentModal } from '../../components/instructor/AddStudentModal';
+import { DEFAULT_COUNTRY } from '../../utils/locations';
 import { MockDataService } from '../../services/mockDataService';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { useLessonStore } from '../../store/useLessonStore';
@@ -99,7 +102,10 @@ export const EditLessonScreen: React.FC = () => {
     const [locationType, setLocationType] = useState<'school' | 'custom'>('school');
     const [selectedSchool, setSelectedSchool] = useState<{ id: string; name: string } | null>(null);
     const [customAddress, setCustomAddress] = useState('');
+    const [customCountry, setCustomCountry] = useState('');
+    const [customCity, setCustomCity] = useState('');
     const [showSchoolPicker, setShowSchoolPicker] = useState(false);
+    const [showLocationPicker, setShowLocationPicker] = useState(false);
     const [danceSchools, setDanceSchools] = useState<{ id: string; name: string }[]>([]);
     const [loadingSchools, setLoadingSchools] = useState(false);
 
@@ -108,6 +114,9 @@ export const EditLessonScreen: React.FC = () => {
     const [selectedInstructors, setSelectedInstructors] = useState<{ id: string; name: string }[]>([]);
     const [showInstructorPicker, setShowInstructorPicker] = useState(false);
     const [loadingInstructors, setLoadingInstructors] = useState(false);
+
+    // Add student modal state
+    const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
     // Fetch dance schools or instructors from Firebase
     useEffect(() => {
@@ -192,8 +201,10 @@ export const EditLessonScreen: React.FC = () => {
                                     id: data.location.schoolId,
                                     name: data.location.schoolName,
                                 });
-                            } else if (data.location.type === 'custom' && data.location.customAddress) {
-                                setCustomAddress(data.location.customAddress);
+                            } else if (data.location.type === 'custom') {
+                                if (data.location.customAddress) setCustomAddress(data.location.customAddress);
+                                if (data.location.customCountry) setCustomCountry(data.location.customCountry);
+                                if (data.location.customCity) setCustomCity(data.location.customCity);
                             }
                         }
 
@@ -325,10 +336,16 @@ export const EditLessonScreen: React.FC = () => {
                             schoolId: selectedSchool.id,
                             schoolName: selectedSchool.name,
                         };
-                    } else if (locationType === 'custom' && customAddress) {
+                    } else if (locationType === 'custom') {
+                        if (!customCountry || !customCity || !customAddress) {
+                            Alert.alert(t('common.error'), t('lessons.fillAddressFields') || 'Lütfen ülke, il ve adres alanlarını doldurun.');
+                            return;
+                        }
                         updateData.location = {
                             type: 'custom',
                             customAddress: customAddress,
+                            customCountry: customCountry,
+                            customCity: customCity,
                         };
                     } else if (lessonData?.location) {
                         updateData.location = lessonData.location; // Fallback to existing location
@@ -704,7 +721,38 @@ export const EditLessonScreen: React.FC = () => {
 
                                     {/* Custom Address Input */}
                                     {locationType === 'custom' && (
-                                        <View style={styles.inputGroup}>
+                                        <>
+                                            <TouchableOpacity
+                                                style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card, marginTop: spacing.md }]}
+                                                onPress={() => setShowLocationPicker(true)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[styles.selectInputText, { color: customCountry ? palette.text.primary : palette.text.secondary }]}>
+                                                    {customCountry ? `${customCountry}${customCity ? ` - ${customCity}` : ''}` : t('location.selectCountry')}
+                                                </Text>
+                                                <MaterialIcons
+                                                    name="location-on"
+                                                    size={24}
+                                                    color={palette.text.secondary}
+                                                />
+                                            </TouchableOpacity>
+
+                                            <LocationPickerModal
+                                                visible={showLocationPicker}
+                                                onClose={() => setShowLocationPicker(false)}
+                                                palette={palette}
+                                                selectedCountry={customCountry || DEFAULT_COUNTRY}
+                                                selectedCity={customCity}
+                                                onConfirm={(country, city) => {
+                                                    setCustomCountry(country);
+                                                    setCustomCity(city);
+                                                }}
+                                            />
+                                        </>
+                                    )}
+
+                                    {locationType === 'custom' && (
+                                        <View style={[styles.inputGroup, { marginTop: spacing.md }]}>
                                             <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
                                             <TextInput
                                                 style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
@@ -724,7 +772,17 @@ export const EditLessonScreen: React.FC = () => {
                 </View>
 
                 {/* Action Buttons */}
-                <View style={styles.section}>
+                <View style={[styles.section, { marginBottom: 0 }]}>
+                    <TouchableOpacity
+                        style={[styles.saveButton, { backgroundColor: palette.card, borderWidth: 1, borderColor: palette.secondary, marginBottom: spacing.md }]}
+                        onPress={() => setShowAddStudentModal(true)}
+                        activeOpacity={0.8}
+                    >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialIcons name="person-add" size={20} color={palette.secondary} style={{ marginRight: spacing.sm }} />
+                            <Text style={[styles.saveButtonText, { color: palette.secondary }]}>{t('lessons.addStudent') || 'Öğrenci Ekle / Yönet'}</Text>
+                        </View>
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.saveButton, { backgroundColor: palette.secondary }]}
                         onPress={handleSave}
@@ -1034,6 +1092,19 @@ export const EditLessonScreen: React.FC = () => {
                 palette={palette}
                 isDarkMode={isDarkMode}
                 lockedInstructorId={!isSchool && user?.id ? user.id : undefined}
+            />
+
+            {/* Add Student Modal */}
+            <AddStudentModal
+                visible={showAddStudentModal}
+                onClose={() => setShowAddStudentModal(false)}
+                instructorId={user?.id || ''}
+                isSchool={isSchool}
+                initialLessonId={lessonId}
+                onSuccess={() => {
+                    setShowAddStudentModal(false);
+                    // Refresh or show success message if needed
+                }}
             />
 
             {/* School Picker Modal */}

@@ -64,8 +64,6 @@ export const InstructorHomeScreen: React.FC = () => {
           const status = await FirestoreService.getInstructorRequestStatus(user.id);
           setHasSubmittedRequest(!!status);
 
-          console.log('[HomeScreen] verificationStatus:', user.verificationStatus, '| verificationMethod:', user.verificationMethod, '| schoolId:', user.schoolId);
-
           // Okul onayı bekliyorsa okul adını getir (verificationMethod olmasa da schoolId varsa)
           if (user.verificationStatus === 'pending' && user.schoolId) {
             try {
@@ -181,6 +179,7 @@ export const InstructorHomeScreen: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions({
+      headerTitle: '',
       headerStyle: {
         backgroundColor: palette.background,
       },
@@ -210,21 +209,7 @@ export const InstructorHomeScreen: React.FC = () => {
           <TouchableOpacity
             style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', marginRight: spacing.xs }}
             onPress={() => {
-              if (user && !user.onboardingCompleted) {
-                Alert.alert(
-                  t('instructor.onboardingRequiredTitle') || 'Profil Tamamlanmadı',
-                  t('instructor.onboardingRequiredDesc') || 'Kurs oluşturmadan önce lütfen eğitmen profilinizi tamamlayın.',
-                  [{
-                    text: t('common.ok'),
-                    onPress: () => {
-                      // @ts-ignore
-                      navigation.navigate('InstructorOnboarding');
-                    }
-                  }]
-                );
-              } else {
-                (navigation as any).navigate('CreateLesson');
-              }
+              (navigation as any).navigate('CreateLesson');
             }}
           >
             <MaterialIcons
@@ -379,23 +364,23 @@ export const InstructorHomeScreen: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.onboardingButton,
-                  { backgroundColor: user?.onboardingCompleted ? '#10B981' : colors.instructor.primary }
+                  { backgroundColor: (!user?.name || !user?.phoneNumber) ? colors.instructor.primary : '#10B981' }
                 ]}
                 onPress={() => {
                   // @ts-ignore
-                  navigation.navigate('InstructorOnboarding');
+                  navigation.navigate('EditProfile', { highlightErrors: true });
                 }}
               >
                 <View style={styles.buttonContent}>
                   <MaterialIcons
-                    name={user?.onboardingCompleted ? "check-circle" : "person-outline"}
+                    name={(!user?.name || !user?.phoneNumber) ? "person-outline" : "check-circle"}
                     size={18}
                     color="#ffffff"
                   />
                   <Text style={styles.verificationButtonText}>
-                    {user?.onboardingCompleted
-                      ? (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')
-                      : (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')}
+                    {(!user?.name || !user?.phoneNumber)
+                      ? (t('instructor.completeProfileButton') || 'Eğitmen Profilinizi Tamamlayın')
+                      : (t('instructor.onboardingCompleted') || 'Profil Tamamlandı')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -436,14 +421,20 @@ export const InstructorHomeScreen: React.FC = () => {
 
         {/* Earnings Card */}
         <View style={[styles.section, styles.earningsSection]}>
-          <View style={[styles.earningsCard, { backgroundColor: palette.card }]}>
+          <TouchableOpacity
+            style={[styles.earningsCard, { backgroundColor: palette.card, paddingVertical: spacing.md }]}
+            activeOpacity={0.8}
+            onPress={() => (navigation as any).navigate('EarningsDetails')}
+          >
             <View style={styles.earningsContent}>
               <View style={styles.earningsHeader}>
                 <View style={styles.earningsHeaderLeft}>
                   <Text style={[styles.earningsLabel, { color: palette.text.primary }]}>{t('instructorHome.earningsSummary')}</Text>
                   <Text style={[styles.earningsTitle, { color: palette.text.primary }]}>{t('instructorHome.thisMonthEarnings')}</Text>
                 </View>
-                <View style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}>
+                <View
+                  style={[styles.earningsIconContainer, { backgroundColor: colors.instructor.secondary + '15' }]}
+                >
                   <MaterialIcons
                     name="account-balance-wallet"
                     size={32}
@@ -458,15 +449,12 @@ export const InstructorHomeScreen: React.FC = () => {
                     {t('instructorHome.totalEarnings')}: {formatPrice(stats.totalEarnings, user?.currency)}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.detailsButton}
-                  onPress={() => (navigation as any).navigate('EarningsDetails')}
-                >
+                <View style={styles.detailsButton}>
                   <Text style={styles.detailsButtonText}>{t('instructorHome.viewDetails')}</Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Stats Cards */}
@@ -618,9 +606,21 @@ export const InstructorHomeScreen: React.FC = () => {
         </View>
 
         {/* Bottom spacing for FAB */}
-        <View style={{ height: 20 }} />
+        <View style={{ height: 80 }} />
       </ScrollView >
 
+      {/* FAB for Creating Lesson */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: palette.secondary, shadowColor: palette.secondary }]}
+        onPress={() => {
+          (navigation as any).navigate('CreateLesson');
+        }}
+      >
+        <View style={styles.fabGradient}>
+          <MaterialIcons name="add" size={24} color="#ffffff" />
+          <Text style={styles.fabText}>{t('instructorHome.addLesson') || 'Kurs Ekle'}</Text>
+        </View>
+      </TouchableOpacity>
     </View >
   );
 };
@@ -895,9 +895,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: spacing.md,
+    right: 20,
     zIndex: 20,
-    bottom: 10,
+    bottom: 20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     ...shadows.lg,

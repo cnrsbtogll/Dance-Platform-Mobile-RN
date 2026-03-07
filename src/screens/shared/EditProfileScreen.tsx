@@ -18,7 +18,9 @@ import { uploadAvatar, UploadProgress } from '../../services/storageService';
 import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
-import { DEFAULT_COUNTRY } from '../../utils/locations';
+import { DEFAULT_COUNTRY, getCountryCodeByName } from '../../utils/locations';
+import { isValidPhoneNumber, internationalPhoneMask } from '../../utils/validation';
+import MaskInput from 'react-native-mask-input';
 
 export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -33,6 +35,7 @@ export const EditProfileScreen: React.FC = () => {
     tempGender, tempAge, tempCountry, tempCity,
     tempIsVisibleInPartnerSearch,
     tempYearsOfTeaching, tempCertificates,
+    tempShowPhoneNumberToStudents,
     setTempName, setTempAvatar, setTempBio, setTempPhoneNumber,
     setTempSchoolName, setTempSchoolAddress, setTempContactNumber,
     setTempContactPerson, setTempInstagramHandle,
@@ -40,6 +43,7 @@ export const EditProfileScreen: React.FC = () => {
     setTempGender, setTempAge, setTempCountry, setTempCity,
     setTempIsVisibleInPartnerSearch,
     setTempYearsOfTeaching, setTempCertificates,
+    setTempShowPhoneNumberToStudents,
     loadFromUser, applyChanges,
   } = useProfileStore();
 
@@ -77,7 +81,19 @@ export const EditProfileScreen: React.FC = () => {
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
         return;
       }
+      if (!isValidPhoneNumber(tempContactNumber)) {
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
+        return;
+      }
+    } else if (isInstructor) {
+      if (!isValidPhoneNumber(tempPhoneNumber)) {
+        setHighlightErrors(true);
+        Alert.alert(t('common.error'), t('profile.invalidPhoneNumber'));
+        return;
+      }
     } else {
+      // Student
       if (!tempGender || !tempCity || tempDanceStyles.length === 0) {
         setHighlightErrors(true);
         Alert.alert(t('common.error'), t('profile.requiredFieldsError') || 'Zorunlu alanları doldurmalısınız.');
@@ -154,6 +170,29 @@ export const EditProfileScreen: React.FC = () => {
     label: string, value: string, onChangeText: (v: string) => void, placeholder?: string, multiline = false, keyboardType = 'default' as any, isRequired = false
   ) => {
     const hasError = highlightErrors && isRequired && !value.trim();
+
+    if (keyboardType === 'phone-pad') {
+      return (
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>
+            {label} {isRequired && <Text style={{ color: '#ef4444' }}>*</Text>}
+          </Text>
+          <MaskInput
+            style={[
+              styles.input,
+              { borderColor: hasError ? '#ef4444' : palette.border, backgroundColor: palette.card, color: palette.text.primary },
+            ]}
+            placeholder={placeholder || "+90 555 444 33 22"}
+            placeholderTextColor={palette.text.secondary}
+            value={value}
+            onChangeText={onChangeText}
+            keyboardType="phone-pad"
+            mask={internationalPhoneMask}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.inputGroup}>
         <Text style={[styles.label, { color: hasError ? '#ef4444' : palette.text.secondary }]}>
@@ -296,7 +335,41 @@ export const EditProfileScreen: React.FC = () => {
             <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>
               {t('onboarding.basicInfoTitle')}
             </Text>
-            {renderInputGroup(t('onboarding.phoneLabel'), tempPhoneNumber, setTempPhoneNumber, t('onboarding.phonePlaceholder'), false, 'phone-pad')}
+
+            <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
+              <MaterialIcons name="info-outline" size={18} color={palette.primary} />
+              <Text style={[styles.motivationText, { color: palette.primary }]}>
+                {t('profile.phoneNumberInstructorReason')}
+              </Text>
+            </View>
+
+            {renderInputGroup(
+              t('onboarding.phoneLabel'),
+              tempPhoneNumber,
+              setTempPhoneNumber,
+              t('onboarding.phonePlaceholder'),
+              false,
+              'phone-pad',
+              true
+            )}
+
+            <View style={[styles.switchRow, { marginTop: spacing.sm, marginBottom: spacing.md }]}>
+              <View style={styles.switchTextBlock}>
+                <Text style={[styles.switchLabel, { color: palette.text.primary }]}>
+                  {t('profile.showPhoneNumberToStudents')}
+                </Text>
+                <Text style={[styles.switchDesc, { color: palette.text.secondary }]}>
+                  {t('profile.showPhoneNumberToStudentsDesc')}
+                </Text>
+              </View>
+              <Switch
+                value={tempShowPhoneNumberToStudents}
+                onValueChange={setTempShowPhoneNumberToStudents}
+                trackColor={{ false: palette.border, true: palette.primary + '80' }}
+                thumbColor={tempShowPhoneNumberToStudents ? palette.primary : palette.text.secondary}
+              />
+            </View>
+
             {renderInputGroup(t('onboarding.bioLabel'), tempBio, setTempBio, t('onboarding.bioPlaceholder'), true)}
           </Card>
         )}
@@ -309,12 +382,14 @@ export const EditProfileScreen: React.FC = () => {
             </Text>
 
             {/* Motivation banner */}
-            <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
-              <MaterialIcons name="person-search" size={18} color={palette.primary} />
-              <Text style={[styles.motivationText, { color: palette.primary }]}>
-                {t('profile.requiredFieldsBanner')}
-              </Text>
-            </View>
+            {!isInstructor && (
+              <View style={[styles.motivationBanner, { backgroundColor: palette.primary + '12', borderColor: palette.primary + '40' }]}>
+                <MaterialIcons name="person-search" size={18} color={palette.primary} />
+                <Text style={[styles.motivationText, { color: palette.primary }]}>
+                  {t('profile.requiredFieldsBanner')}
+                </Text>
+              </View>
+            )}
 
             {/* Gender chips — REQUIRED */}
             <Text style={[styles.label, { color: palette.text.secondary, marginBottom: spacing.sm }]}>
@@ -330,7 +405,7 @@ export const EditProfileScreen: React.FC = () => {
                     style={[
                       styles.chip,
                       {
-                        borderColor: (highlightErrors && !tempGender) ? '#ef4444' : palette.border,
+                        borderColor: (highlightErrors && !isInstructor && !tempGender) ? '#ef4444' : palette.border,
                         backgroundColor: palette.card,
                       },
                       selected && { backgroundColor: palette.primary, borderColor: palette.primary },
@@ -346,7 +421,7 @@ export const EditProfileScreen: React.FC = () => {
             </View>
 
             {/* Country + City picker */}
-            {renderLocationPicker(true)}
+            {renderLocationPicker(!isInstructor)}
 
             {/* Age input */}
             {renderInputGroup(
