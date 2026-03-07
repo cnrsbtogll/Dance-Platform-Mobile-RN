@@ -18,6 +18,7 @@
     "no": "No",
     "or": "or",
     "today": "Today",
+    "call": "Call",
     "tomorrow": "Tomorrow",
     "yesterday": "Yesterday",
     "days": {
@@ -653,7 +654,8 @@
     "noBookings": "No bookings yet",
     "session": "session",
     "actions": "Actions",
-    "chatInApp": "Message via Feriha"
+    "chatInApp": "Message via Feriha",
+    "accountActions": "Account Actions"
   },
   "earnings": {
     "totalEarnings": "Total Earnings",

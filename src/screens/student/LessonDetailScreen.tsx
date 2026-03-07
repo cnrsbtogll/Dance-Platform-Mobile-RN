@@ -855,7 +855,7 @@ export const LessonDetailScreen: React.FC = () => {
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#E8F5E9' : '#FFF3E0', marginRight: isOwnLesson ? 8 : 0 }]}>
                             <Text style={[styles.statusText, { color: item.status === 'confirmed' ? '#2E7D32' : '#EF6C00' }]}>
-                              {item.status}
+                              {t(`booking.${item.status}`) || item.status}
                             </Text>
                           </View>
                           {isOwnLesson && (
