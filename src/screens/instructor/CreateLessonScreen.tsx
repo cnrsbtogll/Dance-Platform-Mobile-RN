@@ -13,6 +13,7 @@ import { Card } from '../../components/common/Card';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
 import { DEFAULT_COUNTRY } from '../../utils/locations';
 import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
+import { AddStudentModal } from '../../components/instructor/AddStudentModal';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { CURRENCY_SYMBOLS } from '../../utils/helpers';
 import { Lesson } from '../../types';
@@ -136,6 +137,9 @@ export const CreateLessonScreen: React.FC = () => {
     const [selectedInstructors, setSelectedInstructors] = useState<{ id: string; name: string }[]>([]);
     const [showInstructorPicker, setShowInstructorPicker] = useState(false);
     const [loadingInstructors, setLoadingInstructors] = useState(false);
+
+    // Add student modal state
+    const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
     const availableImages = danceType ? LESSON_IMAGES[danceType] || [] : [];
 
@@ -813,6 +817,29 @@ export const CreateLessonScreen: React.FC = () => {
                         </View>
                     )}
 
+                    {/* Action Buttons */}
+                    <View style={[styles.section, { marginBottom: 0, marginTop: spacing.lg, paddingHorizontal: spacing.xl }]}>
+                        <TouchableOpacity
+                            style={[{
+                                backgroundColor: palette.card,
+                                borderWidth: 1,
+                                borderColor: palette.secondary,
+                                height: 48,
+                                borderRadius: borderRadius.xl,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'row'
+                            }]}
+                            onPress={() => setShowAddStudentModal(true)}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons name="person-add" size={20} color={palette.secondary} style={{ marginRight: spacing.sm }} />
+                            <Text style={[{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: palette.secondary }]}>
+                                {t('lessons.addStudent') || 'Öğrenci Ekle / Yönet'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Bottom spacing for button */}
                     <View style={{ height: 100 }} />
                 </ScrollView>
@@ -830,6 +857,18 @@ export const CreateLessonScreen: React.FC = () => {
                     </Text>
                 </TouchableOpacity>
             </SafeAreaView>
+
+            {/* Add Student Modal */}
+            <AddStudentModal
+                visible={showAddStudentModal}
+                onClose={() => setShowAddStudentModal(false)}
+                instructorId={user?.id || ''}
+                isSchool={isSchool}
+                initialLessonId={undefined}
+                onSuccess={() => {
+                    setShowAddStudentModal(false);
+                }}
+            />
 
             {/* Image Picker Modal */}
             <Modal

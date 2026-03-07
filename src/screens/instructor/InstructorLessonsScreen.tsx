@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
@@ -24,6 +25,7 @@ export const InstructorLessonsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>(params?.initialTab ?? 'active');
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('instructor', isDarkMode);
+  const insets = useSafeAreaInsets();
   const [gateVisible, setGateVisible] = useState(false);
 
   // State for lessons
@@ -131,21 +133,6 @@ export const InstructorLessonsScreen: React.FC = () => {
       ),
       headerRight: () => (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <TouchableOpacity
-            onPress={() => {
-              if (user?.role !== 'instructor') {
-                setGateVisible(true);
-              } else {
-                (navigation as any).navigate('CreateLesson');
-              }
-            }}
-            style={{
-              padding: spacing.xs,
-              marginRight: -spacing.xs,
-            }}
-          >
-            <MaterialIcons name="add" size={26} color={palette.text.primary} />
-          </TouchableOpacity>
           <NotificationBell role="instructor" />
         </View>
       ),
@@ -309,6 +296,21 @@ export const InstructorLessonsScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* FAB for adding new lesson */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: palette.secondary, bottom: 20, right: 20 }]}
+        onPress={() => {
+          if (user?.role !== 'instructor') {
+            setGateVisible(true);
+          } else {
+            (navigation as any).navigate('CreateLesson');
+          }
+        }}
+        activeOpacity={0.8}
+      >
+        <MaterialIcons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -413,6 +415,19 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: typography.fontSize.base,
     marginTop: spacing.md,
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
 

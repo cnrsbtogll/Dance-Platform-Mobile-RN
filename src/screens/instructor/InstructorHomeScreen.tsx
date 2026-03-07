@@ -924,9 +924,9 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    left: spacing.xl,
+    right: 20,
     zIndex: 20,
-    bottom: spacing.xl + 20,
+    bottom: 20,
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     ...shadows.lg,

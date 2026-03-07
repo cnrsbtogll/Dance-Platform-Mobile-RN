@@ -10,7 +10,7 @@ import {
     Alert,
     Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,7 @@ export const InstructorStudentsScreen: React.FC = () => {
     const { t } = useTranslation();
     const { user } = useAuthStore();
     const { isDarkMode } = useThemeStore();
+    const insets = useSafeAreaInsets();
     const isSchool = user?.role === 'school' || user?.role === 'draft-school';
     const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
@@ -314,7 +315,7 @@ export const InstructorStudentsScreen: React.FC = () => {
 
             {/* FAB for adding new student */}
             <TouchableOpacity
-                style={[styles.fab, { backgroundColor: palette.secondary }]}
+                style={[styles.fab, { backgroundColor: palette.secondary, bottom: 20, right: 20 }]}
                 onPress={() => setIsAddModalVisible(true)}
                 activeOpacity={0.8}
             >
@@ -431,8 +432,8 @@ const styles = StyleSheet.create({
     emptyText: { fontSize: typography.fontSize.base, textAlign: 'center' },
     fab: {
         position: 'absolute',
-        bottom: spacing.xl + 20, // Tab bar margin
-        left: spacing.xl,
+        bottom: 20, // Tab bar margin
+        right: spacing.xl,
         width: 56,
         height: 56,
         borderRadius: 28,

@@ -26,6 +26,7 @@ interface AddStudentModalProps {
     instructorId: string;
     isSchool: boolean;
     onSuccess: () => void;
+    initialLessonId?: string;
 }
 
 export const AddStudentModal: React.FC<AddStudentModalProps> = ({
@@ -33,7 +34,8 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
     onClose,
     instructorId,
     isSchool,
-    onSuccess
+    onSuccess,
+    initialLessonId
 }) => {
     const { t } = useTranslation();
     const { isDarkMode } = useThemeStore();
@@ -42,7 +44,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [selectedLessonId, setSelectedLessonId] = useState<string>('');
+    const [selectedLessonId, setSelectedLessonId] = useState<string>(initialLessonId || '');
     const [lessons, setLessons] = useState<Lesson[]>([]);
 
     const [activeTab, setActiveTab] = useState<'new' | 'existing'>('new');
@@ -58,8 +60,11 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
         if (visible && instructorId) {
             loadLessons();
             resetForm();
+            if (initialLessonId) {
+                setSelectedLessonId(initialLessonId);
+            }
         }
-    }, [visible, instructorId]);
+    }, [visible, instructorId, initialLessonId]);
 
     const loadLessons = async () => {
         setFetchingLessons(true);
@@ -80,7 +85,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
         setEmail('');
         setFirstName('');
         setLastName('');
-        setSelectedLessonId('');
+        setSelectedLessonId(initialLessonId || '');
         setActiveTab('new');
         setSearchText('');
         setSelectedUserId('');
