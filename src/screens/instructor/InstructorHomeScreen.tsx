@@ -64,8 +64,6 @@ export const InstructorHomeScreen: React.FC = () => {
           const status = await FirestoreService.getInstructorRequestStatus(user.id);
           setHasSubmittedRequest(!!status);
 
-          console.log('[HomeScreen] verificationStatus:', user.verificationStatus, '| verificationMethod:', user.verificationMethod, '| schoolId:', user.schoolId);
-
           // Okul onayı bekliyorsa okul adını getir (verificationMethod olmasa da schoolId varsa)
           if (user.verificationStatus === 'pending' && user.schoolId) {
             try {

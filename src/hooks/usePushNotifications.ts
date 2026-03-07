@@ -3,11 +3,12 @@ import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import { navigationRef } from '../navigation/navigationRef';
+import { useAuthStore } from '../store/useAuthStore';
 
 // Configure how notifications behave when the app is in the foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
     shouldShowBanner: true,
@@ -18,16 +19,41 @@ Notifications.setNotificationHandler({
 // A helper function to properly handle errors instead of throwing them unhandled
 const handleRegistrationError = (errorMessage: string) => {
   console.warn(`[PushNotifications] ${errorMessage}`);
-  // In a real app, you might want to send this to an error tracking service (e.g. Sentry/Crashlytics)
 };
 
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const { user } = useAuthStore();
 
   const notificationListener = useRef<any>(null);
   const responseListener = useRef<any>(null);
+
+  const lastResponse = Notifications.useLastNotificationResponse();
+
+  // Handle Case where app is opened from a notification (Cold start or background)
+  useEffect(() => {
+    if (lastResponse && lastResponse.notification && lastResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
+      const navigateToNotification = () => {
+        if (navigationRef.isReady()) {
+          const role = user?.role;
+          const targetStack = (role === 'instructor' || role === 'draft-instructor') ? 'Instructor' : 
+                             (role === 'school' || role === 'draft-school') ? 'School' : 'Student';
+          
+          navigationRef.navigate(targetStack as any, { 
+            screen: 'Notification',
+            params: { mode: role === 'instructor' ? 'instructor' : 'student' }
+          } as any);
+        } else {
+          setTimeout(navigateToNotification, 1000);
+        }
+      };
+      
+      // Delay to avoid being overwritten by RootNavigator reset
+      setTimeout(navigateToNotification, 2000);
+    }
+  }, [lastResponse, user?.role]);
 
   useEffect(() => {
     // 1. Register for Push Notifications
@@ -38,6 +64,7 @@ export function usePushNotifications() {
         }
       })
       .catch((err) => {
+        console.error('[PushNotifications] Registration error:', err);
         setError(err);
         handleRegistrationError(err.message);
       });
@@ -48,9 +75,16 @@ export function usePushNotifications() {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      // Here you can handle deep linking routing
-      // const data = response.notification.request.content.data;
-      // if (data?.courseId) { router.push(`/course/${data.courseId}`) }
+      if (navigationRef.isReady()) {
+        const role = user?.role;
+        const targetStack = (role === 'instructor' || role === 'draft-instructor') ? 'Instructor' : 
+                           (role === 'school' || role === 'draft-school') ? 'School' : 'Student';
+        
+        navigationRef.navigate(targetStack as any, { 
+          screen: 'Notification',
+          params: { mode: role === 'instructor' ? 'instructor' : 'student' }
+        } as any);
+      }
     });
 
     return () => {
@@ -61,7 +95,7 @@ export function usePushNotifications() {
         responseListener.current.remove();
       }
     };
-  }, []);
+  }, [user?.role]);
 
   return {
     expoPushToken,
@@ -103,7 +137,6 @@ async function registerForPushNotificationsAsync(): Promise<string | undefined> 
     }
 
     try {
-      // Get the token using the project ID
       const pushTokenString = (
         await Notifications.getExpoPushTokenAsync({
           projectId,

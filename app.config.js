@@ -39,18 +39,14 @@ const brands = {
 
 const currentBrand = brands[APP_BRAND] || brands.feriha;
 
-// Log in development
-if (process.env.NODE_ENV !== 'production') {
-  console.log('[App Config] Using brand:', APP_BRAND);
-  console.log('[App Config] App name:', currentBrand.name);
-}
+// module.exports
 
 module.exports = {
   expo: {
     name: currentBrand.name,
     slug: currentBrand.slug,
-    version: "1.0.2",
-    runtimeVersion: "1.0.2",
+    version: "1.0.3",
+    runtimeVersion: "1.0.3",
     orientation: 'portrait',
     icon: currentBrand.icon,
     userInterfaceStyle: 'light',
@@ -104,7 +100,7 @@ module.exports = {
         "expo-build-properties",
         {
           "ios": {
-            "useFrameworks": "static"
+            "deploymentTarget": "15.1"
           }
         }
       ],
