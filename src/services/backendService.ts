@@ -17,8 +17,6 @@ import {
   getDocumentDownloadUrl,
 } from './storageService';
 
-// Define stripeModule as null for now since it's not yet integrated
-const stripeModule: any = null;
 const firebaseEnabled = appConfig.integrations.firebase;
 
 /**
@@ -113,29 +111,13 @@ export const dataService = {
  */
 export const paymentService = {
   processPayment: async (amount: number, currency: string, paymentMethodId: string): Promise<{ success: boolean; transactionId?: string; error?: string }> => {
-    if (appConfig.integrations.stripe && stripeModule) {
-      try {
-        // Use Stripe payment
-        // const paymentIntent = await stripeModule.createPaymentIntent({
-        //   amount: amount * 100, // Convert to cents
-        //   currency: currency.toLowerCase(),
-        // });
-        return { success: false, error: 'Stripe not yet implemented' };
-      } catch (error: any) {
-        return { success: false, error: error.message || 'Payment failed' };
-      }
-    } else {
-      // Mock payment
-      return {
-        success: true,
-        transactionId: `mock_${Date.now()}`,
-      };
-    }
+    // Mock payment
+    return {
+      success: true,
+      transactionId: `mock_${Date.now()}`,
+    };
   },
 
-  isStripeAvailable: (): boolean => {
-    return appConfig.integrations.stripe && stripeModule !== null;
-  },
 };
 
 /**
@@ -154,7 +136,4 @@ export const isFirebaseEnabled = (): boolean => {
   return appConfig.integrations.firebase;
 };
 
-export const isStripeEnabled = (): boolean => {
-  return appConfig.integrations.stripe;
-};
 
