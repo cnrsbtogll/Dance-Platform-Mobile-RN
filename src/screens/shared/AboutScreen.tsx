@@ -48,7 +48,7 @@ export const AboutScreen: React.FC = () => {
           <Image
             source={
               appConfig.brand === 'feriha'
-                ? require('../../../assets/splash-feriha.png')
+                ? require('../../../assets/icons/splash-icon-dark.png')
                 : require('../../../assets/splash.png')
             }
             style={styles.logoImage}
@@ -165,7 +165,6 @@ const styles = StyleSheet.create({
   appVersion: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.normal,
-    marginTop: -spacing.md,
   },
   infoCard: {
     marginBottom: spacing.md,

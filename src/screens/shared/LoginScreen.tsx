@@ -164,7 +164,7 @@ export const LoginScreen: React.FC = () => {
           <Image
             source={
               appConfig.brand === 'feriha'
-                ? require('../../../assets/splash-feriha.png')
+                ? require('../../../assets/icons/splash-icon-dark.png')
                 : require('../../../assets/splash.png')
             }
             style={styles.illustration}
