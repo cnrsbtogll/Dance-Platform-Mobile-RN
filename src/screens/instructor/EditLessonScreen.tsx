@@ -21,44 +21,16 @@ import { Lesson } from '../../types';
 import { CURRENCY_SYMBOLS, normalizeDaysOfWeek } from '../../utils/helpers';
 import { getImageSource } from '../../utils/imageHelper';
 import { uploadCourseCover } from '../../services/storageService';
+import { useDanceStyles } from '../../hooks/useDanceStyles';
+import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES } from '../../utils/constants';
 
 const MINIO_BASE_URL = 'https://minio-sdk.cnrsbtogll.store/feriha-danceapp/public/lessons';
 
-// Predefined lesson images for each dance type
-const LESSON_IMAGES: { [key: string]: string[] } = {
-    Salsa: [
-        `${MINIO_BASE_URL}/salsa/salsa-1.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-2.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-3.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-4.jpeg`,
-    ],
-    Bachata: [
-        `${MINIO_BASE_URL}/bachata/bachata-1.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-2.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-3.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-4.jpeg`,
-    ],
-    Kizomba: [
-        `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-2.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-3.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-4.jpeg`,
-    ],
-    Tango: [
-        `${MINIO_BASE_URL}/tango/tango-1.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-2.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-3.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-4.jpeg`,
-    ],
-    Modern: [
-        `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-2.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-3.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-4.jpeg`,
-    ],
+const getPredefinedImages = (danceType: string) => {
+    const folder = DANCE_STYLE_IMAGE_MAPPING[danceType];
+    if (!folder) return [];
+    return [1, 2, 3, 4].map(num => `${MINIO_BASE_URL}/${folder}/${folder}-${num}.jpeg`);
 };
-
-const DANCE_TYPES = ['Salsa', 'Bachata', 'Kizomba', 'Tango', 'Modern'];
 const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const getDurationOptions = (t: any) => [
     { label: t('lessons.durations.45min'), value: 45 },
@@ -78,6 +50,8 @@ export const EditLessonScreen: React.FC = () => {
     const isSchoolRoles = ['draft-school', 'school'];
     const isSchool = user?.role ? isSchoolRoles.includes(user.role) : false;
     const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
+
+    const { danceStyles, loading: loadingStyles } = useDanceStyles();
 
     const currency = user?.currency || 'TRY';
     const currencySymbol = CURRENCY_SYMBOLS[currency];
@@ -119,6 +93,8 @@ export const EditLessonScreen: React.FC = () => {
 
     // Add student modal state
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+
+    const availableImages = danceType ? getPredefinedImages(danceType) : [];
 
     // Fetch dance schools or instructors from Firebase
     useEffect(() => {
@@ -229,21 +205,19 @@ export const EditLessonScreen: React.FC = () => {
                         // Handle image
                         if (data.category || data.danceStyle) {
                             const category = data.category || data.danceStyle;
-                            // Capitalize first letter to match LESSON_IMAGES keys
-                            const categoryKey = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-                            const availableImages = LESSON_IMAGES[categoryKey] || [];
+                            const currentAvailableImages = getPredefinedImages(category);
 
                             if (data.imageUrl) {
                                 if (typeof data.imageUrl === 'number') {
                                     setSelectedImage(data.imageUrl);
                                 } else {
                                     // Fallback to first image of category
-                                    const fallbackImage = availableImages[0];
+                                    const fallbackImage = currentAvailableImages[0];
                                     setSelectedImage(fallbackImage);
                                 }
                             } else {
                                 // No imageUrl, use first available image
-                                const fallbackImage = availableImages[0];
+                                const fallbackImage = currentAvailableImages[0];
                                 setSelectedImage(fallbackImage);
                             }
                         }
@@ -257,9 +231,7 @@ export const EditLessonScreen: React.FC = () => {
         fetchLesson();
     }, [lessonId]);
 
-    const availableImages = danceType
-        ? LESSON_IMAGES[danceType.charAt(0).toUpperCase() + danceType.slice(1).toLowerCase()] || []
-        : [];
+
 
 
 
@@ -1029,7 +1001,7 @@ export const EditLessonScreen: React.FC = () => {
                             </TouchableOpacity>
                         </View>
                         <FlatList
-                            data={DANCE_TYPES}
+                            data={danceStyles}
                             keyExtractor={(item) => item}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
@@ -1042,8 +1014,8 @@ export const EditLessonScreen: React.FC = () => {
                                         setDanceType(item);
                                         // Reset image if dance type changes
                                         if (selectedImage) {
-                                            const availableImages = LESSON_IMAGES[item] || [];
-                                            const isImageInList = availableImages.some(img => {
+                                            const currentAvailableImages = getPredefinedImages(item);
+                                            const isImageInList = currentAvailableImages.some(img => {
                                                 if (typeof selectedImage === 'string' && typeof img === 'string') {
                                                     return selectedImage === img;
                                                 }

@@ -18,6 +18,8 @@ import { FirestoreService } from '../../services/firebase/firestore';
 import { CURRENCY_SYMBOLS } from '../../utils/helpers';
 import { Lesson } from '../../types';
 import { uploadCourseCover } from '../../services/storageService';
+import { useDanceStyles } from '../../hooks/useDanceStyles';
+import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES } from '../../utils/constants';
 
 // Helper function to get image source (supports both local assets and URLs)
 const getImageSource = (image: any) => {
@@ -29,41 +31,18 @@ const getImageSource = (image: any) => {
 
 const MINIO_BASE_URL = 'https://minio-sdk.cnrsbtogll.store/feriha-danceapp/public/lessons';
 
-// Predefined lesson images for each dance type
-const LESSON_IMAGES: { [key: string]: string[] } = {
-    Salsa: [
-        `${MINIO_BASE_URL}/salsa/salsa-1.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-2.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-3.jpeg`,
-        `${MINIO_BASE_URL}/salsa/salsa-4.jpeg`,
-    ],
-    Bachata: [
-        `${MINIO_BASE_URL}/bachata/bachata-1.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-2.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-3.jpeg`,
-        `${MINIO_BASE_URL}/bachata/bachata-4.jpeg`,
-    ],
-    Kizomba: [
-        `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-2.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-3.jpeg`,
-        `${MINIO_BASE_URL}/kizomba/kizomba-4.jpeg`,
-    ],
-    Tango: [
-        `${MINIO_BASE_URL}/tango/tango-1.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-2.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-3.jpeg`,
-        `${MINIO_BASE_URL}/tango/tango-4.jpeg`,
-    ],
-    Modern: [
-        `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-2.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-3.jpeg`,
-        `${MINIO_BASE_URL}/moderndance/moderndance-4.jpeg`,
-    ],
+// Helper to get predefined images for a dance style
+const getPredefinedImages = (danceStyle: string): string[] => {
+    const folder = DANCE_STYLE_IMAGE_MAPPING[danceStyle];
+    if (!folder) return [];
+    return [
+        `${MINIO_BASE_URL}/${folder}/${folder}-1.jpeg`,
+        `${MINIO_BASE_URL}/${folder}/${folder}-2.jpeg`,
+        `${MINIO_BASE_URL}/${folder}/${folder}-3.jpeg`,
+        `${MINIO_BASE_URL}/${folder}/${folder}-4.jpeg`,
+    ];
 };
 
-const DANCE_TYPES = ['Salsa', 'Bachata', 'Kizomba', 'Tango', 'Modern'];
 const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const getDurationOptions = (t: any) => [
     { label: t('lessons.durations.45min'), value: 45 },
@@ -105,6 +84,8 @@ export const CreateLessonScreen: React.FC = () => {
         });
     }, [navigation, isDarkMode, palette, t, editingLesson]);
 
+    const { danceStyles, loading: loadingStyles } = useDanceStyles();
+
     const [title, setTitle] = useState('');
     const [danceType, setDanceType] = useState('');
     const [description, setDescription] = useState('');
@@ -143,7 +124,7 @@ export const CreateLessonScreen: React.FC = () => {
     // Add student modal state
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
-    const availableImages = danceType ? LESSON_IMAGES[danceType] || [] : [];
+    const availableImages = danceType ? getPredefinedImages(danceType) : [];
 
     // Fetch dance schools or instructors from Firebase
     useEffect(() => {
@@ -1037,7 +1018,7 @@ export const CreateLessonScreen: React.FC = () => {
                             </TouchableOpacity>
                         </View>
                         <FlatList
-                            data={DANCE_TYPES}
+                            data={danceStyles}
                             keyExtractor={(item) => item}
                             renderItem={({ item }) => (
                                 <TouchableOpacity

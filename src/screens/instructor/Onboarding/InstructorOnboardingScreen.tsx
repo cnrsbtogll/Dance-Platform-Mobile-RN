@@ -8,15 +8,11 @@ import { colors, spacing, typography, borderRadius, shadows, getPalette } from '
 import { useThemeStore } from '../../../store/useThemeStore';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { FirestoreService } from '../../../services/firebase/firestore';
+import { useDanceStyles } from '../../../hooks/useDanceStyles';
 import MaskInput from 'react-native-mask-input';
 import { internationalPhoneMask } from '../../../utils/validation';
 
 const STEPS = ['BasicInfo', 'Expertise'];
-
-// Common Dance Styles for Expertise Step
-const DANCE_STYLES = [
-    'Salsa', 'Bachata', 'Kizomba', 'Tango', 'Hip Hop', 'Zumba', 'Bale', 'Modern Dans', 'Halk Oyunları', 'Vals'
-];
 
 export const InstructorOnboardingScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -24,6 +20,7 @@ export const InstructorOnboardingScreen: React.FC = () => {
     const { isDarkMode } = useThemeStore();
     const { user, setUser } = useAuthStore();
     const palette = getPalette('instructor', isDarkMode);
+    const { danceStyles, loading: loadingStyles } = useDanceStyles();
 
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,28 +121,34 @@ export const InstructorOnboardingScreen: React.FC = () => {
                 {t('onboarding.expertiseDesc') || 'Hangi dans türlerinde eğitim veriyorsunuz? (Birden fazla seçebilirsiniz)'}
             </Text>
 
-            <View style={styles.chipsContainer}>
-                {DANCE_STYLES.map((style) => {
-                    const isSelected = selectedStyles.includes(style);
-                    return (
-                        <TouchableOpacity
-                            key={style}
-                            style={[
-                                styles.chip,
-                                { backgroundColor: isSelected ? colors.instructor.primary : palette.card, borderColor: isSelected ? colors.instructor.primary : palette.border }
-                            ]}
-                            onPress={() => toggleStyle(style)}
-                        >
-                            <Text style={[
-                                styles.chipText,
-                                { color: isSelected ? '#ffffff' : palette.text.primary }
-                            ]}>
-                                {style}
-                            </Text>
-                        </TouchableOpacity>
-                    );
-                })}
-            </View>
+            {loadingStyles ? (
+                <View style={styles.centerContent}>
+                    <ActivityIndicator size="large" color={colors.instructor.primary} />
+                </View>
+            ) : (
+                <View style={styles.chipsContainer}>
+                    {danceStyles.map((style) => {
+                        const isSelected = selectedStyles.includes(style);
+                        return (
+                            <TouchableOpacity
+                                key={style}
+                                style={[
+                                    styles.chip,
+                                    { backgroundColor: isSelected ? colors.instructor.primary : palette.card, borderColor: isSelected ? colors.instructor.primary : palette.border }
+                                ]}
+                                onPress={() => toggleStyle(style)}
+                            >
+                                <Text style={[
+                                    styles.chipText,
+                                    { color: isSelected ? '#ffffff' : palette.text.primary }
+                                ]}>
+                                    {style}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            )}
         </View>
     );
 

@@ -16,6 +16,7 @@ import { formatPrice } from '../../utils/helpers';
 import { Card } from '../../components/common/Card';
 import { SearchBar } from '../../components/common/SearchBar';
 import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
+import { useDanceStyles } from '../../hooks/useDanceStyles';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -26,8 +27,9 @@ export const StudentHomeScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons, refreshLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
+  const { danceStyles, loading: loadingStyles } = useDanceStyles();
 
-  const categories = [t('studentHome.categoryAll'), 'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Modern'];
+  const categories = [t('studentHome.categoryAll'), ...danceStyles];
 
   // Active Filter States (Listeyi etkileyenler)
   const [activeMinPrice, setActiveMinPrice] = useState<number | null>(null);

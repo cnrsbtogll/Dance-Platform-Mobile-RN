@@ -1,10 +1,33 @@
-export const LESSON_CATEGORIES = ['Salsa', 'Bachata', 'Tango', 'Kizomba'] as const;
-
 export const DANCE_STYLES = [
   'Salsa', 'Bachata', 'Tango', 'Kizomba', 'Zouk',
   'Swing', 'Foxtrot', 'Waltz', 'Cha-Cha', 'Rumba',
   'Jive', 'Quickstep', 'Disco', 'Hip-Hop', 'Breakdance',
+  'Zumba', 'Bale', 'Modern Dans', 'Halk Oyunları', 'Vals'
 ] as const;
+
+export const DANCE_STYLE_IMAGE_MAPPING: { [key: string]: string } = {
+  'Salsa': 'salsa',
+  'Bachata': 'bachata',
+  'Kizomba': 'kizomba',
+  'Tango': 'tango',
+  'Modern Dans': 'moderndance',
+  'Modern': 'moderndance',
+  'Halk Oyunları': 'halkoyunlari',
+  'Bale': 'bale',
+  'Zumba': 'zumba',
+  'Swing': 'swing',
+  'Foxtrot': 'foxtrot',
+  'Waltz': 'waltz',
+  'Cha-Cha': 'cha-cha',
+  'Rumba': 'rumba',
+  'Jive': 'jive',
+  'Quickstep': 'quickstep',
+  'Disco': 'disco',
+  'Hip-Hop': 'hip-hop',
+  'Breakdance': 'breakdance',
+  'Zouk': 'zouk',
+  'Vals': 'vals',
+};
 
 export type DanceStyle = typeof DANCE_STYLES[number];
 
