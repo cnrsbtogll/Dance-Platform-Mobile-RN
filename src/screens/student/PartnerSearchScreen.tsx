@@ -290,7 +290,7 @@ export const PartnerSearchScreen: React.FC = () => {
                                     text: t('partner.login'),
                                     onPress: () => {
                                         setPendingPartner(item);
-                                        navigation.navigate('Login');
+                                        navigation.navigate('Login', { mode: 'login' });
                                     },
                                 },
                             ]

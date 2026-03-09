@@ -47,7 +47,7 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({ role, un
             // Require login
             // Actually we just navigate to Login via ChatScreen handling or directly
             // Here we assume ChatScreen handles the auth guard or we handle it here
-            navigation.navigate('Login');
+            navigation.navigate('Login', { mode: 'login' });
             return;
         }
         navigation.navigate('Chat');

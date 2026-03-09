@@ -47,6 +47,8 @@
     "email": "E-posta",
     "password": "Şifre",
     "confirmPassword": "Şifre Tekrar",
+    "signInWithGoogle": "Google ile giriş yap",
+    "signUpWithGoogle": "Google ile hesap oluştur",
     "firstName": "Ad",
     "lastName": "Soyad",
     "alreadyHaveAccount": "Zaten hesabım var",

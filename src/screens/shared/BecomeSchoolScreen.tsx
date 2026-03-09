@@ -20,7 +20,7 @@ export const BecomeSchoolScreen: React.FC = () => {
     const palette = getPalette('student', isDarkMode);
 
     const handleCreateAccount = () => {
-        (navigation as any).navigate('Login');
+        (navigation as any).navigate('Login', { mode: 'login' });
     };
 
     const [isSubmitting, setIsSubmitting] = useState(false);

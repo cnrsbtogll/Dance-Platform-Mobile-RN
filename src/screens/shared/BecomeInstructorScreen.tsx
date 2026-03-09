@@ -25,7 +25,7 @@ export const BecomeInstructorScreen: React.FC = () => {
 
   const handleCreateAccount = () => {
     // Navigate to login/register screen
-    (navigation as any).navigate('Login');
+    (navigation as any).navigate('Login', { mode: 'login' });
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);

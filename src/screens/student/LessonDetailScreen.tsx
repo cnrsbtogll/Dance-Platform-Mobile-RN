@@ -203,9 +203,9 @@ export const LessonDetailScreen: React.FC = () => {
   // Sync participant stats and fetch enrolled students (if instructor)
   useEffect(() => {
     let isMounted = true;
-    if (lesson?.id) {
+    if (lesson?.id && isOwnLesson) {
       const fetchStudentsAndSync = async () => {
-        if (isOwnLesson) setLoadingStudents(true);
+        setLoadingStudents(true);
         try {
           const bookings = await FirestoreService.getBookingsByLesson(lesson.id);
 
@@ -278,7 +278,8 @@ export const LessonDetailScreen: React.FC = () => {
           }
         } catch (error) {
           console.error('Error in stats sync:', error);
-          if (isOwnLesson) setLoadingStudents(false);
+        } finally {
+          if (isMounted) setLoadingStudents(false);
         }
       };
 
@@ -511,7 +512,7 @@ export const LessonDetailScreen: React.FC = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       setPendingRegistrationLessonId(lesson.id);
-      (navigation as any).navigate('Login');
+      (navigation as any).navigate('Login', { mode: 'login' });
       return;
     }
 
