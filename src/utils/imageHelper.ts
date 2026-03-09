@@ -1,52 +1,61 @@
 import { Image } from 'react-native';
 import { AVATARS } from './avatars';
 
-// Map of image filenames to local assets
+const MINIO_BASE_URL = 'https://minio-sdk.cnrsbtogll.store/feriha-danceapp/public/lessons';
+
+/**
+ * LESSON_IMAGES_MAP contains mappings for lesson images.
+ * Values can be:
+ * - Local asset via require() (number)
+ * - Remote URL wrapped in { uri: string } object
+ */
 const LESSON_IMAGES_MAP: { [key: string]: any } = {
   // Salsa images
-  'salsa-1.jpeg': require('../../assets/lessons/salsa/salsa-1.jpeg'),
-  'salsa-2.jpeg': require('../../assets/lessons/salsa/salsa-2.jpeg'),
-  'salsa-3.jpeg': require('../../assets/lessons/salsa/salsa-3.jpeg'),
-  'salsa-4.jpeg': require('../../assets/lessons/salsa/salsa-4.jpeg'),
+  'salsa-1.jpeg': { uri: `${MINIO_BASE_URL}/salsa/salsa-1.jpeg` },
+  'salsa-2.jpeg': { uri: `${MINIO_BASE_URL}/salsa/salsa-2.jpeg` },
+  'salsa-3.jpeg': { uri: `${MINIO_BASE_URL}/salsa/salsa-3.jpeg` },
+  'salsa-4.jpeg': { uri: `${MINIO_BASE_URL}/salsa/salsa-4.jpeg` },
   // Bachata images
-  'bachata-1.jpeg': require('../../assets/lessons/bachata/bachata-1.jpeg'),
-  'bachata-2.jpeg': require('../../assets/lessons/bachata/bachata-2.jpeg'),
-  'bachata-3.jpeg': require('../../assets/lessons/bachata/bachata-3.jpeg'),
-  'bachata-4.jpeg': require('../../assets/lessons/bachata/bachata-4.jpeg'),
+  'bachata-1.jpeg': { uri: `${MINIO_BASE_URL}/bachata/bachata-1.jpeg` },
+  'bachata-2.jpeg': { uri: `${MINIO_BASE_URL}/bachata/bachata-2.jpeg` },
+  'bachata-3.jpeg': { uri: `${MINIO_BASE_URL}/bachata/bachata-3.jpeg` },
+  'bachata-4.jpeg': { uri: `${MINIO_BASE_URL}/bachata/bachata-4.jpeg` },
   // Kizomba images
-  'kizomba-1.jpeg': require('../../assets/lessons/kizomba/kizomba-1.jpeg'),
-  'kizomba-2.jpeg': require('../../assets/lessons/kizomba/kizomba-2.jpeg'),
-  'kizomba-3.jpeg': require('../../assets/lessons/kizomba/kizomba-3.jpeg'),
-  'kizomba-4.jpeg': require('../../assets/lessons/kizomba/kizomba-4.jpeg'),
+  'kizomba-1.jpeg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg` },
+  'kizomba-2.jpeg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-2.jpeg` },
+  'kizomba-3.jpeg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-3.jpeg` },
+  'kizomba-4.jpeg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-4.jpeg` },
   // Tango images
-  'tango-1.jpeg': require('../../assets/lessons/tango/tango-1.jpeg'),
-  'tango-2.jpeg': require('../../assets/lessons/tango/tango-2.jpeg'),
-  'tango-3.jpeg': require('../../assets/lessons/tango/tango-3.jpeg'),
-  'tango-4.jpeg': require('../../assets/lessons/tango/tango-4.jpeg'),
+  'tango-1.jpeg': { uri: `${MINIO_BASE_URL}/tango/tango-1.jpeg` },
+  'tango-2.jpeg': { uri: `${MINIO_BASE_URL}/tango/tango-2.jpeg` },
+  'tango-3.jpeg': { uri: `${MINIO_BASE_URL}/tango/tango-3.jpeg` },
+  'tango-4.jpeg': { uri: `${MINIO_BASE_URL}/tango/tango-4.jpeg` },
   // Modern Dance images
-  'moderndance-1.jpeg': require('../../assets/lessons/moderndance/moderndance-1.jpeg'),
-  'moderndance-2.jpeg': require('../../assets/lessons/moderndance/moderndance-2.jpeg'),
-  'moderndance-3.jpeg': require('../../assets/lessons/moderndance/moderndance-3.jpeg'),
-  'moderndance-4.jpeg': require('../../assets/lessons/moderndance/moderndance-4.jpeg'),
+  'moderndance-1.jpeg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg` },
+  'moderndance-2.jpeg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-2.jpeg` },
+  'moderndance-3.jpeg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-3.jpeg` },
+  'moderndance-4.jpeg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-4.jpeg` },
   
   // Mappings for Firebase paths
-  'kurs1.jpg': require('../../assets/lessons/salsa/salsa-1.jpeg'),
-  'kurs3.jpg': require('../../assets/lessons/bachata/bachata-3.jpeg'),
-  'kurs5.jpg': require('../../assets/lessons/kizomba/kizomba-1.jpeg'),
-  'kurs6.jpg': require('../../assets/lessons/bachata/bachata-2.jpeg'),
-  'kurs7.jpg': require('../../assets/lessons/salsa/salsa-3.jpeg'),
-  'kurs8.jpg': require('../../assets/lessons/salsa/salsa-4.jpeg'),
-  'kurs9.jpg': require('../../assets/lessons/tango/tango-1.jpeg'),
+  'kurs1.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-1.jpeg` },
+  'kurs2.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-2.jpeg` },
+  'kurs3.jpg': { uri: `${MINIO_BASE_URL}/bachata/bachata-1.jpeg` },
+  'kurs4.jpg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg` },
+  'kurs5.jpg': { uri: `${MINIO_BASE_URL}/tango/tango-1.jpeg` },
+  'kurs6.jpg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg` },
+  'kurs9.jpg': { uri: `${MINIO_BASE_URL}/tango/tango-1.jpeg` },
   
   // Full paths mapping for Firebase
-  '/assets/images/dance/kurs1.jpg': require('../../assets/lessons/salsa/salsa-1.jpeg'),
-  '/assets/images/dance/kurs3.jpg': require('../../assets/lessons/bachata/bachata-3.jpeg'),
-  '/assets/images/dance/kurs5.jpg': require('../../assets/lessons/kizomba/kizomba-1.jpeg'),
-  '/assets/images/dance/kurs6.jpg': require('../../assets/lessons/bachata/bachata-2.jpeg'),
-  '/assets/images/dance/kurs7.jpg': require('../../assets/lessons/salsa/salsa-3.jpeg'),
-  '/assets/images/dance/kurs8.jpg': require('../../assets/lessons/salsa/salsa-4.jpeg'),
-  '/assets/images/dance/kurs9.jpg': require('../../assets/lessons/tango/tango-1.jpeg'),
-  '/assets/placeholders/default-course-image.png': require('../../assets/lessons/salsa/salsa-1.jpeg'),
+  '/assets/images/dance/kurs1.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-1.jpeg` },
+  '/assets/images/dance/kurs2.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-2.jpeg` },
+  '/assets/images/dance/kurs3.jpg': { uri: `${MINIO_BASE_URL}/bachata/bachata-1.jpeg` },
+  '/assets/images/dance/kurs4.jpg': { uri: `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg` },
+  '/assets/images/dance/kurs5.jpg': { uri: `${MINIO_BASE_URL}/tango/tango-1.jpeg` },
+  '/assets/images/dance/kurs6.jpg': { uri: `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg` },
+  '/assets/images/dance/kurs7.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-3.jpeg` },
+  '/assets/images/dance/kurs8.jpg': { uri: `${MINIO_BASE_URL}/salsa/salsa-4.jpeg` },
+  '/assets/images/dance/kurs9.jpg': { uri: `${MINIO_BASE_URL}/tango/tango-1.jpeg` },
+  '/assets/placeholders/default-course-image.png': { uri: `${MINIO_BASE_URL}/salsa/salsa-1.jpeg` },
 };
 
 /**

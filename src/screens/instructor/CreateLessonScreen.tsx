@@ -27,37 +27,39 @@ const getImageSource = (image: any) => {
     return image; // Local require() result
 };
 
+const MINIO_BASE_URL = 'https://minio-sdk.cnrsbtogll.store/feriha-danceapp/public/lessons';
+
 // Predefined lesson images for each dance type
-const LESSON_IMAGES: { [key: string]: any[] } = {
+const LESSON_IMAGES: { [key: string]: string[] } = {
     Salsa: [
-        require('../../../assets/lessons/salsa/salsa-1.jpeg'),
-        require('../../../assets/lessons/salsa/salsa-2.jpeg'),
-        require('../../../assets/lessons/salsa/salsa-3.jpeg'),
-        require('../../../assets/lessons/salsa/salsa-4.jpeg'),
+        `${MINIO_BASE_URL}/salsa/salsa-1.jpeg`,
+        `${MINIO_BASE_URL}/salsa/salsa-2.jpeg`,
+        `${MINIO_BASE_URL}/salsa/salsa-3.jpeg`,
+        `${MINIO_BASE_URL}/salsa/salsa-4.jpeg`,
     ],
     Bachata: [
-        require('../../../assets/lessons/bachata/bachata-1.jpeg'),
-        require('../../../assets/lessons/bachata/bachata-2.jpeg'),
-        require('../../../assets/lessons/bachata/bachata-3.jpeg'),
-        require('../../../assets/lessons/bachata/bachata-4.jpeg'),
+        `${MINIO_BASE_URL}/bachata/bachata-1.jpeg`,
+        `${MINIO_BASE_URL}/bachata/bachata-2.jpeg`,
+        `${MINIO_BASE_URL}/bachata/bachata-3.jpeg`,
+        `${MINIO_BASE_URL}/bachata/bachata-4.jpeg`,
     ],
     Kizomba: [
-        require('../../../assets/lessons/kizomba/kizomba-1.jpeg'),
-        require('../../../assets/lessons/kizomba/kizomba-2.jpeg'),
-        require('../../../assets/lessons/kizomba/kizomba-3.jpeg'),
-        require('../../../assets/lessons/kizomba/kizomba-4.jpeg'),
+        `${MINIO_BASE_URL}/kizomba/kizomba-1.jpeg`,
+        `${MINIO_BASE_URL}/kizomba/kizomba-2.jpeg`,
+        `${MINIO_BASE_URL}/kizomba/kizomba-3.jpeg`,
+        `${MINIO_BASE_URL}/kizomba/kizomba-4.jpeg`,
     ],
     Tango: [
-        require('../../../assets/lessons/tango/tango-1.jpeg'),
-        require('../../../assets/lessons/tango/tango-2.jpeg'),
-        require('../../../assets/lessons/tango/tango-3.jpeg'),
-        require('../../../assets/lessons/tango/tango-4.jpeg'),
+        `${MINIO_BASE_URL}/tango/tango-1.jpeg`,
+        `${MINIO_BASE_URL}/tango/tango-2.jpeg`,
+        `${MINIO_BASE_URL}/tango/tango-3.jpeg`,
+        `${MINIO_BASE_URL}/tango/tango-4.jpeg`,
     ],
     Modern: [
-        require('../../../assets/lessons/moderndance/moderndance-1.jpeg'),
-        require('../../../assets/lessons/moderndance/moderndance-2.jpeg'),
-        require('../../../assets/lessons/moderndance/moderndance-3.jpeg'),
-        require('../../../assets/lessons/moderndance/moderndance-4.jpeg'),
+        `${MINIO_BASE_URL}/moderndance/moderndance-1.jpeg`,
+        `${MINIO_BASE_URL}/moderndance/moderndance-2.jpeg`,
+        `${MINIO_BASE_URL}/moderndance/moderndance-3.jpeg`,
+        `${MINIO_BASE_URL}/moderndance/moderndance-4.jpeg`,
     ],
 };
 
