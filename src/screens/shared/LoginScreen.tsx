@@ -193,6 +193,17 @@ export const LoginScreen: React.FC = () => {
               {isSignUp ? t('auth.signUpWithGoogle') : t('auth.signInWithGoogle')}
             </Text>
           </TouchableOpacity>
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleAppleLogin}
+            >
+              <AntDesign name="apple" size={24} color={palette.text.primary} />
+              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>
+                {isSignUp ? t('auth.signUpWithApple') : t('auth.signInWithApple')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.dividerContainer}>

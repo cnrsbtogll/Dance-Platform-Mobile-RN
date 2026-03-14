@@ -49,6 +49,8 @@
     "confirmPassword": "Şifre Tekrar",
     "signInWithGoogle": "Google ile giriş yap",
     "signUpWithGoogle": "Google ile hesap oluştur",
+    "signInWithApple": "Apple ile giriş yap",
+    "signUpWithApple": "Apple ile hesap oluştur",
     "firstName": "Ad",
     "lastName": "Soyad",
     "alreadyHaveAccount": "Zaten hesabım var",

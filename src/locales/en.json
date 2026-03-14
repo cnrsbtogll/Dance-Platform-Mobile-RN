@@ -49,6 +49,8 @@
     "confirmPassword": "Confirm Password",
     "signInWithGoogle": "Login with Google",
     "signUpWithGoogle": "Create account with Google",
+    "signInWithApple": "Sign in with Apple",
+    "signUpWithApple": "Create account with Apple",
     "firstName": "First Name",
     "lastName": "Last Name",
     "alreadyHaveAccount": "I already have an account",
