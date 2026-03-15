@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../utils/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -20,7 +21,7 @@ import { CURRENCY_SYMBOLS } from '../../utils/helpers';
 import { Lesson } from '../../types';
 import { uploadCourseCover } from '../../services/storageService';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
-import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES } from '../../utils/constants';
+import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES, DANCE_STYLE_DESCRIPTIONS } from '../../utils/constants';
 
 // Helper function to get image source (supports both local assets and URLs)
 const getImageSource = (image: any) => {
@@ -279,6 +280,13 @@ export const CreateLessonScreen: React.FC = () => {
         }
     }, [editingLesson]);
 
+    // Fill description with the default text for the selected dance type
+    const handleDraftDescription = () => {
+        if (!danceType) return;
+        const lang = i18n.language?.startsWith('tr') ? 'tr' : 'en';
+        const desc = DANCE_STYLE_DESCRIPTIONS[danceType]?.[lang as 'tr' | 'en'];
+        if (desc) setDescription(desc);
+    };
 
     const validateStep = (step: number): Record<string, string> => {
         const errors: Record<string, string> = {};
@@ -587,6 +595,16 @@ export const CreateLessonScreen: React.FC = () => {
                                         </View>
                                         <View style={styles.inputGroup}>
                                             <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
+                                            {danceType && DANCE_STYLE_DESCRIPTIONS[danceType] && (
+                                                <TouchableOpacity
+                                                    onPress={handleDraftDescription}
+                                                    activeOpacity={0.7}
+                                                    style={[styles.draftButton, { backgroundColor: palette.primary + '14', borderColor: palette.primary + '30' }]}
+                                                >
+                                                    <MaterialIcons name="auto-fix-high" size={14} color={palette.primary} />
+                                                    <Text style={[styles.draftButtonText, { color: palette.primary }]}>{t('lessons.useDraftDescription')}</Text>
+                                                </TouchableOpacity>
+                                            )}
                                             <TextInput
                                                 style={[styles.input, styles.textArea, { borderColor: stepErrors.description ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                                                 placeholder={t('lessons.descriptionPlaceholder')}
@@ -1046,7 +1064,7 @@ export const CreateLessonScreen: React.FC = () => {
                                     ]}
                                     onPress={() => {
                                         setDanceType(item);
-                                        setSelectedImage(null); // Reset image when dance type changes
+                                        setSelectedImage(null);
                                         setShowDanceTypePicker(false);
                                     }}
                                 >
@@ -1330,6 +1348,21 @@ const styles = StyleSheet.create({
         height: 128,
         paddingTop: spacing.md,
         paddingBottom: spacing.md,
+    },
+    draftButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 4,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        marginBottom: 8,
+    },
+    draftButtonText: {
+        fontSize: 12,
+        fontWeight: '500',
     },
     selectInput: {
         height: 48,

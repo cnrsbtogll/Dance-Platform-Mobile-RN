@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../utils/i18n';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
@@ -23,7 +24,7 @@ import { CURRENCY_SYMBOLS, normalizeDaysOfWeek } from '../../utils/helpers';
 import { getImageSource } from '../../utils/imageHelper';
 import { uploadCourseCover } from '../../services/storageService';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
-import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES } from '../../utils/constants';
+import { DANCE_STYLE_IMAGE_MAPPING, DANCE_STYLES, DANCE_STYLE_DESCRIPTIONS } from '../../utils/constants';
 
 const MINIO_BASE_URL = 'https://minio-sdk.cnrsbtogll.store/feriha-danceapp/public/lessons';
 
@@ -245,6 +246,15 @@ export const EditLessonScreen: React.FC = () => {
 
 
 
+
+
+    // Fill description with the default text for the selected dance type
+    const handleDraftDescription = () => {
+        if (!danceType) return;
+        const lang = i18n.language?.startsWith('tr') ? 'tr' : 'en';
+        const desc = DANCE_STYLE_DESCRIPTIONS[danceType]?.[lang as 'tr' | 'en'];
+        if (desc) setDescription(desc);
+    };
 
     const validateStep = (step: number): Record<string, string> => {
         const errors: Record<string, string> = {};
@@ -555,6 +565,16 @@ export const EditLessonScreen: React.FC = () => {
                                         </View>
                                         <View style={styles.inputGroup}>
                                             <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
+                                            {danceType && DANCE_STYLE_DESCRIPTIONS[danceType] && (
+                                                <TouchableOpacity
+                                                    onPress={handleDraftDescription}
+                                                    activeOpacity={0.7}
+                                                    style={[styles.draftButton, { backgroundColor: palette.primary + '14', borderColor: palette.primary + '30' }]}
+                                                >
+                                                    <MaterialIcons name="auto-fix-high" size={14} color={palette.primary} />
+                                                    <Text style={[styles.draftButtonText, { color: palette.primary }]}>{t('lessons.useDraftDescription')}</Text>
+                                                </TouchableOpacity>
+                                            )}
                                             <TextInput
                                                 style={[styles.input, styles.textArea, { borderColor: stepErrors.description ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
                                                 placeholder={t('lessons.descriptionPlaceholder')}
@@ -845,6 +865,290 @@ export const EditLessonScreen: React.FC = () => {
                 </View>
             </SafeAreaView>
 
+            {/* Dance Type Picker Modal */}
+            <Modal
+                visible={showDanceTypePicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowDanceTypePicker(false)}
+            >
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectDanceTypeTitle')}</Text>
+                            <TouchableOpacity onPress={() => setShowDanceTypePicker(false)}>
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={danceStyles}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.pickerOption,
+                                        { borderBottomColor: palette.border },
+                                        danceType === item && styles.pickerOptionSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setDanceType(item);
+                                        setSelectedImage(null);
+                                        setShowDanceTypePicker(false);
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.pickerOptionText,
+                                            { color: palette.text.primary },
+                                            danceType === item && styles.pickerOptionTextSelected,
+                                        ]}
+                                    >
+                                        {item}
+                                    </Text>
+                                    {danceType === item && (
+                                        <MaterialIcons name="check" size={24} color={palette.secondary} />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={styles.pickerListContent}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+
+            {/* Image Picker Modal */}
+            <Modal
+                visible={showImagePicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowImagePicker(false)}
+            >
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectLessonImage')}</Text>
+                            <TouchableOpacity onPress={() => setShowImagePicker(false)}>
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Gallery Upload Option */}
+                        <TouchableOpacity
+                            style={[
+                                styles.galleryUploadBtn,
+                                { backgroundColor: palette.secondary + '15', borderColor: palette.secondary }
+                            ]}
+                            disabled={uploadingCover}
+                            onPress={async () => {
+                                const result = await ImagePicker.launchImageLibraryAsync({
+                                    mediaTypes: ['images'],
+                                    allowsEditing: true,
+                                    aspect: [16, 9],
+                                    quality: 1,
+                                });
+                                if (result.canceled || !result.assets?.[0] || !user?.id) return;
+                                setShowImagePicker(false);
+                                setUploadingCover(true);
+                                setCoverUploadProgress(0);
+                                try {
+                                    // Use a temp courseId placeholder; real courseId assigned on save
+                                    const targetId = lessonId || `temp-${Date.now()}`;
+                                    const url = await uploadCourseCover(
+                                        targetId,
+                                        user.id,
+                                        result.assets[0].uri,
+                                        (p) => setCoverUploadProgress(p.percent)
+                                    );
+                                    setSelectedImage(url);
+                                } catch (err: any) {
+                                    Alert.alert('Yukleme Hatasi', err.message || 'Gorsel yuklenemedi.');
+                                } finally {
+                                    setUploadingCover(false);
+                                    setCoverUploadProgress(0);
+                                }
+                            }}
+                        >
+                            {uploadingCover ? (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <ActivityIndicator size="small" color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Yukleniyor {coverUploadProgress}%
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <MaterialIcons name="photo-library" size={20} color={palette.secondary} />
+                                    <Text style={[styles.galleryUploadText, { color: palette.secondary }]}>
+                                        Telefondan Gorsel Yukle
+                                    </Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+
+                        <Text style={[styles.orDivider, { color: palette.text.secondary }]}>— veya hazir gorseller —</Text>
+
+                        <FlatList
+                            data={availableImages}
+                            numColumns={2}
+                            keyExtractor={(item, index) => index.toString()}
+                            columnWrapperStyle={styles.imageListRow}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.imageOption,
+                                        selectedImage === item && styles.imageOptionSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedImage(item);
+                                        setShowImagePicker(false);
+                                    }}
+                                >
+                                    <Image source={getImageSource(item)} style={styles.imageOptionImage} resizeMode="cover" />
+                                    {selectedImage === item && (
+                                        <View style={styles.imageOptionCheck}>
+                                            <MaterialIcons name="check-circle" size={24} color="#ffffff" />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={styles.imageListContent}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Time Picker */}
+            {showTimePicker && (
+                Platform.OS === 'ios' ? (
+                    <Modal
+                        visible={showTimePicker}
+                        animationType="slide"
+                        transparent={true}
+                        onRequestClose={() => setShowTimePicker(false)}
+                    >
+                        <View style={[styles.pickerModalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                            <View style={[styles.pickerModalContent, { backgroundColor: palette.card }]}>
+                                <View style={[styles.pickerModalHeader, { borderBottomColor: palette.border }]}>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.text.secondary }]}>{t('common.cancel')}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={[styles.pickerModalTitle, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
+                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                        <Text style={[styles.pickerModalButton, { color: palette.primary }]}>{t('common.done')}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <DateTimePicker
+                                    value={selectedTime || new Date()}
+                                    mode="time"
+                                    display="spinner"
+                                    onChange={(event, time) => {
+                                        if (event.type === 'set' && time) {
+                                            setSelectedTime(time);
+                                        }
+                                    }}
+                                    textColor={palette.text.primary}
+                                    themeVariant={isDarkMode ? 'dark' : 'light'}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+                ) : (
+                    <DateTimePicker
+                        value={selectedTime || new Date()}
+                        mode="time"
+                        display="default"
+                        onChange={(event, time) => {
+                            setShowTimePicker(false);
+                            if (event.type === 'set' && time) {
+                                setSelectedTime(time);
+                            }
+                        }}
+                    />
+                )
+            )}
+
+            {/* Duration Picker Modal */}
+            <Modal
+                visible={showDurationPicker}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setShowDurationPicker(false)}
+            >
+                <View style={[styles.modalOverlay, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }]}>
+                    <View style={[styles.modalContent, { backgroundColor: palette.card }]}>
+                        <View style={[styles.modalHeader, { borderBottomColor: palette.border }]}>
+                            <Text style={[styles.modalTitle, { color: palette.text.primary }]}>{t('lessons.selectDuration')}</Text>
+                            <TouchableOpacity onPress={() => setShowDurationPicker(false)}>
+                                <MaterialIcons name="close" size={24} color={palette.text.primary} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={getDurationOptions(t)}
+                            keyExtractor={(item) => item.value.toString()}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.pickerOption,
+                                        { borderBottomColor: palette.border },
+                                        duration === item.value && styles.pickerOptionSelected,
+                                    ]}
+                                    onPress={() => {
+                                        setDuration(item.value);
+                                        setShowDurationPicker(false);
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.pickerOptionText,
+                                            { color: palette.text.primary },
+                                            duration === item.value && styles.pickerOptionTextSelected,
+                                        ]}
+                                    >
+                                        {item.label}
+                                    </Text>
+                                    {duration === item.value && (
+                                        <MaterialIcons
+                                            name="check"
+                                            size={24}
+                                            color={colors.instructor.secondary}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={styles.pickerListContent}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Location Picker Modal */}
+            <LocationPickerModal
+                visible={showLocationPicker}
+                onClose={() => setShowLocationPicker(false)}
+                selectedCountry={customCountry || 'Türkiye'}
+                selectedCity={customCity}
+                onConfirm={(country, city) => {
+                    setCustomCountry(country);
+                    setCustomCity(city);
+                }}
+            />
+
+            {/* Instructor Multi-Select Modal */}
+            <InstructorMultiSelectModal
+                visible={showInstructorPicker}
+                onClose={() => setShowInstructorPicker(false)}
+                instructors={instructors}
+                selectedInstructors={selectedInstructors}
+                onSave={(selected) => {
+                    setSelectedInstructors(selected);
+                    setShowInstructorPicker(false);
+                }}
+                palette={palette}
+                isDarkMode={isDarkMode}
+                lockedInstructorId={!isSchool ? user?.id : undefined}
+            />
+
             <AddStudentModal
                 visible={showAddStudentModal}
                 onClose={() => setShowAddStudentModal(false)}
@@ -1032,6 +1336,21 @@ const styles = StyleSheet.create({
         height: 128,
         paddingTop: spacing.md,
         paddingBottom: spacing.md,
+    },
+    draftButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: 4,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        marginBottom: 8,
+    },
+    draftButtonText: {
+        fontSize: 12,
+        fontWeight: '500',
     },
     selectInput: {
         height: 48,

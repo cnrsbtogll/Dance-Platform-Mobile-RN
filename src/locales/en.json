@@ -413,7 +413,10 @@
     "nextStep": "Next",
     "prevStep": "Back",
     "fillAddressFields": "Please fill in country, city, and address fields.",
-    "selectCountryCityError": "Please select country and city."
+    "selectCountryCityError": "Please select country and city.",
+    "descriptionChangedTitle": "Update Description?",
+    "descriptionChangedDesc": "You changed the dance style. Do you want to update the description for the new style? Your custom text will be replaced.",
+    "useDraftDescription": "Use draft description"
   },
   "instructor": {
     "profileIncomplete": "Profile Incomplete",
@@ -617,7 +620,14 @@
     "messageLimit": "You have sent 3 messages without a reply. Please wait for the other person to respond before sending more.",
     "waitingReply": "Waiting for reply...",
     "deleteConfirmTitle": "Hide Chat",
-    "deleteConfirmDesc": "Are you sure you want to hide this chat? It will reappear if the other person sends a new message."
+    "deleteConfirmDesc": "Are you sure you want to hide this chat? It will reappear if the other person sends a new message.",
+    "welcomeModal": {
+      "title": "Send Welcome Message",
+      "desc": "You can send a ready-to-use welcome message to your student.",
+      "send": "Send",
+      "skip": "Skip, open directly",
+      "defaultMessage": "Thank you for enrolling in my class 🎉 If you have any questions, feel free to write to me here."
+    }
   },
   "payment": {
     "title": "Payment Screen",

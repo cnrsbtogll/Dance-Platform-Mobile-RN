@@ -413,7 +413,10 @@
     "nextStep": "İleri",
     "prevStep": "Geri",
     "fillAddressFields": "Lütfen ülke, il ve adres alanlarını doldurun.",
-    "selectCountryCityError": "Lütfen ülke ve şehir seçiniz."
+    "selectCountryCityError": "Lütfen ülke ve şehir seçiniz.",
+    "descriptionChangedTitle": "Açıklamayı Değiştir",
+    "descriptionChangedDesc": "Dans türünü değiştirdiniz. Açıklamayı yeni dans türüne göre güncellemek ister misiniz? Kendi yazdığınız metin silinecektir.",
+    "useDraftDescription": "Taslak açıklamayı kullan"
   },
   "instructor": {
     "profileIncomplete": "Profiliniz Eksik",
@@ -621,7 +624,14 @@
     "messageLimit": "3 mesaj gönderdiniz ve yanıt bekliyorsunuz. Karşı taraf yanıt verince yazabilirsiniz.",
     "waitingReply": "Yanıt bekleniyor...",
     "deleteConfirmTitle": "Sohbeti Gizle",
-    "deleteConfirmDesc": "Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur."
+    "deleteConfirmDesc": "Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur.",
+    "welcomeModal": {
+      "title": "Karşılama Mesajı Gönder",
+      "desc": "Öğrencinize hazır bir karşılama mesajı gönderebilirsiniz.",
+      "send": "Gönder",
+      "skip": "Geç, doğrudan aç",
+      "defaultMessage": "Dersime kaydolduğunuz için teşekkürler 🎉 Sormak istediğiniz bir şey olursa bana buradan yazabilirsiniz."
+    }
   },
   "payment": {
     "title": "Ödeme Ekranı",
