@@ -64,6 +64,12 @@
     <string>Fotoğraf çekmek için kamera erişimi gerekiyor.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Bulunduğun şehirdeki dans kurslarını görebilmen için konumuna ihtiyacımız var.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Bulunduğun şehirdeki dans kurslarını görebilmen için konumuna ihtiyacımız var.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Dans kurslarını konuma göre filtrelemek için konum erişimi gerekiyor.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Profil fotoğrafınızı seçmek için galeri erişimi gerekiyor.</string>
     <key>RCTNewArchEnabled</key>
