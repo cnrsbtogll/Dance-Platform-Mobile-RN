@@ -17,7 +17,6 @@ export interface AppConfig {
   };
   integrations: {
     firebase: boolean;
-    stripe: boolean;
     minio: boolean;
   };
   appName: string;
@@ -45,7 +44,6 @@ const brandConfigs: Record<Brand, AppConfig> = {
     },
     integrations: {
       firebase: false,
-      stripe: false,
       minio: false,
     },
     appName: 'Dancer Community',
@@ -59,7 +57,6 @@ const brandConfigs: Record<Brand, AppConfig> = {
     },
     integrations: {
       firebase: true,
-      stripe: true,
       minio: true,
     },
     appName: 'Feriha',

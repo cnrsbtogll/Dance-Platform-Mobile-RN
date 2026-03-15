@@ -135,6 +135,16 @@ service cloud.firestore {
     }
     
     // ==========================================
+    // LOCATIONS
+    // ==========================================
+    match /locations/{document=**} {
+      // Herkes okuyabilir
+      allow read: if true;
+      // TODO: Revert this to isAdmin() after seeding
+      allow write: if true;
+    }
+    
+    // ==========================================
     // USERS (KULLANICILAR - Partner listesi için public yapıldı)
     // ==========================================
     match /users/{userId} {

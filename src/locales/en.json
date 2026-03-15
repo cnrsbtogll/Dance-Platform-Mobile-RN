@@ -47,6 +47,10 @@
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm Password",
+    "signInWithGoogle": "Login with Google",
+    "signUpWithGoogle": "Create account with Google",
+    "signInWithApple": "Sign in with Apple",
+    "signUpWithApple": "Create account with Apple",
     "firstName": "First Name",
     "lastName": "Last Name",
     "alreadyHaveAccount": "I already have an account",
@@ -184,7 +188,22 @@
     "searchCity": "Search city...",
     "allCities": "No preference",
     "countryLabel": "Country",
-    "cityLabel": "City (optional)"
+    "cityLabel": "City (optional)",
+    "softPrompt": {
+      "title": "Let's Find Dance Classes Near You",
+      "description": "Share your location to meet the best dance schools and instructors in your city.",
+      "grant": "Use My Location",
+      "manual": "I'll Choose My City"
+    },
+    "selector": {
+      "title": "Select City",
+      "empty": "No cities to list yet."
+    },
+    "banner": {
+      "active": "Listing dance classes in your city, {{city}}.",
+      "empty": "Listing all dance classes in Turkey.",
+      "modify": "Change"
+    }
   },
   "lessons": {
     "createLesson": "Create Lesson",
@@ -282,7 +301,8 @@
     "deactivateLesson": "Deactivate Lesson",
     "lessonActivated": "Lesson activated successfully",
     "lessonDeactivated": "Lesson deactivated successfully",
-    "draft": "Draft",
+    "lessonCreateSuccessDraft": "Your course has been created as a draft! Once your account is verified, you can publish it.",
+    "lessonCreateSuccessActive": "Your course has been created and published successfully!",
     "unverifiedWarning": "Your account is not verified yet. Lessons you create will be saved as 'Draft'.",
     "saveAsDraft": "Save as Draft",
     "selectDanceType": "Select dance type",
@@ -375,7 +395,28 @@
     "searchInstructor": "Search instructor by name (min. 2 letters)",
     "typeToSearch": "Type at least 2 letters to search for an instructor.",
     "noInstructorFound": "No instructor found.",
-    "instructors": "Instructors"
+    "instructors": "Instructors",
+    "capacity": "Capacity",
+    "maxParticipants": "Maximum Students",
+    "capacityLabel": "Maximum Number of Students",
+    "capacityPlaceholder": "e.g. 12",
+    "capacityInfo": "Enrolled: {{current}} / Maximum: {{max}}",
+    "selectTimeError": "Please select a lesson time.",
+    "selectLocationError": "Please select a location.",
+    "selectCapacityError": "Please enter the maximum number of students.",
+    "courseFull": "This course is full.",
+    "courseFullBadge": "Full",
+    "step1Title": "Dance Type & Image",
+    "step2Title": "Basic Info",
+    "step3Title": "Schedule",
+    "step4Title": "Instructor & Location & Capacity",
+    "nextStep": "Next",
+    "prevStep": "Back",
+    "fillAddressFields": "Please fill in country, city, and address fields.",
+    "selectCountryCityError": "Please select country and city.",
+    "descriptionChangedTitle": "Update Description?",
+    "descriptionChangedDesc": "You changed the dance style. Do you want to update the description for the new style? Your custom text will be replaced.",
+    "useDraftDescription": "Use draft description"
   },
   "instructor": {
     "profileIncomplete": "Profile Incomplete",
@@ -579,7 +620,14 @@
     "messageLimit": "You have sent 3 messages without a reply. Please wait for the other person to respond before sending more.",
     "waitingReply": "Waiting for reply...",
     "deleteConfirmTitle": "Hide Chat",
-    "deleteConfirmDesc": "Are you sure you want to hide this chat? It will reappear if the other person sends a new message."
+    "deleteConfirmDesc": "Are you sure you want to hide this chat? It will reappear if the other person sends a new message.",
+    "welcomeModal": {
+      "title": "Send Welcome Message",
+      "desc": "You can send a ready-to-use welcome message to your student.",
+      "send": "Send",
+      "skip": "Skip, open directly",
+      "defaultMessage": "Thank you for enrolling in my class 🎉 If you have any questions, feel free to write to me here."
+    }
   },
   "payment": {
     "title": "Payment Screen",
@@ -620,7 +668,11 @@
     "reset": "Reset",
     "apply": "Apply",
     "all": "All",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "emptyTitle": "No Results Found",
+    "emptyMessage": "No dance courses match your search. Try changing the filters or search keywords.",
+    "emptyCityTitle": "Select Your City",
+    "emptyCityMessage": "Select your city to find the best dance courses for you!"
   },
   "instructorHome": {
     "earningsSummary": "Earnings Summary",

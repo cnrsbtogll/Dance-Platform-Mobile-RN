@@ -16,7 +16,7 @@ import { User } from '../../types';
 import { getAvatarSource } from '../../utils/imageHelper';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
 import { DANCE_LEVELS } from '../../utils/constants';
-import { ALL_COUNTRY_NAMES, getCitiesForCountry, DEFAULT_COUNTRY } from '../../utils/locations';
+import { useLocationStore } from '../../store/useLocationStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = spacing.sm;
@@ -75,6 +75,13 @@ export const PartnerSearchScreen: React.FC = () => {
 
     // ── Location sub-state for filter modal ──────────────────────────────────
     const [showCityList, setShowCityList] = useState(false);
+    
+    const { fetchLocations, getAllCountryNames, getCitiesForCountry } = useLocationStore();
+    const ALL_COUNTRY_NAMES = getAllCountryNames();
+    
+    useEffect(() => {
+        fetchLocations();
+    }, []);
 
     const fetchUsers = async () => {
         try {
@@ -290,7 +297,7 @@ export const PartnerSearchScreen: React.FC = () => {
                                     text: t('partner.login'),
                                     onPress: () => {
                                         setPendingPartner(item);
-                                        navigation.navigate('Login');
+                                        navigation.navigate('Login', { mode: 'login' });
                                     },
                                 },
                             ]

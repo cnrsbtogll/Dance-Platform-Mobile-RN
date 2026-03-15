@@ -21,6 +21,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useThemeStore } from '../../store/useThemeStore';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { User, Booking, Lesson } from '../../types';
+import { QuickReplyModal } from '../../components/common/QuickReplyModal';
+import { chatService } from '../../services/firebase/chat';
 
 type ActionState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -43,6 +45,7 @@ export const InstructorStudentDetailScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [resetState, setResetState] = useState<ActionState>('idle');
     const [verifyState, setVerifyState] = useState<ActionState>('idle');
+    const [showQuickReplyModal, setShowQuickReplyModal] = useState(false);
 
     // ── Header ──────────────────────────────────────────────────────────────────
     React.useEffect(() => {
@@ -182,11 +185,33 @@ export const InstructorStudentDetailScreen: React.FC = () => {
 
     const handleInAppChat = () => {
         if (!student) return;
+        setShowQuickReplyModal(true);
+    };
+
+    const navigateToChat = () => {
+        if (!student) return;
         (navigation as any).navigate('ChatDetail', {
             targetUserId: student.id,
             recipientName: student.name,
             recipientRole: student.role
         });
+    };
+
+    const handleQuickReplySend = async (message: string) => {
+        setShowQuickReplyModal(false);
+        if (!instructor?.id || !student?.id) return;
+        try {
+            await chatService.sendMessage(instructor.id, student.id, message);
+        } catch (e) {
+            console.error('Quick reply send error:', e);
+        } finally {
+            navigateToChat();
+        }
+    };
+
+    const handleQuickReplySkip = () => {
+        setShowQuickReplyModal(false);
+        navigateToChat();
     };
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -402,6 +427,13 @@ export const InstructorStudentDetailScreen: React.FC = () => {
 
                 <View style={{ height: spacing.xl }} />
             </ScrollView>
+
+            <QuickReplyModal
+                visible={showQuickReplyModal}
+                studentName={student?.name || student?.displayName || ''}
+                onSend={handleQuickReplySend}
+                onSkip={handleQuickReplySkip}
+            />
         </SafeAreaView>
     );
 };

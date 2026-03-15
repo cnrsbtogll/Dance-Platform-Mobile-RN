@@ -407,15 +407,16 @@ export const onCourseUpdated = onDocumentUpdated('courses/{courseId}', async (ev
         return null;
     }
 
-    let updateMessage = `${afterData.title || 'Kurs'} detaylarında bir güncelleme var.`;
+    const courseTitle = afterData.title || afterData.name || 'Kurs';
+    let updateMessage = `${courseTitle} kurs detaylarında bir güncelleme var.`;
     if (statusChanged && afterData.status === 'cancelled') {
-        updateMessage = `❌ ${afterData.title} iptal edilmiştir.`;
+        updateMessage = `❌ ${courseTitle} kursu iptal edilmiştir.`;
     } else if (dateChanged || timeChanged || durationChanged || scheduleChanged) {
-        updateMessage = `⏰ ${afterData.title} günü veya saati güncellendi.`;
+        updateMessage = `⏰ ${courseTitle} kursunun günü veya saati güncellendi.`;
     } else if (priceChanged) {
-        updateMessage = `💰 ${afterData.title} fiyatı güncellendi.`;
+        updateMessage = `💰 ${courseTitle} kursunun fiyatı güncellendi.`;
     } else if (locationChanged) {
-        updateMessage = `📍 ${afterData.title} konumu güncellendi.`;
+        updateMessage = `📍 ${courseTitle} kursunun konumu güncellendi.`;
     }
 
     try {

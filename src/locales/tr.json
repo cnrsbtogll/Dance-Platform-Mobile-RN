@@ -47,6 +47,10 @@
     "email": "E-posta",
     "password": "Şifre",
     "confirmPassword": "Şifre Tekrar",
+    "signInWithGoogle": "Google ile giriş yap",
+    "signUpWithGoogle": "Google ile hesap oluştur",
+    "signInWithApple": "Apple ile giriş yap",
+    "signUpWithApple": "Apple ile hesap oluştur",
     "firstName": "Ad",
     "lastName": "Soyad",
     "alreadyHaveAccount": "Zaten hesabım var",
@@ -184,7 +188,22 @@
     "searchCity": "Şehir ara...",
     "allCities": "Şehir Belirtme",
     "countryLabel": "Ülke",
-    "cityLabel": "Şehir (opsiyonel)"
+    "cityLabel": "Şehir (opsiyonel)",
+    "softPrompt": {
+      "title": "Sana En Yakın Dans Kurslarını Bulalım",
+      "description": "Bulunduğun şehirdeki en iyi dans okulları ve eğitmenlerle tanışmak için konumunu paylaş.",
+      "grant": "Konumumu Kullan",
+      "manual": "Şehrimi Kendim Seçeceğim"
+    },
+    "selector": {
+      "title": "Şehir Seç",
+      "empty": "Henüz listelenecek bir şehir bulunmuyor."
+    },
+    "banner": {
+      "active": "Bulunduğunuz {{city}} ilindeki dans kursları listelenmektedir.",
+      "empty": "Tüm Türkiye'deki dans kursları listeleniyor.",
+      "modify": "Değiştir"
+    }
   },
   "lessons": {
     "createLesson": "Kurs Oluştur",
@@ -312,7 +331,7 @@
     "imageFormat": "SVG, PNG, JPG (MAX. 800x400px)",
     "change": "Değiştir",
     "hourlyPrice": "Saatlik Ücret",
-    "saveChanges": "Değişiklikleri Kaydet",
+    "saveChanges": "Değişikliği Kaydet",
     "lessonTitlePlaceholder": "Örn: Başlangıç Seviyesi Salsa",
     "descriptionPlaceholder": "kursun içeriği, seviyesi ve hedefleri hakkında bilgi verin...",
     "lessonDuration": "Kurs Süresi",
@@ -331,7 +350,8 @@
     "fillAllFields": "Lütfen tüm alanları doldurun",
     "lessonUpdated": "Kurs başarıyla güncellendi",
     "lessonDeleted": "Kurs başarıyla silindi",
-    "lessonCreateSuccess": "kursunuz taslak olarak oluşturuldu! Hesabınız onaylandığında kursunuzu yayma alınabilirsiniz.",
+    "lessonCreateSuccessDraft": "Kursunuz taslak olarak oluşturuldu! Hesabınız onaylandığında yayına alabilirsiniz.",
+    "lessonCreateSuccessActive": "Kursunuz başarıyla oluşturuldu ve yayına alındı!",
     "deleteLesson": "Kursu Sil",
     "deleteLessonConfirm": "Bu kursu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
     "delete": "Sil",
@@ -375,7 +395,28 @@
     "searchInstructor": "İsimle eğitmen ara (en az 2 harf)",
     "typeToSearch": "Eğitmen aramak için en az 2 harf yazın.",
     "noInstructorFound": "Eğitmen bulunamadı.",
-    "instructors": "Eğitmenler"
+    "instructors": "Eğitmenler",
+    "capacity": "Kapasite",
+    "maxParticipants": "Maksimum Öğrenci",
+    "capacityLabel": "Maksimum Öğrenci Sayısı",
+    "capacityPlaceholder": "Örn: 12",
+    "capacityInfo": "Kayıtlı: {{current}} / Maksimum: {{max}}",
+    "selectTimeError": "Ders saati seçmelisiniz.",
+    "selectLocationError": "Konum seçmelisiniz.",
+    "selectCapacityError": "Maksimum öğrenci sayısı girmelisiniz.",
+    "courseFull": "Bu kurs dolmuştur.",
+    "courseFullBadge": "Dolu",
+    "step1Title": "Dans Türü & Görsel",
+    "step2Title": "Temel Bilgiler",
+    "step3Title": "Zamanlama",
+    "step4Title": "Eğitmen & Konum & Kapasite",
+    "nextStep": "İleri",
+    "prevStep": "Geri",
+    "fillAddressFields": "Lütfen ülke, il ve adres alanlarını doldurun.",
+    "selectCountryCityError": "Lütfen ülke ve şehir seçiniz.",
+    "descriptionChangedTitle": "Açıklamayı Değiştir",
+    "descriptionChangedDesc": "Dans türünü değiştirdiniz. Açıklamayı yeni dans türüne göre güncellemek ister misiniz? Kendi yazdığınız metin silinecektir.",
+    "useDraftDescription": "Taslak açıklamayı kullan"
   },
   "instructor": {
     "profileIncomplete": "Profiliniz Eksik",
@@ -583,7 +624,14 @@
     "messageLimit": "3 mesaj gönderdiniz ve yanıt bekliyorsunuz. Karşı taraf yanıt verince yazabilirsiniz.",
     "waitingReply": "Yanıt bekleniyor...",
     "deleteConfirmTitle": "Sohbeti Gizle",
-    "deleteConfirmDesc": "Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur."
+    "deleteConfirmDesc": "Bu sohbeti gizlemek istediğinize emin misiniz? Karşı taraf yeni mesaj gönderdiğinde tekrar görünür olur.",
+    "welcomeModal": {
+      "title": "Karşılama Mesajı Gönder",
+      "desc": "Öğrencinize hazır bir karşılama mesajı gönderebilirsiniz.",
+      "send": "Gönder",
+      "skip": "Geç, doğrudan aç",
+      "defaultMessage": "Dersime kaydolduğunuz için teşekkürler 🎉 Sormak istediğiniz bir şey olursa bana buradan yazabilirsiniz."
+    }
   },
   "payment": {
     "title": "Ödeme Ekranı",
@@ -624,7 +672,11 @@
     "reset": "Sıfırla",
     "apply": "Uygula",
     "all": "Tümü",
-    "minutes": "dakika"
+    "minutes": "dakika",
+    "emptyTitle": "Sonuç Bulunamadı",
+    "emptyMessage": "Aramanızla eşleşen dans kursu bulunmuyor. Filtreleri veya arama kelimenizi değiştirmeyi deneyin.",
+    "emptyCityTitle": "Şehrini Seç",
+    "emptyCityMessage": "Şehrini seçerek sana en uygun dans kurslarını bul!"
   },
   "instructorHome": {
     "earningsSummary": "Kazanç Özeti",

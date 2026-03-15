@@ -18,21 +18,37 @@ const brands = {
   codecanyon: {
     name: 'Dancer Community',
     slug: 'dancer-community',
-    icon: './assets/icon.png',
+    icon: {
+      light: './assets/icon.png',
+      dark: './assets/icon.png',
+      tinted: './assets/icon.png',
+    },
     bundleIdentifier: 'com.dancercommunity.app',
     package: 'com.dancercommunity.app',
-    adaptiveIcon: './assets/adaptive-icon.png',
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      monochromeImage: './assets/adaptive-icon.png',
+      backgroundColor: '#ffffff',
+    },
     splash: './assets/splash.png',
     favicon: './assets/favicon.png',
   },
   feriha: {
     name: 'Feriha',
     slug: 'feriha-dance-platform',
-    icon: './assets/icon-feriha.png',
+    icon: {
+      dark: './assets/icons/ios-dark.png',
+      light: './assets/icons/ios-light.png',
+      tinted: './assets/icons/ios-tinted.png',
+    },
     bundleIdentifier: 'com.feriha.danceplatform',
     package: 'com.feriha.danceplatform',
-    adaptiveIcon: './assets/adaptive-icon-feriha.png',
-    splash: './assets/splash-feriha.png',
+    adaptiveIcon: {
+      foregroundImage: './assets/icons/adaptive-icon.png',
+      monochromeImage: './assets/icons/adaptive-icon.png',
+      backgroundColor: '#ffffff',
+    },
+    splash: './assets/icons/splash-icon-dark.png',
     favicon: './assets/favicon-feriha.png',
   },
 };
@@ -48,7 +64,7 @@ module.exports = {
     version: "1.0.3",
     runtimeVersion: "1.0.3",
     orientation: 'portrait',
-    icon: currentBrand.icon,
+    icon: currentBrand.icon.light,
     userInterfaceStyle: 'light',
     splash: {
       image: currentBrand.splash,
@@ -65,13 +81,18 @@ module.exports = {
       config: {
         usesNonExemptEncryption: false
       },
+      icon: {
+        dark: currentBrand.icon.dark,
+        light: currentBrand.icon.light,
+      },
       buildNumber: "1",
       googleServicesFile: "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: currentBrand.adaptiveIcon,
-        backgroundColor: '#ffffff',
+        foregroundImage: currentBrand.adaptiveIcon.foregroundImage,
+        monochromeImage: currentBrand.adaptiveIcon.monochromeImage,
+        backgroundColor: currentBrand.adaptiveIcon.backgroundColor,
       },
       package: currentBrand.package,
       versionCode: 1,
@@ -105,17 +126,9 @@ module.exports = {
         }
       ],
       [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": `merchant.${currentBrand.bundleIdentifier}`,
-          "enableGooglePay": true
-        }
-      ],
-      [
         "expo-notifications",
         {
-          "icon": currentBrand.icon,
-          "color": "#ffffff"
+          "icon": currentBrand.icon.light,
         }
       ]
     ],

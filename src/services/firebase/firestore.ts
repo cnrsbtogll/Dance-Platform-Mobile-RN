@@ -33,7 +33,17 @@ const COLLECTIONS = {
   SCHOOL_REQUESTS: 'schoolRequests',
   ANNOUNCEMENTS: 'announcements',
   DANCE_STYLES: 'danceStyles',
+  LOCATIONS: 'locations',
 };
+
+export interface LocationData {
+  id: string;
+  name: string;
+  code: string;
+  cities: string[];
+  isActive?: boolean;
+  order?: number;
+}
 
 // Helper to convert Firestore doc to typed object
 const convertDoc = <T>(doc: any): T => {
@@ -60,6 +70,30 @@ export class FirestoreService {
         .sort((a, b) => a.localeCompare(b, 'tr'));
     } catch (error) {
       console.error('[FirestoreService] Error fetching danceStyles:', error);
+      return [];
+    }
+  }
+
+  // Locations (Countries & Cities)
+  static async getLocations(): Promise<LocationData[]> {
+    try {
+      const q = query(collection(db, COLLECTIONS.LOCATIONS), orderBy('order', 'asc'));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) return [];
+      
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || '',
+          code: data.code || doc.id,
+          cities: data.cities || [],
+          isActive: data.isActive !== false,
+          order: data.order || 0
+        } as LocationData;
+      });
+    } catch (error) {
+      console.error('[FirestoreService] Error fetching locations:', error);
       return [];
     }
   }
@@ -337,7 +371,7 @@ export class FirestoreService {
           daysOfWeek: data.daysOfWeek || [],
           imageUrl: data.imageUrl,
           level: data.level || 'Beginner',
-          maxStudents: data.maxStudents || 10,
+          maxParticipants: data.maxParticipants || 10,
           isActive: data.status === 'active',
           status: data.status || (data.isActive ? 'active' : 'inactive'),
           rating: data.rating || 0,
@@ -381,7 +415,7 @@ export class FirestoreService {
           daysOfWeek: data.daysOfWeek || [],
           imageUrl: data.imageUrl,
           level: data.level || 'Beginner',
-          maxStudents: data.maxStudents || 10,
+          maxParticipants: data.maxParticipants || 10,
           isActive: data.status === 'active',
           status: data.status || (data.isActive ? 'active' : 'inactive'),
           rating: data.rating || 0,

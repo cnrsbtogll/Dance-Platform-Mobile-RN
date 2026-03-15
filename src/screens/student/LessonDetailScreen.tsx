@@ -184,7 +184,7 @@ export const LessonDetailScreen: React.FC = () => {
 
 
   // Instructor veya School için kurs sahibi kontrolü
-  const isOwnLesson = isInstructor && (lesson?.instructorId === user?.id || lesson?.schoolId === user?.id);
+  const isOwnLesson = isInstructor && (lesson?.instructorId === user?.id || (lesson?.instructorIds?.includes(user?.id as string) ?? false) || lesson?.schoolId === user?.id);
 
   // Registered Students
   const [enrolledStudents, setEnrolledStudents] = useState<Booking[]>([]);
@@ -203,9 +203,9 @@ export const LessonDetailScreen: React.FC = () => {
   // Sync participant stats and fetch enrolled students (if instructor)
   useEffect(() => {
     let isMounted = true;
-    if (lesson?.id) {
+    if (lesson?.id && isOwnLesson) {
       const fetchStudentsAndSync = async () => {
-        if (isOwnLesson) setLoadingStudents(true);
+        setLoadingStudents(true);
         try {
           const bookings = await FirestoreService.getBookingsByLesson(lesson.id);
 
@@ -250,17 +250,23 @@ export const LessonDetailScreen: React.FC = () => {
           const currentTotal = lesson.participantStats?.total || 0;
 
           // Check consistency
-          if (currentTotal !== realTotal || !lesson.participantStats) {
-            let male = 0, female = 0, other = 0;
+          let realMale = 0, realFemale = 0, realOther = 0;
 
-            activeBookings.forEach(b => {
-              const g = b.studentGender || 'other';
-              if (g === 'male') male++;
-              else if (g === 'female') female++;
-              else other++;
-            });
+          activeBookings.forEach(b => {
+            const g = b.studentGender || 'other';
+            if (g === 'male') realMale++;
+            else if (g === 'female') realFemale++;
+            else realOther++;
+          });
 
-            const newStats = { male, female, other, total: realTotal };
+          if (
+            currentTotal !== realTotal || 
+            !lesson.participantStats ||
+            lesson.participantStats.male !== realMale ||
+            lesson.participantStats.female !== realFemale ||
+            lesson.participantStats.other !== realOther
+          ) {
+            const newStats = { male: realMale, female: realFemale, other: realOther, total: realTotal };
 
             // Update local lesson state to reflect changes immediately
             setLesson((prev: any) => ({
@@ -278,7 +284,8 @@ export const LessonDetailScreen: React.FC = () => {
           }
         } catch (error) {
           console.error('Error in stats sync:', error);
-          if (isOwnLesson) setLoadingStudents(false);
+        } finally {
+          if (isMounted) setLoadingStudents(false);
         }
       };
 
@@ -287,6 +294,11 @@ export const LessonDetailScreen: React.FC = () => {
 
     return () => { isMounted = false; };
   }, [lessonId, isOwnLesson]); // Removed lesson from dependency to avoid loop if we update lesson inside
+
+  // Modal & Announcement State
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [announcementMessage, setAnnouncementMessage] = useState('');
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
 
   // Check if user logged in after clicking register button
   useFocusEffect(
@@ -511,7 +523,7 @@ export const LessonDetailScreen: React.FC = () => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       setPendingRegistrationLessonId(lesson.id);
-      (navigation as any).navigate('Login');
+      (navigation as any).navigate('Login', { mode: 'login' });
       return;
     }
 
@@ -533,10 +545,6 @@ export const LessonDetailScreen: React.FC = () => {
     (navigation as any).navigate('EditLesson', { lessonId: lesson?.id });
   };
 
-  // Modal & Announcement State
-  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
-  const [announcementMessage, setAnnouncementMessage] = useState('');
-  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
 
   const handleSendAnnouncement = async () => {
     if (!announcementMessage.trim() || !user || !lesson) return;
@@ -669,7 +677,9 @@ export const LessonDetailScreen: React.FC = () => {
               >
                 <View style={styles.participantStat}>
                   <MaterialIcons name="group" size={24} color={palette.primary} />
-                  <Text style={[styles.statValue, { color: palette.text.primary }]}>{lesson.participantStats.total}</Text>
+                  <Text style={[styles.statValue, { color: palette.text.primary, fontSize: lesson.maxParticipants ? 18 : 24 }]}>
+                    {lesson.maxParticipants ? `${lesson.participantStats.total} / ${lesson.maxParticipants}` : lesson.participantStats.total}
+                  </Text>
                   <Text style={[styles.statLabel, { color: palette.text.secondary }]}>{t('lessons.total') || 'Total'}</Text>
                 </View>
                 <View style={[styles.divider, { backgroundColor: palette.border }]} />

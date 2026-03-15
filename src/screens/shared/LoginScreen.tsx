@@ -19,7 +19,7 @@ export const LoginScreen: React.FC = () => {
   const { login, setUser } = useAuthStore();
   const palette = getPalette('student', isDarkMode);
   const route = useRoute<any>();
-  const [isSignUp, setIsSignUp] = useState(route.params?.mode !== 'login');
+  const [isSignUp, setIsSignUp] = useState(route.params?.mode === 'signup');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -164,7 +164,7 @@ export const LoginScreen: React.FC = () => {
           <Image
             source={
               appConfig.brand === 'feriha'
-                ? require('../../../assets/splash-feriha.png')
+                ? require('../../../assets/icons/splash-icon-dark.png')
                 : require('../../../assets/splash.png')
             }
             style={styles.illustration}
@@ -180,6 +180,36 @@ export const LoginScreen: React.FC = () => {
           <Text style={[styles.subtitle, { color: palette.text.secondary }]}>
             {t('auth.loginSubtitle')}
           </Text>
+        </View>
+
+        {/* Social Buttons (Moved up) */}
+        <View style={styles.socialButtons}>
+          <TouchableOpacity
+            style={[styles.socialButton, { borderColor: palette.border }]}
+            onPress={handleGoogleLogin}
+          >
+            <AntDesign name="google" size={24} color={palette.text.primary} />
+            <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>
+              {isSignUp ? t('auth.signUpWithGoogle') : t('auth.signInWithGoogle')}
+            </Text>
+          </TouchableOpacity>
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={[styles.socialButton, { borderColor: palette.border }]}
+              onPress={handleAppleLogin}
+            >
+              <AntDesign name="apple" size={24} color={palette.text.primary} />
+              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>
+                {isSignUp ? t('auth.signUpWithApple') : t('auth.signInWithApple')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={styles.dividerContainer}>
+          <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
+          <Text style={[styles.dividerText, { color: palette.text.secondary }]}>{t('common.or')}</Text>
+          <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
         </View>
 
         {/* Form */}
@@ -241,12 +271,9 @@ export const LoginScreen: React.FC = () => {
               />
             </View>
           )}
-        </View>
 
-        {/* Buttons */}
-        <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.student.primary }]}
+            style={[styles.primaryButton, { backgroundColor: colors.student.primary, marginTop: spacing.sm }]}
             onPress={isSignUp ? handleCreateAccount : handleLogin}
             activeOpacity={0.8}
           >
@@ -254,7 +281,10 @@ export const LoginScreen: React.FC = () => {
               {isSignUp ? t('auth.createAccount') : t('auth.login')}
             </Text>
           </TouchableOpacity>
+        </View>
 
+        {/* Switch between Login and Signup */}
+        <View style={styles.switchContainer}>
           {!isSignUp && (
             <TouchableOpacity
               style={[styles.secondaryButton, { borderColor: colors.student.primary }]}
@@ -278,31 +308,6 @@ export const LoginScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           )}
-
-          <View style={styles.dividerContainer}>
-            <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
-            <Text style={[styles.dividerText, { color: palette.text.secondary }]}>{t('common.or')}</Text>
-            <View style={[styles.dividerLine, { backgroundColor: palette.border }]} />
-          </View>
-
-          <View style={styles.socialButtons}>
-            <TouchableOpacity
-              style={[styles.socialButton, { borderColor: palette.border }]}
-              onPress={handleGoogleLogin}
-            >
-              <AntDesign name="google" size={24} color={palette.text.primary} />
-              <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Google</Text>
-            </TouchableOpacity>
-            {/* Platform.OS === 'ios' && (
-              <TouchableOpacity
-                style={[styles.socialButton, { borderColor: palette.border }]}
-                onPress={handleAppleLogin}
-              >
-                <MaterialIcons name="apple" size={24} color={palette.text.primary} />
-                <Text style={[styles.socialButtonText, { color: palette.text.primary }]}>Apple</Text>
-              </TouchableOpacity>
-            ) */}
-          </View>
         </View>
 
         {/* Terms and Privacy */}
@@ -391,7 +396,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     ...shadows.sm,
   },
-  buttonsContainer: {
+  switchContainer: {
     width: '100%',
     marginBottom: spacing.md,
   },
@@ -438,7 +443,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   socialButtons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: spacing.sm,
     width: '100%',
     marginBottom: spacing.sm,
