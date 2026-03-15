@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   socialButtons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: spacing.sm,
     width: '100%',
     marginBottom: spacing.sm,
