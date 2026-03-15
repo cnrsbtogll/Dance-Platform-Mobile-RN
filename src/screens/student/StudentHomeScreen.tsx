@@ -17,6 +17,9 @@ import { Card } from '../../components/common/Card';
 import { SearchBar } from '../../components/common/SearchBar';
 import { getLessonImageSource, getAvatarSource } from '../../utils/imageHelper';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
+import { LocationSoftPromptModal } from '../../components/student/LocationSoftPromptModal';
+import { LocationPickerModal } from '../../components/common/LocationPickerModal';
+import { LocationBanner } from '../../components/student/LocationBanner';
 
 export const StudentHomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -25,9 +28,13 @@ export const StudentHomeScreen: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const palette = getPalette('student', isDarkMode);
   const insets = useSafeAreaInsets();
-  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, toggleFavorite, favoriteLessons, refreshLessons } = useLessonStore();
+  const { lessons, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory, selectedCity, setSelectedCity, toggleFavorite, favoriteLessons, refreshLessons } = useLessonStore();
   const { unreadCount, loadNotifications } = useNotificationStore();
   const { danceStyles, loading: loadingStyles } = useDanceStyles();
+
+  // Location UI States
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [showCitySelector, setShowCitySelector] = useState(false);
 
   const categories = [t('studentHome.categoryAll'), ...danceStyles];
 
@@ -49,6 +56,22 @@ export const StudentHomeScreen: React.FC = () => {
 
   // Filtreleme Mantığı
   const filteredLessons = lessons.filter(lesson => {
+    // Şehir Filtresi
+    if (selectedCity && selectedCity !== 'Tümü' && selectedCity !== t('studentHome.all')) {
+      const searchSpace = [
+        lesson.location?.customCity,
+        lesson.location?.customAddress,
+        lesson.location?.schoolName,
+        lesson.schoolName,
+        lesson.schoolAddress,
+        (lesson as any).city
+      ].filter(Boolean).join(' ').toLowerCase();
+      
+      if (!searchSpace.includes(selectedCity.toLowerCase())) {
+        return false;
+      }
+    }
+
     // Kategori (Case-insensitive)
     if (selectedCategory && (lesson.category || '').toLowerCase() !== selectedCategory.toLowerCase()) {
       return false;
@@ -113,7 +136,12 @@ export const StudentHomeScreen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       refreshLessons();
-    }, [])
+      
+      // Auto-trigger location soft prompt if we don't know their city
+      if (user && !user.location?.city && !selectedCity) {
+        setShowLocationPrompt(true);
+      }
+    }, [user, selectedCity])
   );
 
   useEffect(() => {
@@ -176,6 +204,12 @@ export const StudentHomeScreen: React.FC = () => {
             <MaterialIcons name="tune" size={24} color="#ffffff" />
           </TouchableOpacity>
         </View>
+
+        {/* Location Banner */}
+        <LocationBanner 
+          city={selectedCity} 
+          onPressModify={() => setShowCitySelector(true)} 
+        />
 
         {/* Category Chips */}
         <ScrollView
@@ -295,6 +329,39 @@ export const StudentHomeScreen: React.FC = () => {
               </TouchableOpacity>
             );
           })}
+
+          {/* Empty State */}
+          {filteredLessons.length === 0 && (
+            <View style={{ alignItems: 'center', justifyContent: 'center', padding: spacing.xl, marginTop: spacing.xl }}>
+              <MaterialIcons name="search-off" size={64} color={palette.border} />
+                <Text style={[styles.emptyStateTitle, { color: palette.text.primary }]}>
+                  {!selectedCity 
+                  ? t('studentHome.emptyCityTitle') 
+                  : t('studentHome.emptyTitle')}
+                </Text>
+                <Text style={[styles.emptyStateMessage, { color: palette.text.secondary }]}>
+                  {!selectedCity 
+                  ? t('studentHome.emptyCityMessage') 
+                  : t('studentHome.emptyMessage')}
+                </Text>
+              {(!selectedCity || selectedCity === 'Tümü' || selectedCity === t('studentHome.all')) && (
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: palette.primary,
+                    paddingHorizontal: spacing.lg,
+                    paddingVertical: spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginTop: spacing.lg,
+                  }}
+                  onPress={() => setShowCitySelector(true)}
+                >
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: typography.fontSize.base }}>
+                    {t('studentHome.selectCityButton') || 'Şehir Seç'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -451,6 +518,27 @@ export const StudentHomeScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Location Modals */}
+      <LocationSoftPromptModal
+        visible={showLocationPrompt}
+        onClose={() => setShowLocationPrompt(false)}
+        onManualSelect={() => {
+          setShowLocationPrompt(false);
+          setShowCitySelector(true);
+        }}
+      />
+      
+      <LocationPickerModal
+        visible={showCitySelector}
+        onClose={() => setShowCitySelector(false)}
+        selectedCountry=""
+        selectedCity={selectedCity || ''}
+        onConfirm={(country, city) => {
+          setSelectedCity(city);
+          setShowCitySelector(false);
+        }}
+      />
     </View>
   );
 };
@@ -738,8 +826,20 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
   },
   modalButtonTextWhite: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.bold,
     color: '#ffffff',
+    fontSize: typography.fontSize.base,
+    fontWeight: '600',
+  },
+  emptyStateTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: 'bold',
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  emptyStateMessage: {
+    fontSize: typography.fontSize.base,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

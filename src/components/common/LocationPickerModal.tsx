@@ -9,9 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { spacing, typography, borderRadius } from '../../utils/theme';
-import {
-    LOCATIONS, ALL_COUNTRY_NAMES, getCitiesForCountry, DEFAULT_COUNTRY,
-} from '../../utils/locations';
+import { useLocationStore } from '../../store/useLocationStore';
+import { useLessonStore } from '../../store/useLessonStore';
+import { ActivityIndicator } from 'react-native';
 
 type Step = 'country' | 'city';
 
@@ -32,21 +32,109 @@ export const LocationPickerModal: React.FC<Props> = ({
     const palette = getPalette('student', isDarkMode);
     const insets = useSafeAreaInsets();
 
+    const { locations, isLoading, isLoaded, fetchLocations, getAllCountryNames, getCitiesForCountry } = useLocationStore();
+    const { lessons } = useLessonStore();
+
+    // Fetch locations when modal opens if not loaded
+    React.useEffect(() => {
+        if (visible && !isLoaded && !isLoading) {
+            fetchLocations();
+        }
+    }, [visible, isLoaded, isLoading, fetchLocations]);
+
+    // Derived sets for active courses' locations and frequencies
+    const { activeCountries, activeCities, countryCounts, cityCounts } = useMemo(() => {
+        const cCountries = new Set<string>();
+        const cCities = new Set<string>();
+        const cCounts: Record<string, number> = {};
+        const ciCounts: Record<string, number> = {};
+        const allCities = getCitiesForCountry('Türkiye').map(c => c.trim().toLocaleLowerCase('tr-TR'));
+
+        lessons.forEach(l => {
+            const country = l.location?.customCountry || 'Türkiye'; // Default
+            if (country) {
+                cCountries.add(country.trim().toLocaleLowerCase('tr-TR'));
+                cCounts[country.trim().toLocaleLowerCase('tr-TR')] = (cCounts[country.trim().toLocaleLowerCase('tr-TR')] || 0) + 1;
+            }
+            // Add schoolAddress to the checks
+            let city = l.location?.customCity || (l as any).city;
+            
+            // If explicit city is not found, attempt to find it from schoolAddress or schoolName
+            if (!city && l.schoolAddress) {
+                const lowerAddress = l.schoolAddress.toLocaleLowerCase('tr-TR');
+                const matchedCity = allCities.find(c => lowerAddress.includes(c));
+                if (matchedCity) {
+                    city = matchedCity;
+                }
+            }
+            if (!city && l.schoolName) {
+                const lowerName = l.schoolName.toLocaleLowerCase('tr-TR');
+                const matchedCity = allCities.find(c => lowerName.includes(c));
+                if (matchedCity) {
+                    city = matchedCity;
+                }
+            }
+
+            if (city) {
+                const normalizedCity = city.trim().toLocaleLowerCase('tr-TR');
+                cCities.add(normalizedCity);
+                ciCounts[normalizedCity] = (ciCounts[normalizedCity] || 0) + 1;
+            }
+        });
+        return { activeCountries: cCountries, activeCities: cCities, countryCounts: cCounts, cityCounts: ciCounts };
+    }, [lessons]);
+
     const [step, setStep] = useState<Step>('country');
-    const [localCountry, setLocalCountry] = useState(selectedCountry || DEFAULT_COUNTRY);
+    const [localCountry, setLocalCountry] = useState(selectedCountry || 'Türkiye');
     const [localCity, setLocalCity] = useState(selectedCity || '');
     const [search, setSearch] = useState('');
 
-    const countries = useMemo(() =>
-        ALL_COUNTRY_NAMES.filter(c =>
-            !search || c.toLowerCase().includes(search.toLowerCase())
-        ), [search]);
+    const countries = useMemo(() => {
+        const allNames = getAllCountryNames();
+        let list = allNames;
+        if (search) {
+            list = list.filter(c => c.toLowerCase().includes(search.toLowerCase()));
+        }
+        // Sort: Türkiye first, then by frequency, then alphabetically
+        return list.sort((a, b) => {
+            if (a === 'Türkiye') return -1;
+            if (b === 'Türkiye') return 1;
+
+            const aNormalized = a.trim().toLocaleLowerCase('tr-TR');
+            const bNormalized = b.trim().toLocaleLowerCase('tr-TR');
+            
+            const aCount = countryCounts[aNormalized] || 0;
+            const bCount = countryCounts[bNormalized] || 0;
+            if (aCount !== bCount) return bCount - aCount;
+            
+            return a.localeCompare(b, 'tr');
+        });
+    }, [search, locations, countryCounts]);
 
     const cities = useMemo(() => {
-        const list = getCitiesForCountry(localCountry);
-        if (!search) return list;
-        return list.filter(c => c.toLowerCase().includes(search.toLowerCase()));
-    }, [localCountry, search]);
+        const originalList = getCitiesForCountry(localCountry);
+        let list = [...originalList];
+        if (search) {
+            list = list.filter(c => c.toLowerCase().includes(search.toLowerCase()));
+        }
+        // Sort: frequency first, then original order or alphabetical
+        return list.sort((a, b) => {
+            const aNormalized = a.trim().toLocaleLowerCase('tr-TR');
+            const bNormalized = b.trim().toLocaleLowerCase('tr-TR');
+
+            const aCount = cityCounts[aNormalized] || 0;
+            const bCount = cityCounts[bNormalized] || 0;
+
+            if (aCount !== bCount) return bCount - aCount; // highest count first
+            
+            // Fallback equal counts
+            if (localCountry === 'Türkiye') {
+                return originalList.indexOf(a) - originalList.indexOf(b);
+            }
+            
+            return a.localeCompare(b, 'tr');
+        });
+    }, [localCountry, search, locations, cityCounts]);
 
     const handleOpenCity = (country: string) => {
         setLocalCountry(country);
@@ -72,7 +160,7 @@ export const LocationPickerModal: React.FC<Props> = ({
     };
 
     const handleOpen = () => {
-        setLocalCountry(selectedCountry || DEFAULT_COUNTRY);
+        setLocalCountry(selectedCountry || 'Türkiye');
         setLocalCity(selectedCity || '');
         setSearch('');
         setStep('country');
@@ -107,7 +195,15 @@ export const LocationPickerModal: React.FC<Props> = ({
                         </TouchableOpacity>
                     </View>
 
-                    {/* Search */}
+                    {isLoading && !isLoaded && (
+                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                            <ActivityIndicator size="large" color={palette.primary} />
+                        </View>
+                    )}
+
+                    {(!isLoading || isLoaded) && (
+                        <>
+                            {/* Search */}
                     <View style={[styles.searchBox, { backgroundColor: palette.card, borderColor: palette.border }]}>
                         <MaterialIcons name="search" size={18} color={palette.text.secondary} />
                         <TextInput
@@ -130,7 +226,9 @@ export const LocationPickerModal: React.FC<Props> = ({
                         <FlatList
                             data={countries}
                             keyExtractor={item => item}
-                            renderItem={({ item }) => (
+                            renderItem={({ item }) => {
+                                const normalized = item.trim().toLocaleLowerCase('tr-TR');
+                                return (
                                 <TouchableOpacity
                                     style={[
                                         styles.listItem,
@@ -139,10 +237,14 @@ export const LocationPickerModal: React.FC<Props> = ({
                                     ]}
                                     onPress={() => handleOpenCity(item)}
                                 >
-                                    <Text style={[styles.listItemText, { color: palette.text.primary }]}>{item}</Text>
+                                    <Text style={[styles.listItemText, { color: palette.text.primary }]}>
+                                        {item}
+                                        {activeCountries.has(normalized) && ` (${countryCounts[normalized] || 0})`}
+                                    </Text>
                                     <MaterialIcons name="chevron-right" size={20} color={palette.text.secondary} />
                                 </TouchableOpacity>
-                            )}
+                                );
+                            }}
                             showsVerticalScrollIndicator={false}
                         />
                     )}
@@ -162,7 +264,9 @@ export const LocationPickerModal: React.FC<Props> = ({
                                     </Text>
                                 </TouchableOpacity>
                             }
-                            renderItem={({ item }) => (
+                            renderItem={({ item }) => {
+                                const normalized = item.trim().toLocaleLowerCase('tr-TR');
+                                return (
                                 <TouchableOpacity
                                     style={[
                                         styles.listItem,
@@ -171,15 +275,21 @@ export const LocationPickerModal: React.FC<Props> = ({
                                     ]}
                                     onPress={() => handleSelectCity(item)}
                                 >
-                                    <Text style={[styles.listItemText, { color: palette.text.primary }]}>{item}</Text>
+                                    <Text style={[styles.listItemText, { color: palette.text.primary }]}>
+                                        {item}
+                                        {activeCities.has(normalized) && ` (${cityCounts[normalized] || 0})`}
+                                    </Text>
                                     {item === localCity && (
                                         <MaterialIcons name="check" size={18} color={palette.primary} />
                                     )}
                                 </TouchableOpacity>
-                            )}
+                                );
+                            }}
                             showsVerticalScrollIndicator={false}
                         />
                     )}
+                </>
+                )}
                 </View>
             </View>
         </Modal>

@@ -18,7 +18,7 @@ import { uploadAvatar, UploadProgress } from '../../services/storageService';
 import { DANCE_LEVELS, DanceLevel } from '../../utils/constants';
 import { useDanceStyles } from '../../hooks/useDanceStyles';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
-import { DEFAULT_COUNTRY, getCountryCodeByName } from '../../utils/locations';
+
 import { isValidPhoneNumber, internationalPhoneMask } from '../../utils/validation';
 import MaskInput from 'react-native-mask-input';
 
@@ -583,7 +583,7 @@ export const EditProfileScreen: React.FC = () => {
       <LocationPickerModal
         visible={locationPickerVisible}
         onClose={() => setLocationPickerVisible(false)}
-        selectedCountry={tempCountry || DEFAULT_COUNTRY}
+        selectedCountry={tempCountry || 'Türkiye'}
         selectedCity={tempCity}
         onConfirm={(country, city) => {
           setTempCountry(country);

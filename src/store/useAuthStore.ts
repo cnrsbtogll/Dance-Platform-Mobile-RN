@@ -18,6 +18,7 @@ interface AuthState {
   refreshProfile: () => Promise<void>;
   initialize: (pushToken?: string | null) => void;
   updatePushToken: (token: string) => Promise<void>;
+  updateUserLocation: (city: string, country: string, isAutoDetected?: boolean) => Promise<void>;
 }
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -110,6 +111,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       updatedTokens.push(token);
       await FirestoreService.updateUser(user.id, { pushTokens: updatedTokens });
       get().setUser({ ...user, pushTokens: updatedTokens });
+    }
+  },
+
+  updateUserLocation: async (city: string, country: string, isAutoDetected = false) => {
+    const { user } = get();
+    if (!user || !user.id) return;
+    
+    const location = { city, country, isAutoDetected };
+    try {
+      await FirestoreService.updateUser(user.id, { location });
+      get().setUser({ ...user, location });
+    } catch (error) {
+      console.error('[AuthStore] Failed to update user location:', error);
     }
   },
 

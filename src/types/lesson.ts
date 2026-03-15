@@ -45,6 +45,7 @@ export interface Lesson {
   };
   schoolId?: string;
   schoolName?: string;
+  schoolAddress?: string;
   instructorName?: string;
   instructorIds?: string[];
   instructorNames?: string[];

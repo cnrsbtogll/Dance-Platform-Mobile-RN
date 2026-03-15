@@ -14,7 +14,7 @@ import { LessonFormStepper } from '../../components/common/LessonFormStepper';
 import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
 import { AddStudentModal } from '../../components/instructor/AddStudentModal';
-import { DEFAULT_COUNTRY } from '../../utils/locations';
+
 import { MockDataService } from '../../services/mockDataService';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { useLessonStore } from '../../store/useLessonStore';

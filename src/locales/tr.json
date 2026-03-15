@@ -188,7 +188,22 @@
     "searchCity": "Şehir ara...",
     "allCities": "Şehir Belirtme",
     "countryLabel": "Ülke",
-    "cityLabel": "Şehir (opsiyonel)"
+    "cityLabel": "Şehir (opsiyonel)",
+    "softPrompt": {
+      "title": "Sana En Yakın Dans Kurslarını Bulalım",
+      "description": "Bulunduğun şehirdeki en iyi dans okulları ve eğitmenlerle tanışmak için konumunu paylaş.",
+      "grant": "Konumumu Kullan",
+      "manual": "Şehrimi Kendim Seçeceğim"
+    },
+    "selector": {
+      "title": "Şehir Seç",
+      "empty": "Henüz listelenecek bir şehir bulunmuyor."
+    },
+    "banner": {
+      "active": "Bulunduğunuz {{city}} ilindeki dans kursları listelenmektedir.",
+      "empty": "Tüm Türkiye'deki dans kursları listeleniyor.",
+      "modify": "Değiştir"
+    }
   },
   "lessons": {
     "createLesson": "Kurs Oluştur",
@@ -647,7 +662,11 @@
     "reset": "Sıfırla",
     "apply": "Uygula",
     "all": "Tümü",
-    "minutes": "dakika"
+    "minutes": "dakika",
+    "emptyTitle": "Sonuç Bulunamadı",
+    "emptyMessage": "Aramanızla eşleşen dans kursu bulunmuyor. Filtreleri veya arama kelimenizi değiştirmeyi deneyin.",
+    "emptyCityTitle": "Şehrini Seç",
+    "emptyCityMessage": "Şehrini seçerek sana en uygun dans kurslarını bul!"
   },
   "instructorHome": {
     "earningsSummary": "Kazanç Özeti",

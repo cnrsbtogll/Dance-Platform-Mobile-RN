@@ -40,6 +40,11 @@ export interface User {
   schoolId?: string | null;              // Başvurulan okul (pending approval)
   verificationMethod?: 'school' | 'document';
   pushTokens?: string[];
+  location?: {
+    city: string;
+    country: string;
+    isAutoDetected: boolean;
+  };
   // Partner search & profile enrichment
   level?: DanceLevel;
   isVisibleInPartnerSearch?: boolean;

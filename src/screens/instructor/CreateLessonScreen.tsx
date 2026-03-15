@@ -12,7 +12,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
 import { LessonFormStepper } from '../../components/common/LessonFormStepper';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
-import { DEFAULT_COUNTRY } from '../../utils/locations';
+
 import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
 import { AddStudentModal } from '../../components/instructor/AddStudentModal';
 import { FirestoreService } from '../../services/firebase/firestore';
@@ -1132,7 +1132,7 @@ export const CreateLessonScreen: React.FC = () => {
             <LocationPickerModal
                 visible={locationPickerVisible}
                 onClose={() => setLocationPickerVisible(false)}
-                selectedCountry={customCountry || DEFAULT_COUNTRY}
+                selectedCountry={customCountry || 'Türkiye'}
                 selectedCity={customCity}
                 onConfirm={(country, city) => {
                     setCustomCountry(country);

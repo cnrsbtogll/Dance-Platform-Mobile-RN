@@ -188,7 +188,22 @@
     "searchCity": "Search city...",
     "allCities": "No preference",
     "countryLabel": "Country",
-    "cityLabel": "City (optional)"
+    "cityLabel": "City (optional)",
+    "softPrompt": {
+      "title": "Let's Find Dance Classes Near You",
+      "description": "Share your location to meet the best dance schools and instructors in your city.",
+      "grant": "Use My Location",
+      "manual": "I'll Choose My City"
+    },
+    "selector": {
+      "title": "Select City",
+      "empty": "No cities to list yet."
+    },
+    "banner": {
+      "active": "Listing dance classes in your city, {{city}}.",
+      "empty": "Listing all dance classes in Turkey.",
+      "modify": "Change"
+    }
   },
   "lessons": {
     "createLesson": "Create Lesson",
@@ -643,7 +658,11 @@
     "reset": "Reset",
     "apply": "Apply",
     "all": "All",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "emptyTitle": "No Results Found",
+    "emptyMessage": "No dance courses match your search. Try changing the filters or search keywords.",
+    "emptyCityTitle": "Select Your City",
+    "emptyCityMessage": "Select your city to find the best dance courses for you!"
   },
   "instructorHome": {
     "earningsSummary": "Earnings Summary",
