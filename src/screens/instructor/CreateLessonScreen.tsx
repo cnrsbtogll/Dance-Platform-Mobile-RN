@@ -10,6 +10,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card } from '../../components/common/Card';
+import { LessonFormStepper } from '../../components/common/LessonFormStepper';
 import { LocationPickerModal } from '../../components/common/LocationPickerModal';
 import { DEFAULT_COUNTRY } from '../../utils/locations';
 import { InstructorMultiSelectModal } from '../../components/common/InstructorMultiSelectModal';
@@ -85,6 +86,10 @@ export const CreateLessonScreen: React.FC = () => {
     }, [navigation, isDarkMode, palette, t, editingLesson]);
 
     const { danceStyles, loading: loadingStyles } = useDanceStyles();
+
+    const [currentStep, setCurrentStep] = useState(1);
+    const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
+    const [maxParticipants, setMaxParticipants] = useState('12');
 
     const [title, setTitle] = useState('');
     const [danceType, setDanceType] = useState('');
@@ -267,8 +272,53 @@ export const CreateLessonScreen: React.FC = () => {
             } else if (editingLesson.instructorId) {
                 setSelectedInstructors([{ id: editingLesson.instructorId, name: editingLesson.instructorName || '' }]);
             }
+
+            // Capacity
+            const cap = (editingLesson as any).maxParticipants || editingLesson.maxParticipants;
+            if (cap) setMaxParticipants(cap.toString());
         }
     }, [editingLesson]);
+
+
+    const validateStep = (step: number): Record<string, string> => {
+        const errors: Record<string, string> = {};
+        if (step === 1) {
+            if (!danceType) errors.danceType = t('lessons.selectDanceType');
+            if (!selectedImage) errors.selectedImage = t('lessons.selectImageFirst');
+        } else if (step === 2) {
+            if (!title.trim()) errors.title = t('lessons.lessonTitlePlaceholder');
+            if (!description.trim()) errors.description = t('lessons.descriptionPlaceholder');
+            if (!price || isNaN(Number(price)) || Number(price) <= 0) errors.price = t('lessons.price');
+        } else if (step === 3) {
+            if (selectedDays.length === 0) errors.selectedDays = t('lessons.selectDayError');
+            if (!selectedTime) errors.selectedTime = t('lessons.selectTimeError');
+        } else if (step === 4) {
+            if (selectedInstructors.length === 0) errors.instructor = t('lessons.selectInstructorError');
+            if (!maxParticipants || isNaN(Number(maxParticipants)) || Number(maxParticipants) < 1)
+                errors.maxParticipants = t('lessons.selectCapacityError');
+            if (!isSchool) {
+                if (locationType === 'school' && !selectedSchool) errors.location = t('lessons.selectSchoolError');
+                if (locationType === 'custom' && (!customCountry || !customCity)) errors.location = t('lessons.selectCountryCityError');
+                if (locationType === 'custom' && !customAddress.trim()) errors.address = t('lessons.enterAddressError');
+            }
+        }
+        return errors;
+    };
+
+    const handleNextStep = () => {
+        const errors = validateStep(currentStep);
+        if (Object.keys(errors).length > 0) {
+            setStepErrors(errors);
+            return;
+        }
+        setStepErrors({});
+        setCurrentStep(prev => prev + 1);
+    };
+
+    const handlePrevStep = () => {
+        setStepErrors({});
+        setCurrentStep(prev => prev - 1);
+    };
 
 
     const formatTime = (date: Date | null): string => {
@@ -279,36 +329,12 @@ export const CreateLessonScreen: React.FC = () => {
     };
 
     const handleSave = async (saveAsDraft: boolean) => {
-        if (!title.trim() || !danceType || !description || !price || !selectedImage) {
-            Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen tüm alanları doldurun.');
+        const errors = validateStep(4);
+        if (Object.keys(errors).length > 0) {
+            setStepErrors(errors);
+            // Optionally scroll to top or show a generic message
+            Alert.alert(t('common.error'), t('lessons.fillAllFields') || 'Lütfen zorunlu alanları doldurun.');
             return;
-        }
-
-        if (selectedDays.length === 0) {
-            Alert.alert(t('common.error'), t('lessons.selectDayError') || 'En az bir gün seçmelisiniz.');
-            return;
-        }
-
-        if (selectedInstructors.length === 0) {
-            Alert.alert(t('common.error'), t('lessons.selectInstructorError') || 'En az bir eğitmen seçmelisiniz.');
-            return;
-        }
-
-        if (!isSchool) {
-            if (locationType === 'school' && !selectedSchool) {
-                Alert.alert(t('common.error'), t('lessons.selectSchoolError') || 'Bir okul seçmelisiniz.');
-                return;
-            }
-            if (locationType === 'custom') {
-                if (!customCountry || !customCity) {
-                    Alert.alert(t('common.error'), t('lessons.selectCountryCityError') || 'Lütfen ülke ve şehir seçiniz.');
-                    return;
-                }
-                if (!customAddress.trim()) {
-                    Alert.alert(t('common.error'), t('lessons.enterAddressError') || 'Adres girmelisiniz.');
-                    return;
-                }
-            }
         }
 
         if (!user) {
@@ -363,7 +389,11 @@ export const CreateLessonScreen: React.FC = () => {
                 reviewCount: editingLesson?.reviewCount || 0,
                 favoriteCount: editingLesson?.favoriteCount || 0,
                 createdAt: editingLesson?.createdAt || now.toISOString(),
-                updatedAt: now.toISOString()
+                updatedAt: now.toISOString(),
+                
+                maxParticipants: Number(maxParticipants) || 12,
+                currentParticipants: editingLesson?.currentParticipants ?? 0,
+                isFull: (editingLesson?.currentParticipants ?? 0) >= (Number(maxParticipants) || 12),
             };
 
             // Set instructors for BOTH school and instructor types
@@ -410,7 +440,8 @@ export const CreateLessonScreen: React.FC = () => {
                 ]);
             } else {
                 await FirestoreService.createLesson(lessonData);
-                Alert.alert(t('common.success'), t('lessons.lessonCreateSuccess'), [
+                const isDraft = user?.role === 'draft-instructor' || user?.role === 'draft-school';
+                Alert.alert(t('common.success'), isDraft ? t('lessons.lessonCreateSuccessDraft') : t('lessons.lessonCreateSuccessActive'), [
                     {
                         text: t('common.ok'), onPress: () => {
                             // @ts-ignore
@@ -477,6 +508,21 @@ export const CreateLessonScreen: React.FC = () => {
                     </Text>
                 </View>
             )}
+            {/* STEP PROGRESS */}
+            <LessonFormStepper
+                currentStep={currentStep}
+                totalSteps={4}
+                stepTitles={[
+                    t('lessons.step1Title'),
+                    t('lessons.step2Title'),
+                    t('lessons.step3Title'),
+                    t('lessons.step4Title'),
+                ]}
+                accentColor={palette.secondary}
+                textColor={palette.text.primary}
+                subTextColor={palette.text.secondary}
+                backgroundColor={palette.background}
+            />
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -488,353 +534,324 @@ export const CreateLessonScreen: React.FC = () => {
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {/* Dance Type Selection */}
-                    <View style={styles.section}>
-                        <Card style={styles.formCard}>
-                            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.danceType')}</Text>
-                            <View style={styles.formFields}>
-                                <View style={styles.inputGroup}>
-                                    <TouchableOpacity
-                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                        onPress={() => setShowDanceTypePicker(true)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={[styles.selectInputText, { color: danceType ? palette.text.primary : palette.text.secondary }]}>
-                                            {danceType || t('lessons.selectDanceType')}
-                                        </Text>
-                                        <MaterialIcons
-                                            name="keyboard-arrow-down"
-                                            size={24}
-                                            color={palette.text.secondary}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
-                    {/* Image Section */}
-                    <View style={styles.section}>
-                        <Card style={styles.imageCard}>
-                            <Text style={[styles.sectionLabel, { color: palette.text.primary }]}>{t('lessons.lessonImage')}</Text>
-                            {renderImagePicker()}
-                        </Card>
-                    </View>
-
-                    {/* Basic Information */}
-                    <View style={styles.section}>
-                        <Card style={styles.formCard}>
-                            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.basicInfo')}</Text>
-                            <View style={styles.formFields}>
-                                <View style={styles.inputGroup}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonTitle')}</Text>
-                                    <TextInput
-                                        style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                        placeholder={t('lessons.lessonTitlePlaceholder')}
-                                        placeholderTextColor={palette.text.secondary}
-                                        value={title}
-                                        onChangeText={setTitle}
-                                    />
-                                </View>
-
-                                <View style={styles.inputGroup}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
-                                    <TextInput
-                                        style={[styles.input, styles.textArea, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                        placeholder={t('lessons.descriptionPlaceholder')}
-                                        placeholderTextColor={palette.text.secondary}
-                                        value={description}
-                                        onChangeText={setDescription}
-                                        multiline
-                                        numberOfLines={6}
-                                        textAlignVertical="top"
-                                    />
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
-
-                    {/* Pricing & Duration */}
-                    <View style={styles.section}>
-                        <Card style={styles.formCard}>
-                            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.pricing')} & {t('lessons.duration')}</Text>
-                            <View style={styles.gridRow}>
-                                <View style={[styles.inputGroup, styles.gridItem]}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.hourlyPrice')}</Text>
-                                    <View style={[styles.priceInputContainer, { borderColor: palette.border, backgroundColor: palette.card }]}>
-                                        <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>{currencySymbol}</Text>
-                                        <TextInput
-                                            style={[styles.input, styles.priceInput, { color: palette.text.primary }]}
-                                            placeholder="150"
-                                            placeholderTextColor={palette.text.secondary}
-                                            value={price}
-                                            onChangeText={setPrice}
-                                            keyboardType="numeric"
-                                        />
-                                    </View>
-                                </View>
-
-                                <View style={[styles.inputGroup, styles.gridItem]}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonDuration')}</Text>
-                                    <TouchableOpacity
-                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                        onPress={() => setShowDurationPicker(true)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={[styles.selectInputText, { color: palette.text.primary }]}>
-                                            {getDurationOptions(t).find(opt => opt.value === duration)?.label || t('lessons.durations.60min')}
-                                        </Text>
-                                        <MaterialIcons
-                                            name="keyboard-arrow-down"
-                                            size={24}
-                                            color={palette.text.secondary}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
-
-                    {/* Scheduling */}
-                    <View style={styles.section}>
-                        <Card style={styles.formCard}>
-                            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.scheduling')}</Text>
-
-                            <Text style={[styles.inputLabel, { color: palette.text.primary, marginTop: spacing.sm, marginHorizontal: spacing.md, marginBottom: spacing.xs }]}>{t('lessons.selectDays')}</Text>
-                            <View style={styles.daysContainer}>
-                                {WEEK_DAYS.map(day => (
-                                    <TouchableOpacity
-                                        key={day}
-                                        style={[
-                                            styles.dayButton,
-                                            { borderColor: palette.border },
-                                            selectedDays.includes(day) && styles.dayButtonSelected
-                                        ]}
-                                        onPress={() => {
-                                            setSelectedDays(prev =>
-                                                prev.includes(day)
-                                                    ? prev.filter(d => d !== day)
-                                                    : [...prev, day]
-                                            );
-                                        }}
-                                    >
-                                        <Text style={[
-                                            styles.dayButtonText,
-                                            { color: selectedDays.includes(day) ? '#ffffff' : palette.text.primary }
-                                        ]}>
-                                            {t(`lessons.shortDays.${day}`)}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            <View style={styles.gridRow}>
-                                <View style={[styles.inputGroup, styles.gridItem, { marginTop: spacing.md }]}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
-                                    <TouchableOpacity
-                                        style={[styles.dateTimeInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                        onPress={() => setShowTimePicker(true)}
-                                    >
-                                        <MaterialIcons name="schedule" size={20} color={palette.text.secondary} />
-                                        <Text style={[styles.dateTimeText, { color: selectedTime ? palette.text.primary : palette.text.secondary }]}>
-                                            {selectedTime ? formatTime(selectedTime) : t('lessons.timePlaceholder')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
-
-                    {/* Location or Instructor Selection depending on User Role */}
-                    <View style={styles.section}>
-                        <Card style={styles.formCard}>
-                            <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructorSelection') || 'Eğitmen Seçimi'}</Text>
-
-                            {/* Instructor Selector Box */}
-                            <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
-                                <View style={styles.inputGroup}>
-                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim(ler) verecek?'}</Text>
-                                    <TouchableOpacity
-                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                        onPress={() => setShowInstructorPicker(true)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <Text style={[styles.selectInputText, { color: selectedInstructors.length > 0 ? palette.text.primary : palette.text.secondary }]}>
-                                            {selectedInstructors.length > 0
-                                                ? (selectedInstructors.length > 1
-                                                    ? `${selectedInstructors[0].name} ve +${selectedInstructors.length - 1} diğer eğitmen`
-                                                    : selectedInstructors[0].name)
-                                                : (t('lessons.selectInstructorPlaceholder') || 'Bir eğitmen seçin')}
-                                        </Text>
-                                        <MaterialIcons
-                                            name="keyboard-arrow-down"
-                                            size={24}
-                                            color={palette.text.secondary}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
-
-                    {/* Location Selection depending on User Role */}
-                    {!isSchool && (
-                        <View style={styles.section}>
-                            <Card style={styles.formCard}>
-                                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
-
-                                {/* Location Type Toggle */}
-                                <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
-                                    <View style={styles.locationTypeContainer}>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.locationTypeButton,
-                                                { borderColor: palette.border },
-                                                locationType === 'school' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
-                                            ]}
-                                            onPress={() => setLocationType('school')}
-                                            activeOpacity={0.7}
-                                        >
-                                            <MaterialIcons
-                                                name="school"
-                                                size={20}
-                                                color={locationType === 'school' ? '#ffffff' : palette.text.secondary}
-                                            />
-                                            <Text style={[
-                                                styles.locationTypeText,
-                                                { color: locationType === 'school' ? '#ffffff' : palette.text.primary }
-                                            ]}>
-                                                {t('lessons.danceSchool')}
-                                            </Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.locationTypeButton,
-                                                { borderColor: palette.border },
-                                                locationType === 'custom' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]
-                                            ]}
-                                            onPress={() => setLocationType('custom')}
-                                            activeOpacity={0.7}
-                                        >
-                                            <MaterialIcons
-                                                name="location-on"
-                                                size={20}
-                                                color={locationType === 'custom' ? '#ffffff' : palette.text.secondary}
-                                            />
-                                            <Text style={[
-                                                styles.locationTypeText,
-                                                { color: locationType === 'custom' ? '#ffffff' : palette.text.primary }
-                                            ]}>
-                                                {t('lessons.customAddress')}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    {/* School Selector */}
-                                    {locationType === 'school' && (
+                    {/* ── STEP 1: Dance Type & Image ── */}
+                    {currentStep === 1 && (
+                        <>
+                            <View style={styles.section}>
+                                <Card style={styles.formCard}>
+                                    <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.danceType')}</Text>
+                                    <View style={styles.formFields}>
                                         <View style={styles.inputGroup}>
-                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
                                             <TouchableOpacity
-                                                style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
-                                                onPress={() => setShowSchoolPicker(true)}
+                                                style={[styles.selectInput, { borderColor: stepErrors.danceType ? '#e53935' : palette.border, backgroundColor: palette.card }]}
+                                                onPress={() => setShowDanceTypePicker(true)}
                                                 activeOpacity={0.7}
                                             >
-                                                <Text style={[styles.selectInputText, { color: selectedSchool ? palette.text.primary : palette.text.secondary }]}>
-                                                    {selectedSchool?.name || t('lessons.selectDanceSchool')}
+                                                <Text style={[styles.selectInputText, { color: danceType ? palette.text.primary : palette.text.secondary }]}>
+                                                    {danceType || t('lessons.selectDanceType')}
                                                 </Text>
-                                                <MaterialIcons
-                                                    name="keyboard-arrow-down"
-                                                    size={24}
-                                                    color={palette.text.secondary}
+                                                <MaterialIcons name="keyboard-arrow-down" size={24} color={palette.text.secondary} />
+                                            </TouchableOpacity>
+                                            {stepErrors.danceType && <Text style={styles.fieldError}>{stepErrors.danceType}</Text>}
+                                        </View>
+                                    </View>
+                                </Card>
+                            </View>
+                            <View style={styles.section}>
+                                <Card style={styles.imageCard}>
+                                    <Text style={[styles.sectionLabel, { color: palette.text.primary }]}>{t('lessons.lessonImage')}</Text>
+                                    {renderImagePicker()}
+                                    {stepErrors.selectedImage && <Text style={[styles.fieldError, { marginTop: 4 }]}>{stepErrors.selectedImage}</Text>}
+                                </Card>
+                            </View>
+                        </>
+                    )}
+
+                    {/* ── STEP 2: Basic Info ── */}
+                    {currentStep === 2 && (
+                        <>
+                            <View style={styles.section}>
+                                <Card style={styles.formCard}>
+                                    <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.basicInfo')}</Text>
+                                    <View style={styles.formFields}>
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonTitle')}</Text>
+                                            <TextInput
+                                                style={[styles.input, { borderColor: stepErrors.title ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                                placeholder={t('lessons.lessonTitlePlaceholder')}
+                                                placeholderTextColor={palette.text.secondary}
+                                                value={title}
+                                                onChangeText={setTitle}
+                                            />
+                                            {stepErrors.title && <Text style={styles.fieldError}>{stepErrors.title}</Text>}
+                                        </View>
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.description')}</Text>
+                                            <TextInput
+                                                style={[styles.input, styles.textArea, { borderColor: stepErrors.description ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                                placeholder={t('lessons.descriptionPlaceholder')}
+                                                placeholderTextColor={palette.text.secondary}
+                                                value={description}
+                                                onChangeText={setDescription}
+                                                multiline
+                                                numberOfLines={6}
+                                                textAlignVertical="top"
+                                            />
+                                            {stepErrors.description && <Text style={styles.fieldError}>{stepErrors.description}</Text>}
+                                        </View>
+                                    </View>
+                                </Card>
+                            </View>
+                            <View style={styles.section}>
+                                <Card style={styles.formCard}>
+                                    <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.pricing')} & {t('lessons.duration')}</Text>
+                                    <View style={styles.gridRow}>
+                                        <View style={[styles.inputGroup, styles.gridItem]}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.hourlyPrice')}</Text>
+                                            <View style={[styles.priceInputContainer, { borderColor: stepErrors.price ? '#e53935' : palette.border, backgroundColor: palette.card }]}>
+                                                <Text style={[styles.currencySymbol, { color: palette.text.secondary }]}>{currencySymbol}</Text>
+                                                <TextInput
+                                                    style={[styles.input, styles.priceInput, { color: palette.text.primary }]}
+                                                    placeholder="150"
+                                                    placeholderTextColor={palette.text.secondary}
+                                                    value={price}
+                                                    onChangeText={setPrice}
+                                                    keyboardType="numeric"
                                                 />
+                                            </View>
+                                            {stepErrors.price && <Text style={styles.fieldError}>{stepErrors.price}</Text>}
+                                        </View>
+                                        <View style={[styles.inputGroup, styles.gridItem]}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.lessonDuration')}</Text>
+                                            <TouchableOpacity
+                                                style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                                onPress={() => setShowDurationPicker(true)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[styles.selectInputText, { color: palette.text.primary }]}>
+                                                    {getDurationOptions(t).find(opt => opt.value === duration)?.label || t('lessons.durations.60min')}
+                                                </Text>
+                                                <MaterialIcons name="keyboard-arrow-down" size={24} color={palette.text.secondary} />
                                             </TouchableOpacity>
                                         </View>
-                                    )}
+                                    </View>
+                                </Card>
+                            </View>
+                        </>
+                    )}
 
-                                    {/* Custom Address Input */}
-                                    {locationType === 'custom' && (
-                                        <>
-                                            <View style={styles.inputGroup}>
-                                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('location.countryLabel')} / {t('location.cityLabel')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
-                                                <TouchableOpacity
-                                                    style={[
-                                                        styles.selectInput,
-                                                        {
-                                                            borderColor: palette.border,
-                                                            backgroundColor: palette.card,
-                                                        },
-                                                    ]}
-                                                    onPress={() => setLocationPickerVisible(true)}
-                                                >
-                                                    <Text style={[
-                                                        styles.selectInputText,
-                                                        { color: customCountry || customCity ? palette.text.primary : palette.text.secondary },
-                                                    ]}>
-                                                        {customCountry
-                                                            ? (customCity ? `${customCountry} · ${customCity}` : customCountry)
-                                                            : (t('location.selectCountry') || 'Ülke Seç...')}
-                                                    </Text>
-                                                    <MaterialIcons name="chevron-right" size={24} color={palette.text.secondary} />
-                                                </TouchableOpacity>
-                                            </View>
-                                            <View style={styles.inputGroup}>
-                                                <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
-                                                <TextInput
-                                                    style={[styles.input, { borderColor: palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
-                                                    placeholder={t('lessons.addressPlaceholder')}
-                                                    placeholderTextColor={palette.text.secondary}
-                                                    value={customAddress}
-                                                    onChangeText={setCustomAddress}
-                                                    multiline
-                                                    numberOfLines={2}
-                                                />
-                                            </View>
-                                        </>
-                                    )}
+                    {/* ── STEP 3: Scheduling ── */}
+                    {currentStep === 3 && (
+                        <View style={styles.section}>
+                            <Card style={styles.formCard}>
+                                <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.scheduling')}</Text>
+                                <Text style={[styles.inputLabel, { color: palette.text.primary, marginTop: spacing.sm, marginHorizontal: spacing.md, marginBottom: spacing.xs }]}>{t('lessons.selectDays')}</Text>
+                                <View style={styles.daysContainer}>
+                                    {WEEK_DAYS.map(day => (
+                                        <TouchableOpacity
+                                            key={day}
+                                            style={[
+                                                styles.dayButton,
+                                                { borderColor: stepErrors.selectedDays ? '#e53935' : palette.border },
+                                                selectedDays.includes(day) && styles.dayButtonSelected
+                                            ]}
+                                            onPress={() => {
+                                                setSelectedDays(prev =>
+                                                    prev.includes(day)
+                                                        ? prev.filter(d => d !== day)
+                                                        : [...prev, day]
+                                                );
+                                            }}
+                                        >
+                                            <Text style={[styles.dayButtonText, { color: selectedDays.includes(day) ? '#ffffff' : palette.text.primary }]}>
+                                                {t(`lessons.shortDays.${day}`)}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                                {stepErrors.selectedDays && <Text style={[styles.fieldError, { marginHorizontal: spacing.md }]}>{stepErrors.selectedDays}</Text>}
+
+                                <View style={styles.gridRow}>
+                                    <View style={[styles.inputGroup, styles.gridItem, { marginTop: spacing.md }]}>
+                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectTime')}</Text>
+                                        <TouchableOpacity
+                                            style={[styles.dateTimeInput, { borderColor: stepErrors.selectedTime ? '#e53935' : palette.border, backgroundColor: palette.card }]}
+                                            onPress={() => setShowTimePicker(true)}
+                                        >
+                                            <MaterialIcons name="schedule" size={20} color={palette.text.secondary} />
+                                            <Text style={[styles.dateTimeText, { color: selectedTime ? palette.text.primary : palette.text.secondary }]}>
+                                                {selectedTime ? formatTime(selectedTime) : t('lessons.timePlaceholder')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        {stepErrors.selectedTime && <Text style={styles.fieldError}>{stepErrors.selectedTime}</Text>}
+                                    </View>
                                 </View>
                             </Card>
                         </View>
                     )}
 
-                    {/* Action Buttons */}
-                    <View style={[styles.section, { marginBottom: 0, marginTop: spacing.lg, paddingHorizontal: spacing.xl }]}>
-                        <TouchableOpacity
-                            style={[{
-                                backgroundColor: palette.card,
-                                borderWidth: 1,
-                                borderColor: palette.secondary,
-                                height: 48,
-                                borderRadius: borderRadius.xl,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexDirection: 'row'
-                            }]}
-                            onPress={() => setShowAddStudentModal(true)}
-                            activeOpacity={0.8}
-                        >
-                            <MaterialIcons name="person-add" size={20} color={palette.secondary} style={{ marginRight: spacing.sm }} />
-                            <Text style={[{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: palette.secondary }]}>
-                                {t('lessons.addStudent') || 'Öğrenci Ekle / Yönet'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    {/* ── STEP 4: Instructor, Location & Capacity ── */}
+                    {currentStep === 4 && (
+                        <>
+                            <View style={styles.section}>
+                                <Card style={styles.formCard}>
+                                    <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.instructorSelection') || 'Eğitmen Seçimi'}</Text>
+                                    <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectInstructor') || 'Bu kursu kim(ler) verecek?'}</Text>
+                                            <TouchableOpacity
+                                                style={[styles.selectInput, { borderColor: stepErrors.instructor ? '#e53935' : palette.border, backgroundColor: palette.card }]}
+                                                onPress={() => setShowInstructorPicker(true)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Text style={[styles.selectInputText, { color: selectedInstructors.length > 0 ? palette.text.primary : palette.text.secondary }]}>
+                                                    {selectedInstructors.length > 0
+                                                        ? (selectedInstructors.length > 1
+                                                            ? `${selectedInstructors[0].name} ve +${selectedInstructors.length - 1} diğer eğitmen`
+                                                            : selectedInstructors[0].name)
+                                                        : (t('lessons.selectInstructorPlaceholder') || 'Bir eğitmen seçin')}
+                                                </Text>
+                                                <MaterialIcons name="keyboard-arrow-down" size={24} color={palette.text.secondary} />
+                                            </TouchableOpacity>
+                                            {stepErrors.instructor && <Text style={styles.fieldError}>{stepErrors.instructor}</Text>}
+                                        </View>
+                                    </View>
+                                </Card>
+                            </View>
 
-                    {/* Bottom spacing for button */}
+                            {/* Location – only for instructors */}
+                            {!isSchool && (
+                                <View style={styles.section}>
+                                    <Card style={styles.formCard}>
+                                        <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.locationSelection')}</Text>
+                                        <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                                            <View style={styles.locationTypeContainer}>
+                                                <TouchableOpacity
+                                                    style={[styles.locationTypeButton, { borderColor: palette.border }, locationType === 'school' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]]}
+                                                    onPress={() => setLocationType('school')}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <MaterialIcons name="school" size={20} color={locationType === 'school' ? '#ffffff' : palette.text.secondary} />
+                                                    <Text style={[styles.locationTypeText, { color: locationType === 'school' ? '#ffffff' : palette.text.primary }]}>{t('lessons.danceSchool')}</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.locationTypeButton, { borderColor: palette.border }, locationType === 'custom' && [styles.locationTypeButtonActive, { backgroundColor: palette.secondary }]]}
+                                                    onPress={() => setLocationType('custom')}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <MaterialIcons name="location-on" size={20} color={locationType === 'custom' ? '#ffffff' : palette.text.secondary} />
+                                                    <Text style={[styles.locationTypeText, { color: locationType === 'custom' ? '#ffffff' : palette.text.primary }]}>{t('lessons.customAddress')}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            {stepErrors.location && <Text style={styles.fieldError}>{stepErrors.location}</Text>}
+
+                                            {locationType === 'school' && (
+                                                <View style={styles.inputGroup}>
+                                                    <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.selectDanceSchool')}</Text>
+                                                    <TouchableOpacity
+                                                        style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                                        onPress={() => setShowSchoolPicker(true)}
+                                                        activeOpacity={0.7}
+                                                    >
+                                                        <Text style={[styles.selectInputText, { color: selectedSchool ? palette.text.primary : palette.text.secondary }]}>
+                                                            {selectedSchool?.name || t('lessons.selectDanceSchool')}
+                                                        </Text>
+                                                        <MaterialIcons name="keyboard-arrow-down" size={24} color={palette.text.secondary} />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            )}
+                                            {locationType === 'custom' && (
+                                                <>
+                                                    <View style={styles.inputGroup}>
+                                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('location.countryLabel')} / {t('location.cityLabel')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
+                                                        <TouchableOpacity
+                                                            style={[styles.selectInput, { borderColor: palette.border, backgroundColor: palette.card }]}
+                                                            onPress={() => setLocationPickerVisible(true)}
+                                                        >
+                                                            <Text style={[styles.selectInputText, { color: customCountry || customCity ? palette.text.primary : palette.text.secondary }]}>
+                                                                {customCountry ? (customCity ? `${customCountry} · ${customCity}` : customCountry) : (t('location.selectCountry') || 'Ülke Seç...')}
+                                                            </Text>
+                                                            <MaterialIcons name="chevron-right" size={24} color={palette.text.secondary} />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                    <View style={styles.inputGroup}>
+                                                        <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.enterCustomAddress')}</Text>
+                                                        <TextInput
+                                                            style={[styles.input, { borderColor: stepErrors.address ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                                            placeholder={t('lessons.addressPlaceholder')}
+                                                            placeholderTextColor={palette.text.secondary}
+                                                            value={customAddress}
+                                                            onChangeText={setCustomAddress}
+                                                            multiline
+                                                            numberOfLines={2}
+                                                        />
+                                                        {stepErrors.address && <Text style={styles.fieldError}>{stepErrors.address}</Text>}
+                                                    </View>
+                                                </>
+                                            )}
+                                        </View>
+                                    </Card>
+                                </View>
+                            )}
+
+                            {/* Capacity */}
+                            <View style={styles.section}>
+                                <Card style={styles.formCard}>
+                                    <Text style={[styles.sectionTitle, { color: palette.text.primary }]}>{t('lessons.capacityLabel')}</Text>
+                                    <View style={[styles.formFields, { paddingTop: spacing.sm }]}>
+                                        <View style={styles.inputGroup}>
+                                            <Text style={[styles.inputLabel, { color: palette.text.primary }]}>{t('lessons.maxParticipants')}</Text>
+                                            <TextInput
+                                                style={[styles.input, { borderColor: stepErrors.maxParticipants ? '#e53935' : palette.border, backgroundColor: palette.card, color: palette.text.primary }]}
+                                                placeholder={t('lessons.capacityPlaceholder')}
+                                                placeholderTextColor={palette.text.secondary}
+                                                value={maxParticipants}
+                                                onChangeText={setMaxParticipants}
+                                                keyboardType="number-pad"
+                                            />
+                                            {stepErrors.maxParticipants && <Text style={styles.fieldError}>{stepErrors.maxParticipants}</Text>}
+                                        </View>
+                                    </View>
+                                </Card>
+                            </View>
+                        </>
+                    )}
+
                     <View style={{ height: 100 }} />
                 </ScrollView>
             </KeyboardAvoidingView>
 
             {/* Fixed Bottom Button */}
             <SafeAreaView edges={['bottom']} style={[styles.bottomButtonContainer, { backgroundColor: palette.background, borderTopColor: palette.border }]}>
-                <TouchableOpacity
-                    style={[styles.createButton, { backgroundColor: palette.secondary }]}
-                    onPress={() => handleSave(user?.role === 'draft-instructor' || user?.role === 'draft-school')}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.createButtonText}>
-                        {(user?.role === 'draft-instructor' || user?.role === 'draft-school') ? (t('lessons.saveAsDraft') || 'Taslak Olarak Kaydet') : t('lessons.save')}
-                    </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                    {currentStep > 1 && (
+                        <TouchableOpacity
+                            style={[styles.navigationButton, styles.backButton, { borderColor: palette.border }]}
+                            onPress={handlePrevStep}
+                        >
+                            <Text style={[styles.navigationButtonText, { color: palette.text.primary }]}>{t('common.back') || 'Geri'}</Text>
+                        </TouchableOpacity>
+                    )}
+                    
+                    {currentStep < 4 ? (
+                        <TouchableOpacity
+                            style={[styles.navigationButton, styles.nextButton, { backgroundColor: palette.secondary }]}
+                            onPress={handleNextStep}
+                        >
+                            <Text style={[styles.navigationButtonText, { color: '#ffffff' }]}>{t('common.next') || 'İleri'}</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            style={[styles.navigationButton, styles.saveButton, { backgroundColor: palette.primary }]}
+                            onPress={() => handleSave(user?.role === 'draft-instructor' || user?.role === 'draft-school')}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={[styles.navigationButtonText, { color: '#ffffff' }]}>
+                                {(user?.role === 'draft-instructor' || user?.role === 'draft-school') ? (t('lessons.saveAsDraft') || 'Taslak Olarak Kaydet') : t('lessons.save')}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
             </SafeAreaView>
 
             {/* Add Student Modal */}
@@ -1405,6 +1422,30 @@ const styles = StyleSheet.create({
         fontSize: typography.fontSize.lg,
         fontWeight: typography.fontWeight.bold,
         color: '#ffffff',
+    },
+    navigationButton: {
+        flex: 1,
+        height: 48,
+        borderRadius: borderRadius.xl,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backButton: {
+        borderWidth: 1,
+        backgroundColor: 'transparent',
+    },
+    nextButton: {
+    },
+    saveButton: {
+    },
+    navigationButtonText: {
+        fontSize: typography.fontSize.lg,
+        fontWeight: typography.fontWeight.bold,
+    },
+    fieldError: {
+        color: '#e53935',
+        fontSize: typography.fontSize.xs,
+        marginTop: 4,
     },
     pickerModalOverlay: {
         flex: 1,

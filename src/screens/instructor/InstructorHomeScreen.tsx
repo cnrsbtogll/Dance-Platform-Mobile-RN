@@ -567,7 +567,7 @@ export const InstructorHomeScreen: React.FC = () => {
               {activeLessons.map((lesson) => {
                 const activeLessonBookings = instructorBookings.filter((b: any) => b.lessonId === lesson.id && b.status !== 'cancelled');
                 const enrolledCount = (lesson as any)?.participantStats?.total ?? activeLessonBookings.length;
-                const maxStudents = (lesson as any).capacity || 12;
+                const maxParticipants = lesson.maxParticipants || 12;
 
                 return (
                   <TouchableOpacity
@@ -590,7 +590,7 @@ export const InstructorHomeScreen: React.FC = () => {
                     <View style={styles.activeLessonInfo}>
                       <Text style={[styles.activeLessonTitle, { color: palette.text.primary }]}>{lesson.title}</Text>
                       <Text style={[styles.activeLessonStudents, { color: palette.text.secondary }]}>
-                        {t('instructorHome.studentsCount', { count: enrolledCount, max: maxStudents })}
+                        {t('instructorHome.studentsCount', { count: enrolledCount, max: maxParticipants })}
                       </Text>
                     </View>
                     <MaterialIcons

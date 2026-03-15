@@ -19,7 +19,9 @@ export interface Lesson {
   daysOfWeek?: string[]; // Array of strings
   recurring?: boolean;
   maxParticipants?: number;
+  
   currentParticipants?: number;
+  isFull?: boolean; // Auto-set when currentParticipants >= maxParticipants
   participantStats?: {
     male: number;
     female: number;

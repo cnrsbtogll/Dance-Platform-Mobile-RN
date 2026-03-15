@@ -263,11 +263,31 @@ export const StudentHomeScreen: React.FC = () => {
 
                     {/* Participant Stats */}
                     {(lesson.participantStats) && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                        <MaterialIcons name="people" size={14} color={palette.text.secondary} />
-                        <Text style={{ fontSize: 12, color: palette.text.secondary, marginLeft: 4 }}>
-                          {lesson.participantStats.female} {t('lessons.female')}, {lesson.participantStats.male} {t('lessons.male')}
-                        </Text>
+                      <View style={{ marginTop: 8, gap: 4 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <MaterialIcons name="people" size={14} color={palette.text.secondary} />
+                          <Text style={{ fontSize: 12, color: palette.text.secondary, marginLeft: 4 }}>
+                            {lesson.participantStats.female} {t('lessons.female')}, {lesson.participantStats.male} {t('lessons.male')}
+                          </Text>
+                        </View>
+                        {/* Capacity Bar */}
+                        {lesson.maxParticipants ? (
+                          <View style={{ marginTop: 4 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <Text style={{ fontSize: 10, color: palette.text.secondary }}>{t('lessons.capacity') || 'Kapasite'}</Text>
+                              <Text style={{ fontSize: 10, fontWeight: 'bold', color: lesson.isFull || lesson.participantStats.total >= lesson.maxParticipants ? '#e53935' : palette.text.primary }}>
+                                {lesson.participantStats.total} / {lesson.maxParticipants}
+                              </Text>
+                            </View>
+                            <View style={{ height: 4, backgroundColor: palette.border, borderRadius: 2, overflow: 'hidden' }}>
+                              <View style={{ 
+                                height: '100%', 
+                                width: `${Math.min(100, (lesson.participantStats.total / lesson.maxParticipants) * 100)}%`, 
+                                backgroundColor: lesson.isFull || lesson.participantStats.total >= lesson.maxParticipants ? '#e53935' : palette.primary 
+                              }} />
+                            </View>
+                          </View>
+                        ) : null}
                       </View>
                     )}
                   </View>
