@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Image, Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, borderRadius, typography, spacing, shadows } from '../../utils/theme';
@@ -47,7 +46,6 @@ export const LocationSoftPromptModal: React.FC<LocationSoftPromptModalProps> = (
         setSelectedCity(cityObj.city);
         onClose();
       } else {
-        // Fallback to manual selection if geocoding fails
         onManualSelect();
       }
     } catch (error) {
@@ -59,9 +57,8 @@ export const LocationSoftPromptModal: React.FC<LocationSoftPromptModalProps> = (
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={styles.overlay}>
-        <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark" />
         <View style={styles.card}>
           <View style={styles.iconContainer}>
             <MaterialIcons name="location-pin" size={48} color={colors.student.primary} />

@@ -1,6 +1,7 @@
+import * as Location from 'expo-location';
+
 export const safeReverseGeocode = async (latitude: number, longitude: number) => {
   try {
-    const Location = require('expo-location');
     const geoCoded = await Location.reverseGeocodeAsync({ latitude, longitude });
     if (geoCoded && geoCoded.length > 0) {
       const { customCity, customCountry } = normalizeCity(geoCoded[0]);
