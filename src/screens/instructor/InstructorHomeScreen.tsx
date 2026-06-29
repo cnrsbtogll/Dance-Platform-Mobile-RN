@@ -537,6 +537,53 @@ export const InstructorHomeScreen: React.FC = () => {
                   </TouchableOpacity>
                 )}
 
+                {/* ── Eğitmenlik Başvurusundan Vazgeç ── */}
+                {isRequestActive && (
+                  <TouchableOpacity
+                    style={[styles.changeMethodStrip, {
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: '#EF444440',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      gap: 6,
+                      marginTop: 2,
+                    }]}
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      Alert.alert(
+                        t('instructor.cancelRequestTitle') || 'Başvuruyu İptal Et',
+                        t('instructor.cancelRequestDesc') || 'Eğitmenlik başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.',
+                        [
+                          { text: t('common.cancel'), style: 'cancel' },
+                          {
+                            text: t('common.confirm') || 'Evet, İptal Et',
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                await FirestoreService.cancelInstructorRequest(user!.id);
+                                await refreshProfile();
+                                // Öğrenci ana sayfasına dön — stack sıfırla
+                                (navigation as any).reset({
+                                  index: 0,
+                                  routes: [{ name: 'MainTabs' }],
+                                });
+                              } catch {
+                                Alert.alert(t('common.error'), t('common.errorDesc'));
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                  >
+                    <MaterialIcons name="close" size={12} color="#EF4444" />
+                    <Text style={[styles.changeMethodStripText, { color: '#EF4444' }]}>
+                      {t('instructor.cancelRequest') || 'Eğitmenlik başvurumu iptal et'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
               </View>
             </View>
           );

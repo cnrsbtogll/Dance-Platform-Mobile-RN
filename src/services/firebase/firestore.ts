@@ -208,21 +208,33 @@ export class FirestoreService {
     experience: string;
     bio: string;
     contactNumber: string;
-    phoneNumber?: string;     // Added for redundancy
-    idDocumentUrl: string;    // Kimlik / Ehliyet / Pasaport
-    certDocumentUrl: string;  // Eğitmen sertifikası
+    phoneNumber?: string;
+    idDocumentUrl: string;
+    certDocumentUrl: string;
     status: 'pending' | 'approved' | 'rejected';
-    schoolId?: string | null; // Okul bağlantısı (okul onay akışı için)
-    verificationMethod?: 'school' | 'document'; // Seçilen doğrulama yöntemi
-    photoURL?: string | null; // Eğitmenin profil görseli
+    schoolId?: string | null;
+    verificationMethod?: 'school' | 'document';
+    photoURL?: string | null;
     createdAt: string;
     updatedAt: string;
   }): Promise<void> {
     try {
       const colRef = collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS);
-      await addDoc(colRef, data);
+      // Upsert: mevcut başvuru varsa güncelle, yoksa oluştur
+      const q = query(colRef, where('userId', '==', data.userId), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const existing = snap.docs[0];
+        const { createdAt: _created, ...updateFields } = data; // createdAt değişmemeli
+        await updateDoc(doc(db, COLLECTIONS.INSTRUCTOR_REQUESTS, existing.id), {
+          ...updateFields,
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        await addDoc(colRef, data);
+      }
     } catch (error) {
-      console.error('Error creating instructor request:', error);
+      console.error('Error upserting instructor request:', error);
       throw error;
     }
   }
@@ -250,7 +262,7 @@ export class FirestoreService {
     }
   }
 
-  static async getInstructorRequestStatus(userId: string): Promise<{ status: string; verificationMethod: 'school' | 'document' | null; schoolId: string | null } | null> {
+  static async getInstructorRequestStatus(userId: string): Promise<{ docId: string; status: string; verificationMethod: 'school' | 'document' | null; schoolId: string | null } | null> {
     try {
       const q = query(
         collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
@@ -260,8 +272,10 @@ export class FirestoreService {
       );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        const data = querySnapshot.docs[0].data();
+        const snap = querySnapshot.docs[0];
+        const data = snap.data();
         return {
+          docId: snap.id,
           status: data.status,
           verificationMethod: data.verificationMethod ?? null,
           schoolId: data.schoolId ?? null,
