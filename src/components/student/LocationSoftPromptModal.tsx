@@ -28,7 +28,7 @@ export const LocationSoftPromptModal: React.FC<LocationSoftPromptModalProps> = (
     setLoading(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (status !== 'granted') {
         setLoading(false);
         onManualSelect();
@@ -40,7 +40,7 @@ export const LocationSoftPromptModal: React.FC<LocationSoftPromptModalProps> = (
       });
 
       const cityObj = await safeReverseGeocode(location.coords.latitude, location.coords.longitude);
-      
+
       if (cityObj && cityObj.city) {
         await updateUserLocation(cityObj.city, cityObj.country || 'Türkiye', true);
         setSelectedCity(cityObj.city);
@@ -63,15 +63,15 @@ export const LocationSoftPromptModal: React.FC<LocationSoftPromptModalProps> = (
           <View style={styles.iconContainer}>
             <MaterialIcons name="location-pin" size={48} color={colors.student.primary} />
           </View>
-          
+
           <Text style={styles.title}>{t('location.softPrompt.title', 'Sana En Yakın Dans Kurslarını Bulalım')}</Text>
           <Text style={styles.description}>
             {t('location.softPrompt.description', 'Bulunduğun şehirdeki en iyi dans okulları ve eğitmenlerle tanışmak için konumunu paylaş.')}
           </Text>
 
           <View style={styles.actionContainer}>
-            <TouchableOpacity 
-              style={[styles.primaryButton, loading && styles.buttonDisabled]} 
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
               onPress={handleGrantPermission}
               disabled={loading}
             >

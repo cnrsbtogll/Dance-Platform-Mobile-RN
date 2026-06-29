@@ -4,7 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { spacing, typography, borderRadius, getPalette } from '../../utils/theme';
+import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { FirestoreService } from '../../services/firebase/firestore';
 import { chatService, getConversationId } from '../../services/firebase/chat';
@@ -24,6 +24,9 @@ interface HeaderTitleProps {
 const HeaderTitle: React.FC<HeaderTitleProps> = ({ partner, palette, t }) => {
   if (!partner) return <Text style={[styles.headerName, { color: palette.text.primary }]}>{t('chat.user')}</Text>;
 
+  const isSchool = partner.role === 'school' || partner.role === 'draft-school';
+  const name = partner.displayName || partner.name || partner.schoolName || t('chat.user');
+
   return (
     <View style={styles.headerTitleContainer}>
       <Image
@@ -31,12 +34,32 @@ const HeaderTitle: React.FC<HeaderTitleProps> = ({ partner, palette, t }) => {
         style={styles.headerAvatar}
       />
       <View style={styles.headerTitleText}>
-        <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
-          {partner.displayName || partner.name || t('chat.user')}
-        </Text>
-        <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
-          {partner.role === 'instructor' ? t('chat.instructor') : partner.role === 'school' ? t('chat.school') : t('chat.student')}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <Text style={[styles.headerName, { color: palette.text.primary }]} numberOfLines={1}>
+            {name}
+          </Text>
+          {isSchool && (
+            <View style={{
+              backgroundColor: colors.school.primary + '18',
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              borderRadius: 4,
+            }}>
+              <Text style={{
+                fontSize: 9,
+                fontWeight: 'bold',
+                color: colors.school.primary,
+              }}>
+                {t('chat.school')?.toUpperCase() || 'OKUL'}
+              </Text>
+            </View>
+          )}
+        </View>
+        {!isSchool && (
+          <Text style={[styles.headerStatus, { color: palette.text.secondary }]} numberOfLines={1}>
+            {partner.role === 'instructor' ? t('chat.instructor') : t('chat.student')}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -84,8 +107,21 @@ export const ChatDetailScreen: React.FC = () => {
   // Fetch partner info
   useEffect(() => {
     if (partnerId) {
-      FirestoreService.getUserById(partnerId).then((fetchedUser) => {
-        if (fetchedUser) setPartner(fetchedUser as User);
+      FirestoreService.getUserById(partnerId).then(async (fetchedUser) => {
+        if (fetchedUser) {
+          const updatedUser = { ...fetchedUser } as User;
+          if (fetchedUser.role === 'school' || fetchedUser.role === 'draft-school') {
+            try {
+              const schoolProfile = await FirestoreService.getSchoolByOwnerId(partnerId);
+              if (schoolProfile && schoolProfile.name) {
+                updatedUser.schoolName = schoolProfile.name;
+              }
+            } catch (err) {
+              console.warn('Error fetching school profile in chat:', err);
+            }
+          }
+          setPartner(updatedUser);
+        }
       });
     }
   }, [partnerId]);

@@ -3,6 +3,7 @@
     "justNow": "Just now",
     "loading": "Loading...",
     "error": "Error",
+    "errorDesc": "Something went wrong. Please try again later.",
     "success": "Success",
     "unknownError": "An unexpected error occurred. Please try again.",
     "cancel": "Cancel",
@@ -131,7 +132,7 @@
     "becomeInstructor": "Become an Instructor",
     "becomeSchool": "Open a Dance School",
     "switchToInstructorMode": "Switch to Instructor Mode",
-    "switchToSchoolMode": "Switch to School Mode",
+    "switchToSchoolMode": "Switch to Dance School Mode",
     "switchToStudentMode": "Switch to Student Mode",
     "accountSettings": "Account Settings",
     "appSettings": "Application Settings",
@@ -463,9 +464,16 @@
     "pendingSchoolApproval": "Awaiting school approval",
     "pendingSchoolApprovalDesc": "Your application has been sent to {{school}}. You'll be notified when approved.",
     "changeSchool": "Change School",
+    "contactSchool": "Message School",
     "cancelRequestTitle": "Cancel Request",
     "cancelRequestDesc": "Are you sure you want to cancel your school application? Your account will revert to student mode.",
-    "cancelRequest": "Cancel It"
+    "cancelRequest": "Cancel It",
+    "verificationRequestSent": "Verification Request Sent",
+    "changeMethod": "Change",
+    "contactSchoolAndBoost": "Contact School & Speed Up",
+    "schoolChatAutoMessage": "Hello, I have submitted my instructor verification request. Could you help speed up the approval process?",
+    "schoolChatSent": "Your message has been sent to the school. You'll receive a notification about your approval soon.",
+    "alreadyAppliedDocDesc": "Your document verification request has already been received. Do you want to update your documents?"
   },
   "becomeInstructor": {
     "title": "Become an Instructor",
@@ -839,6 +847,10 @@
   "school": {
     "badge": "SCHOOL",
     "completeProfile": "Complete School Profile",
+    "completeProfileTitle": "Complete Your Profile",
+    "completeProfileDesc": "Please fill in your school information completely to use all features of the panel.",
+    "completeProfileFirst": "Please complete your school profile first.",
+    "onboardingSuccess": "School profile completed successfully!",
     "onboardingTitle": "School Information",
     "onboardingDesc": "Fill out the following information completely so students can get to know your school better.",
     "bioPlaceholder": "About Us",
@@ -854,6 +866,10 @@
     "createLesson": "Create Lesson",
     "studentPasswordReset": "Reset Password",
     "verificationRequired": "Welcome to the Team!",
+    "cancelRequestTitle": "Cancel School Application",
+    "cancelRequestDesc": "Are you sure you want to cancel your school application and return to student mode?",
+    "cancelRequest": "Cancel School Application",
+    "cancelToInstructorDesc": "Your school application will be cancelled and you will be switched to instructor mode. Do you want to continue?",
     "verificationStepDesc": "You are just a few small steps away from starting your school journey. Let's set up your profile!",
     "completeProfileButton": "Complete Your School Profile",
     "onboardingRequiredTitle": "Profile Incomplete",
@@ -940,11 +956,14 @@
   "verificationGate": {
     "title": "Verification Required",
     "subtitle": "Your account must be verified to publish courses or add new ones.",
+    "changeMethodTitle": "Change Verification Method",
+    "changeMethodSubtitle": "Select a different method to update your current request.",
     "schoolApprovalTitle": "Verify via School",
     "schoolApprovalDesc": "Select a registered school. Once they approve you, you'll be verified.",
     "documentTitle": "Verify via Documents",
     "documentDesc": "Upload your ID and certificates. Our team will review and approve.",
-    "or": "or"
+    "or": "or",
+    "active": "Active"
   },
   "schoolSelection": {
     "title": "Select a School",

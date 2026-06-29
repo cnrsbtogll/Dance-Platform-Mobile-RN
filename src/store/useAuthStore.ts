@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, Currency } from '../types';
+import { User, Currency, ActiveMode } from '../types';
 import { MockDataService } from '../services/mockDataService';
 import { authService } from '../services/backendService';
 import { AVATARS } from '../utils/avatars';

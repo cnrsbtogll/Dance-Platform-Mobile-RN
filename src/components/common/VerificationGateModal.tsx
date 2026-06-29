@@ -5,8 +5,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Modal,
-    Animated,
-    Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -18,19 +16,24 @@ interface Props {
     onClose: () => void;
     onSchoolApproval: () => void;
     onDocumentApproval: () => void;
+    /** Daha önce gönderilmiş doğrulama yöntemi (varsa) */
+    alreadyRequestedMethod?: 'school' | 'document' | null;
 }
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const VerificationGateModal: React.FC<Props> = ({
     visible,
     onClose,
     onSchoolApproval,
     onDocumentApproval,
+    alreadyRequestedMethod,
 }) => {
     const { t } = useTranslation();
     const { isDarkMode } = useThemeStore();
     const palette = getPalette('instructor', isDarkMode);
+
+    const hasSchoolRequest = alreadyRequestedMethod === 'school';
+    const hasDocumentRequest = alreadyRequestedMethod === 'document';
+    const isChangingMethod = !!alreadyRequestedMethod;
 
     return (
         <Modal
@@ -58,16 +61,27 @@ export const VerificationGateModal: React.FC<Props> = ({
                             <MaterialIcons name="verified-user" size={28} color={colors.instructor.primary} />
                         </View>
                         <Text style={[styles.title, { color: palette.text.primary }]}>
-                            {t('verificationGate.title')}
+                            {isChangingMethod
+                                ? (t('verificationGate.changeMethodTitle') || 'Doğrulama Yöntemini Değiştir')
+                                : t('verificationGate.title')}
                         </Text>
                         <Text style={[styles.subtitle, { color: palette.text.secondary }]}>
-                            {t('verificationGate.subtitle')}
+                            {isChangingMethod
+                                ? (t('verificationGate.changeMethodSubtitle') || 'Farklı bir yöntem seçerek talebinizi güncelleyebilirsiniz.')
+                                : t('verificationGate.subtitle')}
                         </Text>
                     </View>
 
                     {/* Option 1 — School Approval */}
                     <TouchableOpacity
-                        style={[styles.option, { backgroundColor: palette.background, borderColor: colors.instructor.primary }]}
+                        style={[
+                            styles.option,
+                            {
+                                backgroundColor: palette.background,
+                                borderColor: hasSchoolRequest ? colors.instructor.primary : palette.border,
+                                borderWidth: hasSchoolRequest ? 2 : 1.5,
+                            },
+                        ]}
                         onPress={onSchoolApproval}
                         activeOpacity={0.8}
                     >
@@ -75,9 +89,18 @@ export const VerificationGateModal: React.FC<Props> = ({
                             <MaterialIcons name="school" size={24} color={colors.instructor.primary} />
                         </View>
                         <View style={styles.optionContent}>
-                            <Text style={[styles.optionTitle, { color: palette.text.primary }]}>
-                                {t('verificationGate.schoolApprovalTitle')}
-                            </Text>
+                            <View style={styles.optionTitleRow}>
+                                <Text style={[styles.optionTitle, { color: palette.text.primary }]}>
+                                    {t('verificationGate.schoolApprovalTitle')}
+                                </Text>
+                                {hasSchoolRequest && (
+                                    <View style={[styles.activeBadge, { backgroundColor: colors.instructor.primary }]}>
+                                        <Text style={styles.activeBadgeText}>
+                                            {t('verificationGate.active') || 'Aktif'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                             <Text style={[styles.optionDesc, { color: palette.text.secondary }]}>
                                 {t('verificationGate.schoolApprovalDesc')}
                             </Text>
@@ -96,7 +119,14 @@ export const VerificationGateModal: React.FC<Props> = ({
 
                     {/* Option 2 — Document Upload */}
                     <TouchableOpacity
-                        style={[styles.option, { backgroundColor: palette.background, borderColor: palette.border }]}
+                        style={[
+                            styles.option,
+                            {
+                                backgroundColor: palette.background,
+                                borderColor: hasDocumentRequest ? palette.secondary : palette.border,
+                                borderWidth: hasDocumentRequest ? 2 : 1.5,
+                            },
+                        ]}
                         onPress={onDocumentApproval}
                         activeOpacity={0.8}
                     >
@@ -104,9 +134,18 @@ export const VerificationGateModal: React.FC<Props> = ({
                             <MaterialIcons name="upload-file" size={24} color={palette.secondary} />
                         </View>
                         <View style={styles.optionContent}>
-                            <Text style={[styles.optionTitle, { color: palette.text.primary }]}>
-                                {t('verificationGate.documentTitle')}
-                            </Text>
+                            <View style={styles.optionTitleRow}>
+                                <Text style={[styles.optionTitle, { color: palette.text.primary }]}>
+                                    {t('verificationGate.documentTitle')}
+                                </Text>
+                                {hasDocumentRequest && (
+                                    <View style={[styles.activeBadge, { backgroundColor: palette.secondary }]}>
+                                        <Text style={styles.activeBadgeText}>
+                                            {t('verificationGate.active') || 'Aktif'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                             <Text style={[styles.optionDesc, { color: palette.text.secondary }]}>
                                 {t('verificationGate.documentDesc')}
                             </Text>
@@ -174,7 +213,6 @@ const styles = StyleSheet.create({
         gap: spacing.md,
         padding: spacing.md,
         borderRadius: borderRadius.xl,
-        borderWidth: 1.5,
         marginBottom: spacing.md,
     },
     optionIcon: {
@@ -188,6 +226,12 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: 3,
     },
+    optionTitleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+        flexWrap: 'wrap',
+    },
     optionTitle: {
         fontSize: typography.fontSize.base,
         fontWeight: typography.fontWeight.bold,
@@ -195,6 +239,16 @@ const styles = StyleSheet.create({
     optionDesc: {
         fontSize: typography.fontSize.xs,
         lineHeight: 18,
+    },
+    activeBadge: {
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: borderRadius.full,
+    },
+    activeBadgeText: {
+        fontSize: 10,
+        fontWeight: typography.fontWeight.bold,
+        color: '#ffffff',
     },
     dividerRow: {
         flexDirection: 'row',
