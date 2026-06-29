@@ -1047,7 +1047,6 @@ export class FirestoreService {
         collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
         where('userId', '==', userId),
         where('status', '==', 'pending'),
-        orderBy('createdAt', 'desc'),
         limit(1)
       );
       const snap = await getDocs(q);
@@ -1065,6 +1064,35 @@ export class FirestoreService {
       } as any);
     } catch (error) {
       console.error('[FirestoreService] Error cancelling instructor request:', error);
+      throw error;
+    }
+  }
+
+  /** Okul kendi başvurusunu iptal eder: isteği siler ve rolü student'a çevirir. */
+  static async cancelSchoolRequest(userId: string): Promise<void> {
+    try {
+      // En son pending isteği bul
+      const q = query(
+        collection(db, COLLECTIONS.SCHOOL_REQUESTS),
+        where('userId', '==', userId),
+        where('status', '==', 'pending'),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        await deleteDoc(doc(db, COLLECTIONS.SCHOOL_REQUESTS, snap.docs[0].id));
+      }
+
+      // Kullanıcıyı student'a döndür
+      await FirestoreService.updateUser(userId, {
+        role: 'student',
+        verificationStatus: 'idle',
+        schoolId: null,
+        verificationMethod: null,
+        updatedAt: new Date().toISOString(),
+      } as any);
+    } catch (error) {
+      console.error('[FirestoreService] Error cancelling school request:', error);
       throw error;
     }
   }
