@@ -1,7 +1,15 @@
 import { DanceLevel } from '../utils/constants';
 
 export type UserRole = 'student' | 'instructor' | 'admin' | 'draft-instructor' | 'school' | 'draft-school';
+export type ActiveMode = 'student' | 'instructor' | 'school';
+export type RoleStatus = 'none' | 'pending' | 'approved';
 export type Currency = 'USD' | 'EUR' | 'TRY';
+
+export interface UserRoles {
+  instructor: RoleStatus;
+  school: RoleStatus;
+}
+
 
 export interface User {
   id: string;
@@ -11,6 +19,8 @@ export interface User {
   lastName?: string | null;
   email: string;
   role: UserRole;
+  activeMode?: ActiveMode;   // Şu anda aktif panel (Firestore'da da saklanır)
+  roles?: UserRoles;         // Bağımsız rol durumları: { instructor, school }
   avatar?: string | null; // Mapped from photoURL
   photoURL?: string | null; // Firebase field
   bio?: string;

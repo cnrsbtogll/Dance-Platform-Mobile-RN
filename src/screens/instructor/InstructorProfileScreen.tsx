@@ -301,38 +301,152 @@ export const InstructorProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* Switch to Student Mode Button - Only show for instructors and draft-schools, hide for approved schools */}
-        {(!isSchool || user?.role === 'draft-school') && (
-          <TouchableOpacity
-            style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
-            activeOpacity={0.8}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={async () => {
-              if (user?.role === 'draft-school') {
-                // Confirm cancel draft school onboarding
-                Alert.alert(
-                  t('school.cancelRequestTitle') || 'Okul Başvurusunu İptal Et',
-                  t('school.cancelRequestDesc') || 'Okul başvurunuzu iptal etmek ve öğrenci moduna geri dönmek istediğinizden emin misiniz?',
-                  [
-                    { text: t('common.cancel'), style: 'cancel' },
-                    {
-                      text: t('common.confirm') || 'Evet, İptal Et',
-                      style: 'destructive',
-                      onPress: async () => {
-                        try {
-                          await FirestoreService.cancelSchoolRequest(user.id);
-                          // Refresh profile to update role to student
-                          await refreshProfile();
-                        } catch (err) {
-                          Alert.alert(t('common.error'), t('common.errorDesc'));
-                        }
+        {/* Switch Mode Buttons for school/draft-school users */}
+        {(user?.role === 'school' || user?.role === 'draft-school') && (() => {
+          const tabRouteNames = navigation.getParent()?.getState()?.routeNames || [];
+          const isInsideSchoolPanel = !tabRouteNames.includes('Home');
+
+          if (isInsideSchoolPanel) {
+            // Inside School Panel: show switch to Student and switch to Instructor
+            return (
+              <>
+                <TouchableOpacity
+                  style={[styles.switchModeButton, { backgroundColor: colors.instructor.primary }]}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  onPress={() => {
+                    if (user?.role === 'draft-school') {
+                      Alert.alert(
+                        t('profile.switchToInstructorMode'),
+                        t('school.cancelToInstructorDesc') || 'Okul başvurunuz iptal edilecek ve eğitmen moduna geçilecektir. Devam etmek istiyor musunuz?',
+                        [
+                          { text: t('common.cancel'), style: 'cancel' },
+                          {
+                            text: t('common.confirm'),
+                            onPress: async () => {
+                              try {
+                                await FirestoreService.cancelSchoolRequest(user.id);
+                                await refreshProfile();
+                              } catch (err) {
+                                Alert.alert(t('common.error'), t('common.errorDesc'));
+                              }
+                            }
+                          }
+                        ]
+                      );
+                    } else {
+                      const rootNavigation = navigation.getParent()?.getParent();
+                      if (rootNavigation) {
+                        rootNavigation.dispatch(
+                          CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'Instructor' }],
+                          })
+                        );
                       }
                     }
-                  ]
-                );
-              } else {
-                // Navigate to Student mode using CommonActions
-                // Get root navigator to navigate between Student and Instructor
+                  }}
+                >
+                  <Text style={styles.switchModeButtonText}>{t('profile.switchToInstructorMode')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  onPress={() => {
+                    if (user?.role === 'draft-school') {
+                      Alert.alert(
+                        t('school.cancelRequestTitle') || 'Okul Başvurusunu İptal Et',
+                        t('school.cancelRequestDesc') || 'Okul başvurunuzu iptal etmek ve öğrenci moduna geri dönmek istediğinizden emin misiniz?',
+                        [
+                          { text: t('common.cancel'), style: 'cancel' },
+                          {
+                            text: t('common.confirm'),
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                // Will auto-detect and revert to student or draft-instructor
+                                await FirestoreService.cancelSchoolRequest(user.id);
+                                await refreshProfile();
+                              } catch (err) {
+                                Alert.alert(t('common.error'), t('common.errorDesc'));
+                              }
+                            }
+                          }
+                        ]
+                      );
+                    } else {
+                      const rootNavigation = navigation.getParent()?.getParent();
+                      if (rootNavigation) {
+                        rootNavigation.dispatch(
+                          CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'Student' }],
+                          })
+                        );
+                      }
+                    }
+                  }}
+                >
+                  <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
+                </TouchableOpacity>
+              </>
+            );
+          } else {
+            // Inside Instructor Panel: show switch to Student and switch to School
+            return (
+              <>
+                <TouchableOpacity
+                  style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  onPress={() => {
+                    const rootNavigation = navigation.getParent()?.getParent();
+                    if (rootNavigation) {
+                      rootNavigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'School' }],
+                        })
+                      );
+                    }
+                  }}
+                >
+                  <Text style={styles.switchModeButtonText}>{t('profile.switchToSchoolMode')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  onPress={() => {
+                    const rootNavigation = navigation.getParent()?.getParent();
+                    if (rootNavigation) {
+                      rootNavigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'Student' }],
+                        })
+                      );
+                    }
+                  }}
+                >
+                  <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
+                </TouchableOpacity>
+              </>
+            );
+          }
+        })()}
+
+        {/* Switch Mode Buttons for instructor/draft-instructor users */}
+        {(user?.role === 'instructor' || user?.role === 'draft-instructor') && (
+          <>
+            <TouchableOpacity
+              style={[styles.switchModeButton, { backgroundColor: colors.student.primary }]}
+              activeOpacity={0.8}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => {
                 const rootNavigation = navigation.getParent()?.getParent();
                 if (rootNavigation) {
                   rootNavigation.dispatch(
@@ -342,15 +456,22 @@ export const InstructorProfileScreen: React.FC = () => {
                     })
                   );
                 }
-              }
-            }}
-          >
-            <Text style={styles.switchModeButtonText}>
-              {user?.role === 'draft-school'
-                ? (t('school.cancelRequest') || 'Okul Başvurusunu İptal Et')
-                : t('profile.switchToStudentMode')}
-            </Text>
-          </TouchableOpacity>
+              }}
+            >
+              <Text style={styles.switchModeButtonText}>{t('profile.switchToStudentMode')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
+              activeOpacity={0.8}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => {
+                (navigation as any).navigate('BecomeSchool');
+              }}
+            >
+              <Text style={styles.switchModeButtonText}>{t('profile.becomeSchool') || 'Dans Okulu Aç'}</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         {/* Account Settings - Only show when authenticated */}

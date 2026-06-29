@@ -240,7 +240,12 @@ export const SchoolNavigator: React.FC = () => {
                         name="Chat"
                         component={InstructorChatScreen}
                         options={{
-                            headerShown: false,
+                            headerShown: true,
+                            headerTitle: t('chat.title') || 'Sohbetler',
+                            headerBackTitle: '',
+                            headerStyle: { backgroundColor: palette.background },
+                            headerTintColor: palette.text.primary,
+                            headerTitleStyle: { color: palette.text.primary },
                             presentation: 'card',
                         }}
                     />

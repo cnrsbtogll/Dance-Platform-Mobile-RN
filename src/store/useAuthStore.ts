@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, Currency } from '../types';
+import { User, Currency, ActiveMode } from '../types';
 import { MockDataService } from '../services/mockDataService';
 import { authService } from '../services/backendService';
 import { AVATARS } from '../utils/avatars';
@@ -19,6 +19,7 @@ interface AuthState {
   initialize: (pushToken?: string | null) => void;
   updatePushToken: (token: string) => Promise<void>;
   updateUserLocation: (city: string, country: string, isAutoDetected?: boolean) => Promise<void>;
+  switchMode: (mode: ActiveMode) => Promise<void>;
 }
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
