@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { Alert } from 'react-native';
 import { getFirebaseErrorKey } from '../../utils/firebaseErrorMessages';
 
 export const LoginScreen: React.FC = () => {
+  const scrollViewRef = useRef<ScrollView>(null);
   const navigation = useNavigation();
   const { t } = useTranslation();
   const { isDarkMode } = useThemeStore();
@@ -25,6 +26,12 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, Platform.OS === 'ios' ? 150 : 100);
+  };
 
   // Update mode when params change
   useEffect(() => {
@@ -153,12 +160,17 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: palette.background }]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <View style={styles.content}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={[styles.container, { backgroundColor: palette.background }]}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
         {/* Illustration */}
         <View style={styles.illustrationContainer}>
           <Image
@@ -224,6 +236,7 @@ export const LoginScreen: React.FC = () => {
                   value={firstName}
                   onChangeText={setFirstName}
                   autoCapitalize="words"
+                  onFocus={scrollToBottom}
                 />
               </View>
               <View style={styles.inputGroup}>
@@ -234,6 +247,7 @@ export const LoginScreen: React.FC = () => {
                   value={lastName}
                   onChangeText={setLastName}
                   autoCapitalize="words"
+                  onFocus={scrollToBottom}
                 />
               </View>
             </>
@@ -247,6 +261,7 @@ export const LoginScreen: React.FC = () => {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              onFocus={scrollToBottom}
             />
           </View>
           <View style={styles.inputGroup}>
@@ -257,6 +272,7 @@ export const LoginScreen: React.FC = () => {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              onFocus={scrollToBottom}
             />
           </View>
           {isSignUp && (
@@ -268,6 +284,7 @@ export const LoginScreen: React.FC = () => {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
+                onFocus={scrollToBottom}
               />
             </View>
           )}
@@ -332,7 +349,8 @@ export const LoginScreen: React.FC = () => {
         </View>
       </View>
     </ScrollView>
-  );
+  </KeyboardAvoidingView>
+);
 };
 
 const styles = StyleSheet.create({
@@ -344,7 +362,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   content: {
-    flex: 1,
+    width: '100%',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     alignItems: 'center',
