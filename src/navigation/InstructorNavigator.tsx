@@ -38,6 +38,7 @@ import { StudentPasswordResetScreen } from '../screens/shared/StudentPasswordRes
 import { SchoolSelectionScreen } from '../screens/instructor/SchoolSelectionScreen';
 import { InstructorStudentsScreen } from '../screens/instructor/InstructorStudentsScreen';
 import { InstructorStudentDetailScreen } from '../screens/instructor/InstructorStudentDetailScreen';
+import { BecomeSchoolScreen } from '../screens/shared/BecomeSchoolScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -620,6 +621,18 @@ export const InstructorNavigator: React.FC = () => {
           headerBackTitle: '',
           headerStyle: { backgroundColor: 'transparent' },
           presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="BecomeSchool"
+        component={BecomeSchoolScreen}
+        options={{
+          headerShown: true,
+          headerTitle: t('becomeSchool.title') || 'Dans Okulu Aç',
+          headerBackTitle: '',
+          headerStyle: { backgroundColor: palette.background },
+          headerTintColor: palette.text.primary,
+          headerTitleStyle: { color: palette.text.primary },
         }}
       />
     </Stack.Navigator>

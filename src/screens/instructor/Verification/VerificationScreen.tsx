@@ -83,13 +83,26 @@ export const VerificationScreen: React.FC = () => {
                 idDocumentUrl: idDocument!,
                 certDocumentUrl: certDocument!,
                 status: 'pending',
-                schoolId: (user as any).schoolId || null,   // okul bağlantısı varsa sakla
+                schoolId: null,   // Switching to document verification clears schoolId
+                verificationMethod: 'document',
                 createdAt: now,
                 updatedAt: now,
             });
 
-            await FirestoreService.updateUser(user.id, { onboardingCompleted: true });
-            setUser({ ...user, onboardingCompleted: true });
+            await FirestoreService.updateUser(user.id, { 
+                onboardingCompleted: true,
+                verificationStatus: 'pending',
+                verificationMethod: 'document',
+                schoolId: null,
+            } as any);
+
+            setUser({ 
+                ...user, 
+                onboardingCompleted: true,
+                verificationStatus: 'pending',
+                verificationMethod: 'document',
+                schoolId: null,
+            } as any);
 
             Alert.alert(
                 'Başvurunuz Alındı 🎉',

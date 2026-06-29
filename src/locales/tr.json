@@ -3,6 +3,7 @@
     "justNow": "Şimdi",
     "loading": "Yükleniyor...",
     "error": "Hata",
+    "errorDesc": "Bir şeyler ters gitti. Lütfen daha sonra tekrar deneyin.",
     "success": "Başarılı",
     "unknownError": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.",
     "cancel": "İptal",
@@ -131,7 +132,7 @@
     "becomeInstructor": "Eğitmen Ol",
     "becomeSchool": "Dans Okulu Aç",
     "switchToInstructorMode": "Eğitmen Moduna Geç",
-    "switchToSchoolMode": "Okul Moduna Geç",
+    "switchToSchoolMode": "Dans Okulu Moduna Geç",
     "switchToStudentMode": "Öğrenci Moduna Geç",
     "accountSettings": "Hesap Ayarları",
     "appSettings": "Uygulama Ayarları",
@@ -467,9 +468,16 @@
     "pendingSchoolApproval": "Okul onayı bekleniyor",
     "pendingSchoolApprovalDesc": "Başvurunuz {{school}} okuluna iletildi. Onay geldiğinde bildirim alacaksınız.",
     "changeSchool": "Okul Değiştir",
+    "contactSchool": "Okula Mesaj Gönder",
     "cancelRequestTitle": "Başvuruyu İptal Et",
-    "cancelRequestDesc": "Okul başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.",
-    "cancelRequest": "İptal Et"
+    "cancelRequestDesc": "Eğitmenlik başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.",
+    "cancelRequest": "Eğitmenlik başvurumu iptal et",
+    "verificationRequestSent": "Doğrulama Talebi Gönderildi",
+    "changeMethod": "Yöntemi değiştir",
+    "contactSchoolAndBoost": "Okul ile İletişime Geç & Hızlandır",
+    "schoolChatAutoMessage": "Merhaba, eğitmenlik doğrulama talebimi göndermiş bulunmaktayım. Onay sürecini hızlandırmanıza yardımcı olabilir misiniz?",
+    "schoolChatSent": "Mesajınız okula iletildi. Onay süreciniz hakkında yakında bildirim alacaksınız.",
+    "alreadyAppliedDocDesc": "Belge doğrulama talebiniz zaten alındı. Belgelerinizi güncellemek istiyor musunuz?"
   },
   "becomeInstructor": {
     "title": "Eğitmen Ol",
@@ -862,6 +870,10 @@
   "school": {
     "badge": "OKUL",
     "completeProfile": "Okul Profilini Tamamla",
+    "completeProfileTitle": "Profilinizi Tamamlayın",
+    "completeProfileDesc": "Panelin tüm özelliklerini kullanabilmek için lütfen okul bilgilerinizi eksiksiz doldurun.",
+    "completeProfileFirst": "Lütfen önce okul profilinizi tamamlayın.",
+    "onboardingSuccess": "Okul profiliniz başarıyla tamamlandı!",
     "onboardingTitle": "Okul Bilgileri",
     "onboardingDesc": "Öğrencilerin okulunuzu daha iyi tanıması için aşağıdaki bilgileri eksiksiz doldurun.",
     "bioPlaceholder": "Hakkımızda",
@@ -877,6 +889,10 @@
     "createLesson": "Kurs Oluştur",
     "studentPasswordReset": "Şifre Sıfırla",
     "verificationRequired": "Aramıza Hoş Geldiniz!",
+    "cancelRequestTitle": "Okul Başvurusunu İptal Et",
+    "cancelRequestDesc": "Okul başvurunuzu iptal etmek ve öğrenci moduna geri dönmek istediğinizden emin misiniz?",
+    "cancelRequest": "Okul Başvurusunu İptal Et",
+    "cancelToInstructorDesc": "Okul başvurunuz iptal edilecek ve eğitmen moduna geçilecektir. Devam etmek istiyor musunuz?",
     "verificationStepDesc": "Okul olarak kurs vermeye başlamanız için sadece birkaç küçük adım kaldı. Hadi profilinizi hazırlayalım!",
     "completeProfileButton": "Okul Profilinizi Tamamlayın",
     "onboardingRequiredTitle": "Profil Tamamlanmadı",
@@ -943,11 +959,14 @@
   "verificationGate": {
     "title": "Doğrulama Gerekiyor",
     "subtitle": "Kursunuzu yayına almak veya yeni kurs ekleyebilmek için hesabınızın doğrulanması gerekmektedir.",
+    "changeMethodTitle": "Doğrulama Yöntemini Değiştir",
+    "changeMethodSubtitle": "Farklı bir yöntem seçerek mevcut talebinizi güncelleyebilirsiniz.",
     "schoolApprovalTitle": "Okul Onayı ile Doğrula",
     "schoolApprovalDesc": "Sistemimizde kayıtlı bir okul seçin. Okul sizi onayladığında verified olursunuz.",
     "documentTitle": "Belge ile Doğrula",
     "documentDesc": "Kimlik ve sertifika belgelerinizi yükleyin, ekibimiz inceleyerek onaylayacak.",
-    "or": "veya"
+    "or": "veya",
+    "active": "Aktif"
   },
   "schoolSelection": {
     "title": "Okul Seç",

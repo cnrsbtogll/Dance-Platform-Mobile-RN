@@ -239,29 +239,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Switch to Instructor Mode Button - if user is instructor or draft-instructor */}
-        {isAuthenticated && (user?.role === 'instructor' || user?.role === 'draft-instructor') && (
-          <TouchableOpacity
-            style={styles.switchModeButton}
-            activeOpacity={0.8}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={handleSwitchToInstructorMode}
-          >
-            <Text style={styles.switchModeButtonText}>{t('profile.switchToInstructorMode')}</Text>
-          </TouchableOpacity>
-        )}
 
-        {/* Switch to School Mode Button - if user is school or draft-school */}
-        {isAuthenticated && (user?.role === 'school' || user?.role === 'draft-school') && (
-          <TouchableOpacity
-            style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
-            activeOpacity={0.8}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={handleSwitchToSchoolMode}
-          >
-            <Text style={styles.switchModeButtonText}>{t('profile.switchToSchoolMode') || 'Okul Moduna Geç'}</Text>
-          </TouchableOpacity>
-        )}
 
         {/* Login / Sign Up Button - if user is NOT logged in */}
         {!isAuthenticated && (
@@ -277,31 +255,63 @@ export const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* Become Instructor Button - if user is student or not logged in */}
-        {(!isAuthenticated || user?.role === 'student') && (
+        {/* Become Instructor Button - if user is student, school/draft-school, instructor/draft-instructor, or not logged in */}
+        {(!isAuthenticated || ['student', 'school', 'draft-school', 'instructor', 'draft-instructor'].includes(user?.role || '')) && (
           <TouchableOpacity
             style={styles.switchModeButton}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => {
-              (navigation as any).getParent()?.navigate('BecomeInstructor');
+              if (user?.role === 'instructor' || user?.role === 'draft-instructor') {
+                const rootNavigation = navigation.getParent()?.getParent();
+                if (rootNavigation) {
+                  rootNavigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{ name: 'Instructor' }],
+                    })
+                  );
+                }
+              } else {
+                (navigation as any).getParent()?.navigate('BecomeInstructor');
+              }
             }}
           >
-            <Text style={styles.switchModeButtonText}>{t('profile.becomeInstructor')}</Text>
+            <Text style={styles.switchModeButtonText}>
+              {user?.role === 'instructor' || user?.role === 'draft-instructor'
+                ? t('profile.switchToInstructorMode')
+                : t('profile.becomeInstructor')}
+            </Text>
           </TouchableOpacity>
         )}
 
-        {/* Become School Button - if user is student or not logged in */}
-        {(!isAuthenticated || user?.role === 'student') && (
+        {/* Become School Button - if user is student, instructor/draft-instructor, school/draft-school, or not logged in */}
+        {(!isAuthenticated || ['student', 'instructor', 'draft-instructor', 'school', 'draft-school'].includes(user?.role || '')) && (
           <TouchableOpacity
             style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => {
-              (navigation as any).getParent()?.navigate('BecomeSchool');
+              if (user?.role === 'school' || user?.role === 'draft-school') {
+                const rootNavigation = navigation.getParent()?.getParent();
+                if (rootNavigation) {
+                  rootNavigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{ name: 'School' }],
+                    })
+                  );
+                }
+              } else {
+                (navigation as any).getParent()?.navigate('BecomeSchool');
+              }
             }}
           >
-            <Text style={styles.switchModeButtonText}>{t('profile.becomeSchool') || 'Dans Okulu Aç'}</Text>
+            <Text style={styles.switchModeButtonText}>
+              {user?.role === 'school' || user?.role === 'draft-school'
+                ? t('profile.switchToSchoolMode')
+                : (t('profile.becomeSchool') || 'Dans Okulu Aç')}
+            </Text>
           </TouchableOpacity>
         )}
 

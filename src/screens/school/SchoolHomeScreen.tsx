@@ -261,6 +261,43 @@ export const SchoolHomeScreen: React.FC = () => {
                                     </Text>
                                 </View>
                             </TouchableOpacity>
+
+                            {user?.role === 'draft-school' && (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.onboardingButton,
+                                        { backgroundColor: '#EF4444', marginTop: spacing.sm }
+                                    ]}
+                                    onPress={() => {
+                                        Alert.alert(
+                                            t('school.cancelRequestTitle') || 'Okul Başvurusunu İptal Et',
+                                            t('school.cancelRequestDesc') || 'Okul başvurunuzu iptal etmek ve öğrenci moduna geri dönmek istediğinizden emin misiniz?',
+                                            [
+                                                { text: t('common.cancel'), style: 'cancel' },
+                                                {
+                                                    text: t('common.confirm') || 'Evet, İptal Et',
+                                                    style: 'destructive',
+                                                    onPress: async () => {
+                                                        try {
+                                                            await FirestoreService.cancelSchoolRequest(user.id);
+                                                            await refreshProfile();
+                                                        } catch (err) {
+                                                            Alert.alert(t('common.error'), t('common.errorDesc'));
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        );
+                                    }}
+                                >
+                                    <View style={styles.buttonContent}>
+                                        <MaterialIcons name="cancel" size={18} color="#ffffff" />
+                                        <Text style={styles.verificationButtonText}>
+                                            {t('school.cancelRequest') || 'Okul Başvurusunu İptal Et'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
                 )}

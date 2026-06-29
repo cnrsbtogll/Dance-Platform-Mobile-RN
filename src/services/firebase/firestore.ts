@@ -15,7 +15,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db } from './config';
-import { User, Lesson, Instructor, Booking, Review, Message, Notification, DanceSchool } from '../../types';
+import { User, Lesson, Instructor, Booking, Review, Message, Notification, DanceSchool, ActiveMode, UserRoles } from '../../types';
 
 // Collection names
 const COLLECTIONS = {
@@ -105,13 +105,21 @@ export class FirestoreService {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
+        const legacyRole = data.role || 'student';
+
+        // Lazy migration: derive activeMode and roles from legacy role if not set
+        const activeMode: ActiveMode = data.activeMode ?? FirestoreService.deriveModeFromRole(legacyRole);
+        const roles: UserRoles = data.roles ?? FirestoreService.deriveRolesFromRole(legacyRole);
+
         return {
           ...data,
           id: docSnap.id,
           name: data.displayName || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : ''),
           displayName: data.displayName || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : ''),
           email: data.email || '',
-          role: data.role || 'student',
+          role: legacyRole,
+          activeMode,
+          roles,
           avatar: data.photoURL || data.avatar || null,
           photoURL: data.photoURL || null,
           phoneNumber: data.phoneNumber || null,
@@ -133,6 +141,37 @@ export class FirestoreService {
     } catch (error) {
       console.error('Error getting user:', error);
       return null;
+    }
+  }
+
+  /** Eski tek-rol alanından activeMode türetir (lazy migration). */
+  static deriveModeFromRole(role: string): ActiveMode {
+    if (role === 'instructor' || role === 'draft-instructor') return 'instructor';
+    if (role === 'school' || role === 'draft-school') return 'school';
+    return 'student';
+  }
+
+  /** Eski tek-rol alanından UserRoles objesi türetir (lazy migration). */
+  static deriveRolesFromRole(role: string): UserRoles {
+    return {
+      instructor: (role === 'instructor') ? 'approved' : (role === 'draft-instructor') ? 'pending' : 'none',
+      school: (role === 'school') ? 'approved' : (role === 'draft-school') ? 'pending' : 'none',
+    };
+  }
+
+  /**
+   * Aktif modu değiştirir. Rol durumları (instructor/school status) DEĞİŞMEZ.
+   * Sadece hangi panelde olduğunu günceller.
+   */
+  static async switchActiveMode(userId: string, mode: ActiveMode): Promise<void> {
+    try {
+      await FirestoreService.updateUser(userId, {
+        activeMode: mode,
+        updatedAt: new Date().toISOString(),
+      } as any);
+    } catch (error) {
+      console.error('[FirestoreService] Error switching active mode:', error);
+      throw error;
     }
   }
 
@@ -208,21 +247,33 @@ export class FirestoreService {
     experience: string;
     bio: string;
     contactNumber: string;
-    phoneNumber?: string;     // Added for redundancy
-    idDocumentUrl: string;    // Kimlik / Ehliyet / Pasaport
-    certDocumentUrl: string;  // Eğitmen sertifikası
+    phoneNumber?: string;
+    idDocumentUrl: string;
+    certDocumentUrl: string;
     status: 'pending' | 'approved' | 'rejected';
-    schoolId?: string | null; // Okul bağlantısı (okul onay akışı için)
-    verificationMethod?: 'school' | 'document'; // Seçilen doğrulama yöntemi
-    photoURL?: string | null; // Eğitmenin profil görseli
+    schoolId?: string | null;
+    verificationMethod?: 'school' | 'document';
+    photoURL?: string | null;
     createdAt: string;
     updatedAt: string;
   }): Promise<void> {
     try {
       const colRef = collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS);
-      await addDoc(colRef, data);
+      // Upsert: mevcut başvuru varsa güncelle, yoksa oluştur
+      const q = query(colRef, where('userId', '==', data.userId), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const existing = snap.docs[0];
+        const { createdAt: _created, ...updateFields } = data; // createdAt değişmemeli
+        await updateDoc(doc(db, COLLECTIONS.INSTRUCTOR_REQUESTS, existing.id), {
+          ...updateFields,
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        await addDoc(colRef, data);
+      }
     } catch (error) {
-      console.error('Error creating instructor request:', error);
+      console.error('Error upserting instructor request:', error);
       throw error;
     }
   }
@@ -250,7 +301,7 @@ export class FirestoreService {
     }
   }
 
-  static async getInstructorRequestStatus(userId: string): Promise<string | null> {
+  static async getInstructorRequestStatus(userId: string): Promise<{ docId: string; status: string; verificationMethod: 'school' | 'document' | null; schoolId: string | null } | null> {
     try {
       const q = query(
         collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
@@ -260,7 +311,14 @@ export class FirestoreService {
       );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data().status;
+        const snap = querySnapshot.docs[0];
+        const data = snap.data();
+        return {
+          docId: snap.id,
+          status: data.status,
+          verificationMethod: data.verificationMethod ?? null,
+          schoolId: data.schoolId ?? null,
+        };
       }
       return null;
     } catch (error) {
@@ -618,7 +676,47 @@ export class FirestoreService {
       console.error('Error getting dance school:', error);
       return null;
     }
+  }
 
+  static async getSchoolOwnerUserId(schoolId: string): Promise<string> {
+    try {
+      const docRef = doc(db, COLLECTIONS.DANCE_SCHOOLS, schoolId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return data.userId || data.ownerId || schoolId;
+      }
+      return schoolId;
+    } catch (error) {
+      console.error('Error getting school owner user ID:', error);
+      return schoolId;
+    }
+  }
+
+  static async getSchoolByOwnerId(ownerId: string): Promise<DanceSchool | null> {
+    try {
+      // 1. Önce document ID'si ownerId ile eşleşen okulu ara (en yaygın durum)
+      const directSchool = await FirestoreService.getDanceSchoolById(ownerId);
+      if (directSchool) return directSchool;
+
+      // 2. Bulunamazsa userId veya ownerId alanı ownerId olan okulu sorgula
+      const q1 = query(collection(db, COLLECTIONS.DANCE_SCHOOLS), where('userId', '==', ownerId), limit(1));
+      const snap1 = await getDocs(q1);
+      if (!snap1.empty) {
+        return { id: snap1.docs[0].id, ...snap1.docs[0].data() } as any;
+      }
+
+      const q2 = query(collection(db, COLLECTIONS.DANCE_SCHOOLS), where('ownerId', '==', ownerId), limit(1));
+      const snap2 = await getDocs(q2);
+      if (!snap2.empty) {
+        return { id: snap2.docs[0].id, ...snap2.docs[0].data() } as any;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error getting school by owner ID:', error);
+      return null;
+    }
   }
 
   // Bookings
@@ -960,16 +1058,21 @@ export class FirestoreService {
         updatedAt: new Date().toISOString(),
       });
 
-      // Eğer onaylandıysa kullanıcının rolünü 'instructor' yap
+      // Eğer onaylandıysa kullanıcının eğitmen rolünü güncelle
       if (status === 'approved') {
         await FirestoreService.updateUser(userId, {
           role: 'instructor',
+          activeMode: 'instructor',
+          roles: { instructor: 'approved', school: 'none' } as UserRoles,
           verificationStatus: 'verified',
           updatedAt: new Date().toISOString(),
         } as any);
       } else {
+        // Reddedildiğinde: eğitmen rolünü sıfırla, okul durumu dokunulmaz
         await FirestoreService.updateUser(userId, {
-          role: 'student', // Reddedildiğinde veya iptal edildiğinde öğrenciye geri döner
+          role: 'student',
+          activeMode: 'student',
+          roles: { instructor: 'none', school: 'none' } as UserRoles,
           verificationStatus: 'rejected',
           updatedAt: new Date().toISOString(),
         } as any);
@@ -980,7 +1083,7 @@ export class FirestoreService {
     }
   }
 
-  /** Eğitmen kendi başvurusunu iptal eder: isteği siler ve rolü student'a çevirir. */
+  /** Eğitmen kendi başvurusunu iptal eder: isteği siler, sadece instructor rolünü sıfırlar. Okul durumuna dokunmaz. */
   static async cancelInstructorRequest(userId: string): Promise<void> {
     try {
       // En son pending isteği bul
@@ -988,7 +1091,6 @@ export class FirestoreService {
         collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
         where('userId', '==', userId),
         where('status', '==', 'pending'),
-        orderBy('createdAt', 'desc'),
         limit(1)
       );
       const snap = await getDocs(q);
@@ -996,9 +1098,23 @@ export class FirestoreService {
         await deleteDoc(doc(db, COLLECTIONS.INSTRUCTOR_REQUESTS, snap.docs[0].id));
       }
 
-      // Kullanıcıyı student'a döndür
+      // Okul durumunu kontrol et — okulu varsa aktif modu school'a çek
+      const qSchool = query(
+        collection(db, COLLECTIONS.SCHOOL_REQUESTS),
+        where('userId', '==', userId),
+        limit(1)
+      );
+      const snapSchool = await getDocs(qSchool);
+      const hasSchool = !snapSchool.empty;
+      const schoolStatus = hasSchool ? snapSchool.docs[0].data().status : null;
+      const schoolRoleStatus = schoolStatus === 'approved' ? 'approved' : schoolStatus === 'pending' ? 'pending' : 'none';
+      const targetRole = hasSchool && schoolStatus === 'approved' ? 'school' : hasSchool && schoolStatus === 'pending' ? 'draft-school' : 'student';
+      const targetMode: ActiveMode = hasSchool ? 'school' : 'student';
+
       await FirestoreService.updateUser(userId, {
-        role: 'student',
+        role: targetRole,
+        activeMode: targetMode,
+        roles: { instructor: 'none', school: schoolRoleStatus } as UserRoles,
         verificationStatus: 'idle',
         schoolId: null,
         verificationMethod: null,
@@ -1006,6 +1122,64 @@ export class FirestoreService {
       } as any);
     } catch (error) {
       console.error('[FirestoreService] Error cancelling instructor request:', error);
+      throw error;
+    }
+  }
+
+  /** Okul başvurusunu iptal eder: isteği siler, sadece school rolünü sıfırlar. Eğitmen durumuna dokunmaz. */
+  static async cancelSchoolRequest(userId: string): Promise<void> {
+    try {
+      // 1. En son pending okul isteğini bul ve sil
+      const qSchool = query(
+        collection(db, COLLECTIONS.SCHOOL_REQUESTS),
+        where('userId', '==', userId),
+        where('status', '==', 'pending'),
+        limit(1)
+      );
+      const snapSchool = await getDocs(qSchool);
+      if (!snapSchool.empty) {
+        await deleteDoc(doc(db, COLLECTIONS.SCHOOL_REQUESTS, snapSchool.docs[0].id));
+      }
+
+      // 2. Eğitmenlik durumunu kontrol et — varsa onun rolünü koru
+      const qInst = query(
+        collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
+        where('userId', '==', userId),
+        limit(1)
+      );
+      const snapInst = await getDocs(qInst);
+
+      let targetRole: 'student' | 'draft-instructor' | 'instructor' = 'student';
+      let verificationStatus: 'idle' | 'pending' | 'verified' = 'idle';
+      let instructorStatus: UserRoles['instructor'] = 'none';
+
+      if (!snapInst.empty) {
+        const instData = snapInst.docs[0].data();
+        if (instData.status === 'approved') {
+          targetRole = 'instructor';
+          verificationStatus = 'verified';
+          instructorStatus = 'approved';
+        } else if (instData.status === 'pending') {
+          targetRole = 'draft-instructor';
+          verificationStatus = 'pending';
+          instructorStatus = 'pending';
+        }
+      }
+
+      const targetMode: ActiveMode = targetRole === 'instructor' || targetRole === 'draft-instructor' ? 'instructor' : 'student';
+
+      // 3. Kullanıcıyı doğru role döndür — sadece school sıfırlanır, instructor korunur
+      await FirestoreService.updateUser(userId, {
+        role: targetRole,
+        activeMode: targetMode,
+        roles: { instructor: instructorStatus, school: 'none' } as UserRoles,
+        verificationStatus,
+        schoolId: null,
+        verificationMethod: null,
+        updatedAt: new Date().toISOString(),
+      } as any);
+    } catch (error) {
+      console.error('[FirestoreService] Error cancelling school request:', error);
       throw error;
     }
   }
