@@ -250,7 +250,7 @@ export class FirestoreService {
     }
   }
 
-  static async getInstructorRequestStatus(userId: string): Promise<string | null> {
+  static async getInstructorRequestStatus(userId: string): Promise<{ status: string; verificationMethod: 'school' | 'document' | null; schoolId: string | null } | null> {
     try {
       const q = query(
         collection(db, COLLECTIONS.INSTRUCTOR_REQUESTS),
@@ -260,7 +260,12 @@ export class FirestoreService {
       );
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data().status;
+        const data = querySnapshot.docs[0].data();
+        return {
+          status: data.status,
+          verificationMethod: data.verificationMethod ?? null,
+          schoolId: data.schoolId ?? null,
+        };
       }
       return null;
     } catch (error) {
@@ -618,7 +623,47 @@ export class FirestoreService {
       console.error('Error getting dance school:', error);
       return null;
     }
+  }
 
+  static async getSchoolOwnerUserId(schoolId: string): Promise<string> {
+    try {
+      const docRef = doc(db, COLLECTIONS.DANCE_SCHOOLS, schoolId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        return data.userId || data.ownerId || schoolId;
+      }
+      return schoolId;
+    } catch (error) {
+      console.error('Error getting school owner user ID:', error);
+      return schoolId;
+    }
+  }
+
+  static async getSchoolByOwnerId(ownerId: string): Promise<DanceSchool | null> {
+    try {
+      // 1. Önce document ID'si ownerId ile eşleşen okulu ara (en yaygın durum)
+      const directSchool = await FirestoreService.getDanceSchoolById(ownerId);
+      if (directSchool) return directSchool;
+
+      // 2. Bulunamazsa userId veya ownerId alanı ownerId olan okulu sorgula
+      const q1 = query(collection(db, COLLECTIONS.DANCE_SCHOOLS), where('userId', '==', ownerId), limit(1));
+      const snap1 = await getDocs(q1);
+      if (!snap1.empty) {
+        return { id: snap1.docs[0].id, ...snap1.docs[0].data() } as any;
+      }
+
+      const q2 = query(collection(db, COLLECTIONS.DANCE_SCHOOLS), where('ownerId', '==', ownerId), limit(1));
+      const snap2 = await getDocs(q2);
+      if (!snap2.empty) {
+        return { id: snap2.docs[0].id, ...snap2.docs[0].data() } as any;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error getting school by owner ID:', error);
+      return null;
+    }
   }
 
   // Bookings

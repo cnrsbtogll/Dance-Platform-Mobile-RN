@@ -467,9 +467,16 @@
     "pendingSchoolApproval": "Okul onayı bekleniyor",
     "pendingSchoolApprovalDesc": "Başvurunuz {{school}} okuluna iletildi. Onay geldiğinde bildirim alacaksınız.",
     "changeSchool": "Okul Değiştir",
+    "contactSchool": "Okula Mesaj Gönder",
     "cancelRequestTitle": "Başvuruyu İptal Et",
     "cancelRequestDesc": "Okul başvurunuzu iptal etmek istediğinizden emin misiniz? Hesabınız öğrenci moduna geri dönecek.",
-    "cancelRequest": "İptal Et"
+    "cancelRequest": "İptal Et",
+    "verificationRequestSent": "Doğrulama Talebi Gönderildi",
+    "changeMethod": "Yöntemi değiştir",
+    "contactSchoolAndBoost": "Okul ile İletişime Geç & Hızlandır",
+    "schoolChatAutoMessage": "Merhaba, eğitmenlik doğrulama talebimi göndermiş bulunmaktayım. Onay sürecini hızlandırmanıza yardımcı olabilir misiniz?",
+    "schoolChatSent": "Mesajınız okula iletildi. Onay süreciniz hakkında yakında bildirim alacaksınız.",
+    "alreadyAppliedDocDesc": "Belge doğrulama talebiniz zaten alındı. Belgelerinizi güncellemek istiyor musunuz?"
   },
   "becomeInstructor": {
     "title": "Eğitmen Ol",
@@ -943,11 +950,14 @@
   "verificationGate": {
     "title": "Doğrulama Gerekiyor",
     "subtitle": "Kursunuzu yayına almak veya yeni kurs ekleyebilmek için hesabınızın doğrulanması gerekmektedir.",
+    "changeMethodTitle": "Doğrulama Yöntemini Değiştir",
+    "changeMethodSubtitle": "Farklı bir yöntem seçerek mevcut talebinizi güncelleyebilirsiniz.",
     "schoolApprovalTitle": "Okul Onayı ile Doğrula",
     "schoolApprovalDesc": "Sistemimizde kayıtlı bir okul seçin. Okul sizi onayladığında verified olursunuz.",
     "documentTitle": "Belge ile Doğrula",
     "documentDesc": "Kimlik ve sertifika belgelerinizi yükleyin, ekibimiz inceleyerek onaylayacak.",
-    "or": "veya"
+    "or": "veya",
+    "active": "Aktif"
   },
   "schoolSelection": {
     "title": "Okul Seç",

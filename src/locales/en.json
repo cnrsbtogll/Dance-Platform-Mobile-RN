@@ -463,9 +463,16 @@
     "pendingSchoolApproval": "Awaiting school approval",
     "pendingSchoolApprovalDesc": "Your application has been sent to {{school}}. You'll be notified when approved.",
     "changeSchool": "Change School",
+    "contactSchool": "Message School",
     "cancelRequestTitle": "Cancel Request",
     "cancelRequestDesc": "Are you sure you want to cancel your school application? Your account will revert to student mode.",
-    "cancelRequest": "Cancel It"
+    "cancelRequest": "Cancel It",
+    "verificationRequestSent": "Verification Request Sent",
+    "changeMethod": "Change",
+    "contactSchoolAndBoost": "Contact School & Speed Up",
+    "schoolChatAutoMessage": "Hello, I have submitted my instructor verification request. Could you help speed up the approval process?",
+    "schoolChatSent": "Your message has been sent to the school. You'll receive a notification about your approval soon.",
+    "alreadyAppliedDocDesc": "Your document verification request has already been received. Do you want to update your documents?"
   },
   "becomeInstructor": {
     "title": "Become an Instructor",
@@ -940,11 +947,14 @@
   "verificationGate": {
     "title": "Verification Required",
     "subtitle": "Your account must be verified to publish courses or add new ones.",
+    "changeMethodTitle": "Change Verification Method",
+    "changeMethodSubtitle": "Select a different method to update your current request.",
     "schoolApprovalTitle": "Verify via School",
     "schoolApprovalDesc": "Select a registered school. Once they approve you, you'll be verified.",
     "documentTitle": "Verify via Documents",
     "documentDesc": "Upload your ID and certificates. Our team will review and approve.",
-    "or": "or"
+    "or": "or",
+    "active": "Active"
   },
   "schoolSelection": {
     "title": "Select a School",
