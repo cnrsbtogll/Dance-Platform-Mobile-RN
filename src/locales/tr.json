@@ -869,6 +869,9 @@
   "school": {
     "badge": "OKUL",
     "completeProfile": "Okul Profilini Tamamla",
+    "completeProfileTitle": "Profilinizi Tamamlayın",
+    "completeProfileDesc": "Panelin tüm özelliklerini kullanabilmek için lütfen okul bilgilerinizi eksiksiz doldurun.",
+    "completeProfileFirst": "Lütfen önce okul profilinizi tamamlayın.",
     "onboardingTitle": "Okul Bilgileri",
     "onboardingDesc": "Öğrencilerin okulunuzu daha iyi tanıması için aşağıdaki bilgileri eksiksiz doldurun.",
     "bioPlaceholder": "Hakkımızda",
