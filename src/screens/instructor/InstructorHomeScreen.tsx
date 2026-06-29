@@ -88,12 +88,13 @@ export const InstructorHomeScreen: React.FC = () => {
       const checkRequestStatus = async () => {
         if (user?.id) {
           const result = await FirestoreService.getInstructorRequestStatus(user.id);
-          setHasSubmittedRequest(!!result);
-          setVerificationMethod(result?.verificationMethod ?? null);
-          setRequestSchoolId(result?.schoolId ?? null);
+          const isPending = !!result && result.status === 'pending';
+          setHasSubmittedRequest(isPending);
+          setVerificationMethod(isPending ? (result?.verificationMethod ?? null) : null);
+          setRequestSchoolId(isPending ? (result?.schoolId ?? null) : null);
 
           // Okul adını getir (user.schoolId veya request'teki schoolId)
-          const activeSchoolId = user.schoolId || result?.schoolId;
+          const activeSchoolId = user.schoolId || (isPending ? result?.schoolId : null);
           if (activeSchoolId) {
             try {
               const school = await FirestoreService.getUserById(activeSchoolId);
@@ -101,6 +102,8 @@ export const InstructorHomeScreen: React.FC = () => {
             } catch (_) {
               setPendingSchoolName(null);
             }
+          } else {
+            setPendingSchoolName(null);
           }
         }
       };

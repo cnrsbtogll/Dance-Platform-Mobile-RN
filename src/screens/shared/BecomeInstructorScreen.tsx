@@ -68,6 +68,9 @@ export const BecomeInstructorScreen: React.FC = () => {
         role: 'draft-instructor' as const,
         onboardingCompleted: false,
         isVerified: false,
+        verificationStatus: 'idle' as const,
+        verificationMethod: null,
+        schoolId: null,
       };
 
       await FirestoreService.updateUser(user.id, updatedData);
