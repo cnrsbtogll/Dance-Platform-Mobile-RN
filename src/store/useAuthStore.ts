@@ -19,7 +19,6 @@ interface AuthState {
   initialize: (pushToken?: string | null) => void;
   updatePushToken: (token: string) => Promise<void>;
   updateUserLocation: (city: string, country: string, isAutoDetected?: boolean) => Promise<void>;
-  switchMode: (mode: ActiveMode) => Promise<void>;
 }
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
