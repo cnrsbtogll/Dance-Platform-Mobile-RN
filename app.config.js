@@ -87,6 +87,11 @@ module.exports = {
       },
       buildNumber: "1",
       googleServicesFile: "./GoogleService-Info.plist",
+      infoPlist: {
+        LSApplicationQueriesSchemes: [
+          "whatsapp"
+        ]
+      },
     },
     android: {
       adaptiveIcon: {

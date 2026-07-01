@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -51,18 +52,7 @@ export const HelpCenterScreen: React.FC = () => {
   const handleContactSupport = async () => {
     const phoneNumber = '905550059876';
     const message = 'Feriha Dans platformu hakkında yardıma ihtiyacım var';
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
-
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        await Linking.openURL(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`);
-      }
-    } catch (error) {
-      console.error("WhatsApp error:", error);
-    }
+    await openWhatsApp(phoneNumber, message);
   };
 
   return (

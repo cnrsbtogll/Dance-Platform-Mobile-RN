@@ -23,6 +23,7 @@ import { colors, spacing, typography, borderRadius, getPalette } from '../../uti
 import { User, Booking, Lesson } from '../../types';
 import { QuickReplyModal } from '../../components/common/QuickReplyModal';
 import { chatService } from '../../services/firebase/chat';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 type ActionState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -157,14 +158,7 @@ export const InstructorStudentDetailScreen: React.FC = () => {
                 phoneStr = '+90' + phoneStr;
             }
         }
-        const url = `whatsapp://send?phone=${phoneStr}`;
-        Linking.canOpenURL(url).then(supported => {
-            if (supported) {
-                Linking.openURL(url);
-            } else {
-                Alert.alert('Error', 'WhatsApp is not installed on your device.');
-            }
-        });
+        openWhatsApp(phoneStr, '');
     };
 
     const handlePhoneCall = () => {
