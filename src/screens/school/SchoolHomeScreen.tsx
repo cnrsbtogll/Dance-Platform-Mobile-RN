@@ -183,91 +183,153 @@ export const SchoolHomeScreen: React.FC = () => {
         <View style={[styles.container, { backgroundColor: palette.background }]}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 {/* Verification Banner */}
-                {user?.role === 'draft-school' && (
-                    <View style={[styles.verificationBanner, { backgroundColor: isDarkMode ? palette.card : '#FDF4FF', borderColor: colors.school.primary }]}>
-                        <View style={styles.verificationBannerHeader}>
-                            <View style={[styles.infoIconContainer, { backgroundColor: colors.school.primary + '20' }]}>
-                                <MaterialIcons name="rocket-launch" size={20} color={colors.school.primary} />
-                            </View>
-                            <Text style={[styles.verificationBannerTitle, { color: palette.text.primary }]}>
-                                {!user?.onboardingCompleted
-                                    ? (t('school.completeProfileTitle') || 'Profilinizi Tamamlayın')
-                                    : user?.verificationStatus === 'pending'
-                                        ? t('school.verificationPendingTitle')
-                                        : t('school.verificationRequired')}
-                            </Text>
-                        </View>
+                {user?.role === 'draft-school' && (() => {
+                    const isProfileComplete = !!user?.onboardingCompleted;
+                    const isRequestActive = hasSubmittedRequest || user?.schoolVerificationStatus === 'pending';
+                    const waEnabled = isRequestActive && user?.schoolVerificationStatus === 'pending';
 
-                        <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
-                            {!user?.onboardingCompleted
-                                ? (t('school.completeProfileDesc') || 'Panelin tüm özelliklerini kullanabilmek için lütfen okul bilgilerinizi eksiksiz doldurun.')
-                                : user?.verificationStatus === 'pending'
-                                    ? t('school.verificationPendingDesc')
-                                    : t('school.verificationStepDesc')}
-                        </Text>
+                    const handleWhatsApp = async () => {
+                        const waMessage = `${t('becomeSchool.whatsappMessage') || 'Merhaba, Dance Platform uygulamasında Dans Okulu açmak istiyorum. Belgelerimi gönderdim, onay bekliyorum.'} (Kullanıcı ID: ${user?.id})`;
+                        await openWhatsApp('+90 0555 005 98 76', waMessage);
+                    };
 
-                        <View style={styles.bannerActions}>
-                            {!user?.onboardingCompleted ? (
-                                <TouchableOpacity
-                                    style={[styles.onboardingButton, { backgroundColor: colors.school.primary }]}
-                                    onPress={() => (navigation as any).navigate('SchoolOnboarding')}
-                                >
-                                    <View style={styles.buttonContent}>
-                                        <MaterialIcons name="business" size={18} color="#ffffff" />
-                                        <Text style={styles.verificationButtonText}>{t('school.completeProfileButton')}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ) : (
-                                user?.verificationStatus !== 'pending' && user?.verificationStatus !== 'verified' && (
-                                    <TouchableOpacity
-                                        style={[styles.onboardingButton, { backgroundColor: colors.school.primary }]}
-                                        onPress={() => (navigation as any).navigate('SchoolVerification')}
-                                    >
-                                        <View style={styles.buttonContent}>
-                                            <MaterialIcons name="verified-user" size={18} color="#ffffff" />
-                                            <Text style={styles.verificationButtonText}>{t('school.uploadDocumentsButton')}</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                )
-                            )}
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.whatsappBannerButton,
-                                    { backgroundColor: user?.onboardingCompleted ? '#25D366' : '#E5E7EB' }
-                                ]}
-                                onPress={() => {
-                                    if (!user?.onboardingCompleted) {
-                                        Alert.alert(
-                                            t('common.info') || 'Bilgi',
-                                            t('school.completeProfileFirst') || 'Lütfen önce okul profilinizi tamamlayın.',
-                                            [{ text: t('common.ok') }]
-                                        );
-                                    } else {
-                                        const waMessage = `${t('becomeSchool.whatsappMessage') || 'Merhaba, Dance Platform uygulamasında Dans Okulu açmak istiyorum'} (Kullanıcı ID: ${user?.id})`;
-                                        openWhatsApp('+90 0555 005 98 76', waMessage);
-                                    }
-                                }}
-                                activeOpacity={user?.onboardingCompleted ? 0.7 : 1}
-                            >
-                                <View style={styles.buttonContent}>
-                                    <FontAwesome
-                                        name="whatsapp"
-                                        size={18}
-                                        color={(hasSubmittedRequest && user?.verificationStatus === 'pending') ? "#ffffff" : "#9CA3AF"}
-                                    />
-                                    <Text style={[styles.whatsappBannerButtonText, { color: (hasSubmittedRequest && user?.verificationStatus === 'pending') ? '#ffffff' : '#9CA3AF' }]}>
-                                        {t('instructor.contactSupportWhatsapp')}
-                                    </Text>
+                    return (
+                        <View style={[styles.verificationBanner, { backgroundColor: isDarkMode ? palette.card : '#FDF4FF', borderColor: colors.school.primary }]}>
+                            <View style={styles.verificationBannerHeader}>
+                                <View style={[styles.infoIconContainer, { backgroundColor: colors.school.primary + '20' }]}>
+                                    <MaterialIcons name="rocket-launch" size={20} color={colors.school.primary} />
                                 </View>
-                            </TouchableOpacity>
+                                <Text style={[styles.verificationBannerTitle, { color: palette.text.primary }]}>
+                                    {t('school.verificationRequired') || 'Dans Okulu Doğrulaması'}
+                                </Text>
+                            </View>
 
-                            {user?.role === 'draft-school' && (
+                            <Text style={[styles.verificationBannerText, { color: palette.text.secondary }]}>
+                                {t('school.verificationStepDesc') || 'Okul panelinizi aktifleştirmek için lütfen aşağıdaki adımları tamamlayın.'}
+                            </Text>
+
+                            <View style={styles.bannerActions}>
+                                {/* ── Adım 1: Profil Tamamla ── */}
                                 <TouchableOpacity
                                     style={[
-                                        styles.onboardingButton,
-                                        { backgroundColor: '#EF4444', marginTop: spacing.sm }
+                                        styles.bannerStepButton,
+                                        { backgroundColor: isProfileComplete ? '#10B981' : colors.school.primary },
                                     ]}
+                                    onPress={() => {
+                                        (navigation as any).navigate('SchoolOnboarding');
+                                    }}
+                                    activeOpacity={0.82}
+                                >
+                                    <View style={styles.bannerStepRow}>
+                                        <View style={[
+                                            styles.bannerStepIconWrap,
+                                            { backgroundColor: isProfileComplete ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.15)' },
+                                        ]}>
+                                            <MaterialIcons
+                                                name={isProfileComplete ? 'check-circle' : 'business'}
+                                                size={18}
+                                                color="#ffffff"
+                                            />
+                                        </View>
+                                        <Text style={styles.bannerStepLabel}>
+                                            {isProfileComplete
+                                                ? (t('school.onboardingCompleted') || 'Okul Profilini Tamamladın ✓')
+                                                : (t('school.completeProfileButton') || 'Okul Profilini Tamamla')}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* ── Adım 2: Belge Doğrulaması ── */}
+                                <View style={[
+                                    styles.bannerStepCard,
+                                    {
+                                        backgroundColor: !isProfileComplete
+                                            ? '#E5E7EB'
+                                            : isRequestActive
+                                                ? '#10B981'
+                                                : colors.school.primary,
+                                    },
+                                ]}>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            if (!isProfileComplete) {
+                                                Alert.alert(
+                                                    t('school.completeProfileFirst') || 'Profil Tamamlanmadı',
+                                                    t('school.completeProfileFirstDesc') || 'Doğrulama işlemine geçmeden önce lütfen okul profilinizi tamamlayın.',
+                                                    [{ text: t('common.ok') }]
+                                                );
+                                                return;
+                                            }
+                                            // Always allow navigating to SchoolVerification to update documents
+                                            (navigation as any).navigate('SchoolVerification');
+                                        }}
+                                        activeOpacity={isProfileComplete ? 0.82 : 1}
+                                        disabled={!isProfileComplete}
+                                        style={styles.bannerStepRow}
+                                    >
+                                        <View style={[
+                                            styles.bannerStepIconWrap,
+                                            { backgroundColor: !isProfileComplete ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.2)' },
+                                        ]}>
+                                            <MaterialIcons
+                                                name={isRequestActive ? 'check-circle' : 'verified-user'}
+                                                size={18}
+                                                color={!isProfileComplete ? '#9CA3AF' : '#ffffff'}
+                                            />
+                                        </View>
+                                        <Text style={[styles.bannerStepLabel, { color: !isProfileComplete ? '#9CA3AF' : '#ffffff' }]}>
+                                            {isRequestActive
+                                                ? (t('instructor.verificationRequestSent') || 'Doğrulama Talebi Gönderildi ✓')
+                                                : (t('instructor.verifyNow') || 'Kimlik & Sertifika Yükle')}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* ── Adım 3: WhatsApp ile Hızlandır ── */}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.bannerStepButton,
+                                        {
+                                            backgroundColor: waEnabled ? '#25D366' : '#E5E7EB',
+                                            opacity: waEnabled ? 1 : 0.75,
+                                        },
+                                    ]}
+                                    onPress={waEnabled ? handleWhatsApp : undefined}
+                                    activeOpacity={waEnabled ? 0.82 : 1}
+                                    disabled={!waEnabled}
+                                >
+                                    <View style={styles.bannerStepRow}>
+                                        <View style={[
+                                            styles.bannerStepIconWrap,
+                                            { backgroundColor: waEnabled ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)' },
+                                        ]}>
+                                            <FontAwesome
+                                                name="whatsapp"
+                                                size={18}
+                                                color={waEnabled ? '#ffffff' : '#9CA3AF'}
+                                            />
+                                        </View>
+                                        <Text style={[styles.bannerStepLabel, { color: waEnabled ? '#ffffff' : '#9CA3AF' }]}>
+                                            {t('instructor.contactSupportWhatsapp') || 'WhatsApp ile Hızlandır'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* ── Adım 4: İptal Et ── */}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.changeMethodStrip,
+                                        {
+                                            backgroundColor: 'transparent',
+                                            borderWidth: 1,
+                                            borderColor: '#EF444440',
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            gap: 6,
+                                            marginTop: 8,
+                                        }
+                                    ]}
+                                    activeOpacity={0.75}
                                     onPress={() => {
                                         Alert.alert(
                                             t('school.cancelRequestTitle') || 'Okul Başvurusunu İptal Et',
@@ -290,17 +352,15 @@ export const SchoolHomeScreen: React.FC = () => {
                                         );
                                     }}
                                 >
-                                    <View style={styles.buttonContent}>
-                                        <MaterialIcons name="cancel" size={18} color="#ffffff" />
-                                        <Text style={styles.verificationButtonText}>
-                                            {t('school.cancelRequest') || 'Okul Başvurusunu İptal Et'}
-                                        </Text>
-                                    </View>
+                                    <MaterialIcons name="close" size={12} color="#EF4444" />
+                                    <Text style={[styles.changeMethodStripText, { color: '#EF4444' }]}>
+                                        {t('school.cancelRequest') || 'Okul Başvurusunu İptal Et'}
+                                    </Text>
                                 </TouchableOpacity>
-                            )}
+                            </View>
                         </View>
-                    </View>
-                )}
+                    );
+                })()}
 
                 {/* Earnings Card */}
                 <View style={[styles.section, { marginTop: spacing.md }]}>
@@ -503,6 +563,37 @@ const styles = StyleSheet.create({
     whatsappBannerButton: { paddingVertical: spacing.md, paddingHorizontal: spacing.md, borderRadius: borderRadius.lg, alignItems: 'center', ...shadows.sm },
     whatsappBannerButtonText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
     verificationButtonText: { color: '#ffffff', fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold },
+    bannerStepButton: {
+        borderRadius: borderRadius.lg,
+        overflow: 'hidden',
+        ...shadows.sm,
+    },
+    bannerStepCard: {
+        borderRadius: borderRadius.lg,
+        overflow: 'hidden',
+        ...shadows.sm,
+    },
+    bannerStepRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingVertical: 13,
+        paddingHorizontal: spacing.md,
+    },
+    bannerStepIconWrap: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    bannerStepLabel: {
+        flex: 1,
+        fontSize: typography.fontSize.sm,
+        fontWeight: typography.fontWeight.bold,
+        color: '#ffffff',
+        letterSpacing: 0.1,
+    },
     earningsCard: { borderRadius: borderRadius.xl, ...shadows.md, elevation: 4 },
     earningsContent: { padding: spacing.md, gap: spacing.md },
     earningsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },

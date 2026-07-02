@@ -67,21 +67,12 @@ export const BecomeSchoolScreen: React.FC = () => {
             await FirestoreService.updateUser(user.id, updatedData);
             setUser({ ...user, ...updatedData } as any);
 
-            Alert.alert(
-                t('common.success'),
-                t('becomeSchool.roleUpdated'),
-                [{
-                    text: t('common.ok'),
-                    onPress: () => {
-                        // Navigate to School mode via RootNavigator
-                        navigation.getParent()?.getParent()?.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'School' }],
-                            })
-                        );
-                    }
-                }]
+            // Navigate to School mode via RootNavigator immediately
+            navigation.getParent()?.getParent()?.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'School' }],
+                })
             );
         } catch (error) {
             console.error('[BecomeSchool] Error updating role:', error);
@@ -175,7 +166,7 @@ export const BecomeSchoolScreen: React.FC = () => {
                             </Text>
                         </View>
                     ) : (
-                        <View style={styles.formContainer}>
+                        <View style={[styles.formContainer, { borderColor: palette.border }]}>
                             <Text style={[styles.stepDescription, { color: palette.text.secondary, marginBottom: spacing.lg }]}>
                                 {t('becomeSchool.applyNowDesc')}
                             </Text>
@@ -336,7 +327,7 @@ const styles = StyleSheet.create({
     formContainer: {
         width: '100%',
         gap: spacing.md,
-        padding: spacing.lg,
+        padding: spacing.md,
         borderRadius: borderRadius.xl,
         borderWidth: 1,
     },

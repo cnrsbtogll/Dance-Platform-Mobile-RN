@@ -47,6 +47,7 @@ export interface User {
   city?: string;
   country?: string;
   verificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
+  schoolVerificationStatus?: 'idle' | 'pending' | 'verified' | 'rejected';
   schoolId?: string | null;              // Başvurulan okul (pending approval)
   verificationMethod?: 'school' | 'document';
   pushTokens?: string[];

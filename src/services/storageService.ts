@@ -28,7 +28,8 @@ const FUNCTIONS_BASE_URL =
 export type UploadCategory =
   | 'avatar'          // → public/avatars/{uid}/avatar.jpg
   | 'course-cover'    // → public/course-covers/{courseId}/cover.jpg
-  | 'instructor-doc'; // → private/instructor-docs/{uid}/{docType}.{ext}
+  | 'instructor-doc'  // → private/instructor-docs/{uid}/{docType}.{ext}
+  | 'school-doc';     // → private/school-docs/{uid}/{docType}.{ext}
 
 export interface UploadResult {
   url: string;       // Public URL (public files) or MinIO object key (private files)
@@ -221,11 +222,56 @@ export async function uploadInstructorDocument(
 ): Promise<string> {
   await checkFileSize(localUri, MAX_DOC_SIZE_MB);
 
-  const contentType = detectMimeType(localUri);
-  const ext = mimeToExt(contentType);
-  const remotePath = `private/instructor-docs/${userId}/${docType}.${ext}`;
+  const rawContentType = detectMimeType(localUri);
+  const isPdf = rawContentType === 'application/pdf';
 
-  const result = await uploadWithPresignedUrl(localUri, remotePath, contentType, onProgress);
+  let uploadUri = localUri;
+  let contentType = rawContentType;
+  let ext = mimeToExt(contentType);
+
+  if (!isPdf) {
+    // Görsel ise sıkıştır ve JPEG formatına dönüştür (HEIC, PNG vb. tarayıcı uyumluluğu için)
+    uploadUri = await compressImage(localUri, 0.85);
+    contentType = 'image/jpeg';
+    ext = 'jpg';
+  }
+
+  const remotePath = `private/instructor-docs/${userId}/${docType}.${ext}`;
+  await uploadWithPresignedUrl(uploadUri, remotePath, contentType, onProgress);
+  // Return the object key (private path) — not a public URL
+  return remotePath;
+}
+
+/**
+ * Upload a school verification document.
+ * Uploads to private/school-docs/{uid}/{docType}.{ext}
+ * Returns the MinIO object key (not a public URL).
+ * Use getDocumentDownloadUrl() to get a time-limited access URL.
+ */
+export async function uploadSchoolDocument(
+  userId: string,
+  localUri: string,
+  docType: 'id-front' | 'id-back' | 'certificate' | 'ministry-doc' | 'other',
+  onProgress?: (p: UploadProgress) => void
+): Promise<string> {
+  await checkFileSize(localUri, MAX_DOC_SIZE_MB);
+
+  const rawContentType = detectMimeType(localUri);
+  const isPdf = rawContentType === 'application/pdf';
+
+  let uploadUri = localUri;
+  let contentType = rawContentType;
+  let ext = mimeToExt(contentType);
+
+  if (!isPdf) {
+    // Görsel ise sıkıştır ve JPEG formatına dönüştür (HEIC, PNG vb. tarayıcı uyumluluğu için)
+    uploadUri = await compressImage(localUri, 0.85);
+    contentType = 'image/jpeg';
+    ext = 'jpg';
+  }
+
+  const remotePath = `private/school-docs/${userId}/${docType}.${ext}`;
+  await uploadWithPresignedUrl(uploadUri, remotePath, contentType, onProgress);
   // Return the object key (private path) — not a public URL
   return remotePath;
 }

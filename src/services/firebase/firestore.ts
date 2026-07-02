@@ -291,6 +291,8 @@ export class FirestoreService {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: string;
     updatedAt: string;
+    idDocumentUrl?: string;
+    ministryDocumentUrl?: string;
   }): Promise<void> {
     try {
       const colRef = collection(db, COLLECTIONS.SCHOOL_REQUESTS);
@@ -342,6 +344,29 @@ export class FirestoreService {
       return null;
     } catch (error) {
       console.error('Error getting school request status:', error);
+      return null;
+    }
+  }
+
+  static async getSchoolRequestDetails(userId: string): Promise<{ idDocumentUrl: string | null; ministryDocumentUrl: string | null } | null> {
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.SCHOOL_REQUESTS),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const data = querySnapshot.docs[0].data();
+        return {
+          idDocumentUrl: data.idDocumentUrl || null,
+          ministryDocumentUrl: data.ministryDocumentUrl || null,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting school request details:', error);
       return null;
     }
   }
@@ -1174,6 +1199,7 @@ export class FirestoreService {
         activeMode: targetMode,
         roles: { instructor: instructorStatus, school: 'none' } as UserRoles,
         verificationStatus,
+        schoolVerificationStatus: 'idle',
         schoolId: null,
         verificationMethod: null,
         updatedAt: new Date().toISOString(),

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius, shadows, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { FirestoreService } from '../../services/firebase/firestore';
+import { uploadSchoolDocument, UploadProgress } from '../../services/storageService';
 
 export const SchoolVerificationScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -17,26 +19,58 @@ export const SchoolVerificationScreen: React.FC = () => {
     const palette = getPalette('school', isDarkMode);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<{ id?: number; ministry?: number }>({});
     const [idDocument, setIdDocument] = useState<string | null>(null);       // Vergi Levhası / Kurucu Kimliği
     const [ministryDocument, setMinistryDocument] = useState<string | null>(null);   // MEB veya Gençlik Spor Belgesi
 
-    const handleSelectDocument = (type: 'id' | 'ministry') => {
-        Alert.alert(
-            type === 'id' ? (t('becomeSchool.idDocTitle') || 'Kimlik/Vergi Levhası') : (t('becomeSchool.ministryDocTitle') || 'Bakanlık Onay Belgesi'),
-            type === 'id'
-                ? (t('becomeSchool.idDocDesc') || 'Kurucu kimlik fotokopisi veya vergi levhasını seçin.')
-                : (t('becomeSchool.ministryDocDesc') || 'MEB veya Gençlik ve Spor Bakanlığı ruhsatnamenizi seçin.'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('common.ok'),
-                    onPress: () => {
-                        if (type === 'id') setIdDocument('dummy-id-document.jpg');
-                        else setMinistryDocument('dummy-ministry-document.jpg');
+    useEffect(() => {
+        const fetchExistingDocs = async () => {
+            if (user?.id) {
+                try {
+                    const details = await FirestoreService.getSchoolRequestDetails(user.id);
+                    if (details) {
+                        if (details.idDocumentUrl) setIdDocument(details.idDocumentUrl);
+                        if (details.ministryDocumentUrl) setMinistryDocument(details.ministryDocumentUrl);
                     }
+                } catch (error) {
+                    console.error('[SchoolVerification] Error loading existing docs:', error);
                 }
-            ]
-        );
+            }
+        };
+        fetchExistingDocs();
+    }, [user?.id]);
+
+    const handleSelectDocument = async (type: 'id' | 'ministry') => {
+        if (!user?.id) return;
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false,
+            quality: 1,
+        });
+
+        if (result.canceled || !result.assets?.[0]) return;
+
+        const asset = result.assets[0];
+        const docType = type === 'id' ? 'id-front' : 'ministry-doc';
+
+        const onProgress = (p: UploadProgress) => {
+            setUploadProgress(prev =>
+                type === 'id' ? { ...prev, id: p.percent } : { ...prev, ministry: p.percent }
+            );
+        };
+
+        try {
+            setIsSubmitting(true);
+            const objectPath = await uploadSchoolDocument(user.id, asset.uri, docType, onProgress);
+            if (type === 'id') setIdDocument(objectPath);
+            else setMinistryDocument(objectPath);
+        } catch (err: any) {
+            Alert.alert('Yükleme Hatası', err.message || 'Belge yüklenemedi. Lütfen tekrar deneyin.');
+        } finally {
+            setIsSubmitting(false);
+            setUploadProgress({});
+        }
     };
 
     const handleSubmit = async () => {
@@ -53,7 +87,6 @@ export const SchoolVerificationScreen: React.FC = () => {
         try {
             const now = new Date().toISOString();
 
-            // Assuming we have a dedicated collection for school verification or we use schoolRequests
             await FirestoreService.createSchoolRequest({
                 userId: user.id,
                 firstName: user.firstName || '',
@@ -67,13 +100,12 @@ export const SchoolVerificationScreen: React.FC = () => {
                 status: 'pending',
                 createdAt: now,
                 updatedAt: now,
-                // These would be uploaded to Storage in a real app
-                // idDocumentUrl: idDocument,
-                // ministryDocumentUrl: ministryDocument,
-            } as any);
+                idDocumentUrl: idDocument,
+                ministryDocumentUrl: ministryDocument,
+            });
 
             const updatedData = {
-                verificationStatus: 'pending' as const,
+                schoolVerificationStatus: 'pending' as const,
             };
 
             await FirestoreService.updateUser(user.id, updatedData);
@@ -123,6 +155,11 @@ export const SchoolVerificationScreen: React.FC = () => {
                     <View style={styles.uploadedText}>
                         <Text style={[styles.uploadedTitle, { color: palette.text.primary }]}>{title}</Text>
                         <Text style={[styles.uploadedSub, { color: colors.school.primary }]}>{t('common.done') || 'Yüklendi'} ✓</Text>
+                        {uploadProgress[type] !== undefined && uploadProgress[type]! < 100 && (
+                            <Text style={[styles.uploadedSub, { color: palette.text.secondary }]}>
+                                %{uploadProgress[type]} yükleniyor...
+                            </Text>
+                        )}
                     </View>
                     <TouchableOpacity onPress={onRemove} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <MaterialIcons name="close" size={20} color={palette.text.secondary} />
