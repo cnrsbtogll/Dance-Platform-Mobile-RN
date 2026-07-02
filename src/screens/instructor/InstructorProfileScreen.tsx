@@ -26,7 +26,7 @@ interface SettingItem {
 export const InstructorProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { user, logout, updateCurrency, refreshProfile } = useAuthStore();
+  const { user, setUser, logout, updateCurrency, refreshProfile } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -36,6 +36,22 @@ export const InstructorProfileScreen: React.FC = () => {
   const palette = getPalette(isSchool ? 'school' : 'instructor', isDarkMode);
 
   const currentCurrency: Currency = user?.currency || getDefaultCurrency();
+
+  const [hasPendingSchoolRequest, setHasPendingSchoolRequest] = useState(false);
+
+  useEffect(() => {
+    const checkSchoolRequest = async () => {
+      if (user?.id) {
+        try {
+          const status = await FirestoreService.getSchoolRequestStatus(user.id);
+          setHasPendingSchoolRequest(status === 'pending');
+        } catch (error) {
+          console.error('[InstructorProfile] Error checking school request:', error);
+        }
+      }
+    };
+    checkSchoolRequest();
+  }, [user?.id]);
 
   const currencies: { code: Currency; symbol: string; name: string }[] = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -465,11 +481,44 @@ export const InstructorProfileScreen: React.FC = () => {
               style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
               activeOpacity={0.8}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              onPress={() => {
-                (navigation as any).navigate('BecomeSchool');
+              onPress={async () => {
+                const isSchoolRole = user?.role === 'school' || user?.role === 'draft-school';
+                const hasSchoolRole = isSchoolRole || user?.roles?.school === 'approved' || user?.roles?.school === 'pending' || hasPendingSchoolRequest;
+                if (hasSchoolRole) {
+                  const targetRole = user?.roles?.school === 'approved' || user?.role === 'school' ? 'school' : 'draft-school';
+                  const rootNavigation = navigation.getParent()?.getParent();
+                  if (rootNavigation && user?.id) {
+                    try {
+                      await FirestoreService.updateUser(user.id, {
+                        role: targetRole,
+                        activeMode: 'school',
+                        updatedAt: new Date().toISOString(),
+                      });
+                      setUser({
+                        ...user,
+                        role: targetRole,
+                        activeMode: 'school',
+                      } as any);
+                      rootNavigation.dispatch(
+                        CommonActions.reset({
+                          index: 0,
+                          routes: [{ name: 'School' }],
+                        })
+                      );
+                    } catch (error) {
+                      Alert.alert(t('common.error'), t('common.errorDesc'));
+                    }
+                  }
+                } else {
+                  (navigation as any).navigate('BecomeSchool');
+                }
               }}
             >
-              <Text style={styles.switchModeButtonText}>{t('profile.becomeSchool') || 'Dans Okulu Aç'}</Text>
+              <Text style={styles.switchModeButtonText}>
+                {user?.role === 'school' || user?.role === 'draft-school' || user?.roles?.school === 'approved' || user?.roles?.school === 'pending' || hasPendingSchoolRequest
+                  ? (t('profile.switchToSchoolMode') || 'Dans Okulu Moduna Geç')
+                  : (t('profile.becomeSchool') || 'Dans Okulu Aç')}
+              </Text>
             </TouchableOpacity>
           </>
         )}

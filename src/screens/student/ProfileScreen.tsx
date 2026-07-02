@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Modal, Alert } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Card } from '../../components/common/Card';
 import { getAvatarSource } from '../../utils/imageHelper';
+import { FirestoreService } from '../../services/firebase/firestore';
 
 interface SettingItem {
   id: string;
@@ -22,11 +23,26 @@ interface SettingItem {
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { user, setUser, logout, isAuthenticated } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const { isDarkMode, setDarkMode, language, setLanguage } = useThemeStore();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const palette = getPalette('student', isDarkMode);
+  const [hasPendingSchoolRequest, setHasPendingSchoolRequest] = useState(false);
+
+  useEffect(() => {
+    const checkSchoolRequest = async () => {
+      if (user?.id) {
+        try {
+          const status = await FirestoreService.getSchoolRequestStatus(user.id);
+          setHasPendingSchoolRequest(status === 'pending');
+        } catch (error) {
+          console.error('[Profile] Error checking school request:', error);
+        }
+      }
+    };
+    checkSchoolRequest();
+  }, [user?.id]);
 
   const handleLogout = () => {
     logout();
@@ -291,16 +307,34 @@ export const ProfileScreen: React.FC = () => {
             style={[styles.switchModeButton, { backgroundColor: colors.school.primary }]}
             activeOpacity={0.8}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={() => {
-              if (user?.role === 'school' || user?.role === 'draft-school') {
+            onPress={async () => {
+              const isSchoolRole = user?.role === 'school' || user?.role === 'draft-school';
+              const hasSchoolRole = isSchoolRole || user?.roles?.school === 'approved' || user?.roles?.school === 'pending' || hasPendingSchoolRequest;
+
+              if (hasSchoolRole) {
                 const rootNavigation = navigation.getParent()?.getParent();
-                if (rootNavigation) {
-                  rootNavigation.dispatch(
-                    CommonActions.reset({
-                      index: 0,
-                      routes: [{ name: 'School' }],
-                    })
-                  );
+                if (rootNavigation && user?.id) {
+                  try {
+                    const targetRole = user?.roles?.school === 'approved' || user?.role === 'school' ? 'school' : 'draft-school';
+                    await FirestoreService.updateUser(user.id, {
+                      role: targetRole,
+                      activeMode: 'school',
+                      updatedAt: new Date().toISOString(),
+                    });
+                    setUser({
+                      ...user,
+                      role: targetRole,
+                      activeMode: 'school',
+                    } as any);
+                    rootNavigation.dispatch(
+                      CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: 'School' }],
+                      })
+                    );
+                  } catch (error) {
+                    Alert.alert(t('common.error'), t('common.errorDesc'));
+                  }
                 }
               } else {
                 (navigation as any).getParent()?.navigate('BecomeSchool');
@@ -308,8 +342,8 @@ export const ProfileScreen: React.FC = () => {
             }}
           >
             <Text style={styles.switchModeButtonText}>
-              {user?.role === 'school' || user?.role === 'draft-school'
-                ? t('profile.switchToSchoolMode')
+              {user?.role === 'school' || user?.role === 'draft-school' || user?.roles?.school === 'approved' || user?.roles?.school === 'pending' || hasPendingSchoolRequest
+                ? (t('profile.switchToSchoolMode') || 'Dans Okulu Moduna Geç')
                 : (t('profile.becomeSchool') || 'Dans Okulu Aç')}
             </Text>
           </TouchableOpacity>
