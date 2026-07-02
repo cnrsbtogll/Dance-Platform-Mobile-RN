@@ -21,6 +21,10 @@ export interface AppConfig {
   };
   appName: string;
   appNameShort: string;
+  buildNumber: {
+    ios: string;
+    android: string;
+  };
 }
 
 // Get brand from environment variable or default to 'codecanyon'
@@ -48,6 +52,10 @@ const brandConfigs: Record<Brand, AppConfig> = {
     },
     appName: 'Dancer Community',
     appNameShort: 'Dancer',
+    buildNumber: {
+      ios: '1',
+      android: '1',
+    },
   },
   feriha: {
     brand: 'feriha',
@@ -61,6 +69,10 @@ const brandConfigs: Record<Brand, AppConfig> = {
     },
     appName: 'Feriha',
     appNameShort: 'Feriha',
+    buildNumber: {
+      ios: '33',
+      android: '31',
+    },
   },
 };
 

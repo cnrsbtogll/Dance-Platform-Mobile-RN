@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import Constants from 'expo-constants';
 import { colors, spacing, typography, borderRadius, getPalette } from '../../utils/theme';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -55,7 +56,17 @@ export const AboutScreen: React.FC = () => {
             resizeMode="contain"
           />
           <Text style={[styles.appVersion, { color: palette.text.secondary }]}>
-            {t('about.version')} 1.0.0
+            {(() => {
+              const version = Constants.expoConfig?.version || '1.0.4';
+              // Metro konfigürasyon önbellekleme (caching) sorunlarını aşmak için doğrudan JS/TS import edilen appConfig üzerinden okuruz.
+              const buildNumber = Platform.select({
+                ios: appConfig.buildNumber?.ios,
+                android: appConfig.buildNumber?.android,
+              }) || Constants.nativeBuildVersion || '1';
+              return buildNumber 
+                ? `${t('about.version')} ${version} (${buildNumber})` 
+                : `${t('about.version')} ${version}`;
+            })()}
           </Text>
         </View>
 

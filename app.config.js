@@ -85,7 +85,7 @@ module.exports = {
         dark: currentBrand.icon.dark,
         light: currentBrand.icon.light,
       },
-      buildNumber: "1",
+      buildNumber: "33",
       googleServicesFile: "./GoogleService-Info.plist",
       infoPlist: {
         LSApplicationQueriesSchemes: [
@@ -100,7 +100,7 @@ module.exports = {
         backgroundColor: currentBrand.adaptiveIcon.backgroundColor,
       },
       package: currentBrand.package,
-      versionCode: 1,
+      versionCode: 31,
       googleServicesFile: "./google-services.json",
     },
     web: {
